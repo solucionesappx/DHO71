@@ -481,7 +481,7 @@
             display: grid;
             gap: 2rem;
             width: 100%;
-            max-width: 500px;
+            max-width: 500px; /* NO MODIFICAR */
             /* Asegura que los gráficos ocupen todo el ancho en una columna */
             grid-template-columns: 1fr;
             margin: 2rem auto;
@@ -519,6 +519,12 @@
         .chart-card canvas {
             max-width: 100%;
             max-height: 300px;
+        }
+        
+        /* Ajuste para el gráfico de barras horizontales */
+        #barChart {
+            max-width: 100%;
+            height: auto; /* Permite que la altura sea dinámica */
         }
 
     </style>
@@ -769,6 +775,11 @@
         // Función para dibujar el gráfico de barras horizontales
         async function drawBarChart() {
             const data = await fetchData(2, 5);
+            
+            const barThickness = 20;
+            const chartHeight = data.labels.length * (barThickness + 5);
+            document.getElementById('barChart').style.height = `${chartHeight}px`;
+
             const barData = {
                 labels: data.labels,
                 datasets: [{
@@ -777,9 +788,7 @@
                     backgroundColor: chartColors,
                     borderColor: chartColors,
                     borderWidth: 1,
-                    // Ajuste para el ancho de la barra
-                    barPercentage: 0.9,
-                    categoryPercentage: 0.9,
+                    barThickness: barThickness,
                 }]
             };
 
@@ -788,6 +797,7 @@
                 data: barData,
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     indexAxis: 'y',
                     scales: {
                         y: {
