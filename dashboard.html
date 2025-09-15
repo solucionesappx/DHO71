@@ -8,11 +8,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Incluye la librería de iconos Font Awesome -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.5.1/css/all.css">
-    <!-- Incluye la librería de Chart.js para los gráficos -->
+    <!-- Incluye la librería Chart.js para los gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
         /* Importa la fuente Poppins de Google Fonts */
         @import url("https://fonts.googleapis.com/css?family=Poppins:200,300,400,500,600,700,800,900&display=swap");
+        @import url("https://fonts.googleapis.com/css?family=Inter:400,500,600,700,800,900&display=swap");
 
         /* Definición de variables CSS para el tema claro */
         :root {
@@ -281,7 +283,6 @@
             border-left-color: var(--accent-color-1);
             animation: spin 1s ease infinite;
             margin: 2rem auto;
-            display: none;
         }
         
         @keyframes spin {
@@ -474,6 +475,52 @@
                 padding: 0.5rem 1rem; /* Padding horizontal para un mejor aspecto */
             }
         }
+
+        /* Estilos de los gráficos */
+        .dashboard-container {
+            display: grid;
+            gap: 2rem;
+            width: 100%;
+            max-width: 500px;
+            /* Asegura que los gráficos ocupen todo el ancho en una columna */
+            grid-template-columns: 1fr;
+            margin: 2rem auto;
+        }
+
+        /* Media query para ajustar la vista en dispositivos de escritorio */
+        @media (min-width: 768px) {
+            .dashboard-container {
+                /* Vuelve al diseño original con múltiples columnas en pantallas más grandes */
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            }
+        }
+
+        .chart-card {
+            background-color: var(--box-color);
+            padding: 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px var(--box-shadow-color), 0 4px 6px -2px var(--box-shadow-color);
+            width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .chart-card h2 {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .chart-card canvas {
+            max-width: 100%;
+            max-height: 300px;
+        }
+
     </style>
 </head>
 <body class="dark-mode transition-colors">
@@ -502,7 +549,7 @@
     <!-- Nueva barra de navegación para los dashboards -->
     <nav class="fixed top-16 left-0 w-full nav-bg z-40 transition-colors py-2">
         <div class="container mx-auto padding-container py-2 flex justify-around items-center">
-            <a href="#" class="nav-link-top nav-link-top-desktop" data-target="home-dashboard">
+            <a href="#" class="nav-link-top nav-link-top-desktop active" data-target="home-dashboard">
                 <i class="fa-solid fa-building text-2xl"></i>
                 <span class="font-semibold text-sm">Empresa</span>
             </a>
@@ -520,20 +567,28 @@
     <!-- 2. Contenedor principal para las diferentes secciones del dashboard -->
     <main class="pt-40 pb-20 px-4">
         <div class="container mx-auto py-12">
-            <!-- Dashboard -->
+            <!-- Dashboard de Datos Básicos -->
             <div id="home-dashboard" class="dashboard-section">
                 <h2 class="text-3xl font-bold mb-6 text-center">Dashboard de Datos Básicos</h2>
-                <!-- Gráfico de pastel -->
-                <div class="dashboard-box header-bg box-shadow mb-8">
-                     <canvas id="pieChart" class="w-full h-auto"></canvas>
-                </div>
-                <!-- Gráfico de barras -->
-                <div class="dashboard-box header-bg box-shadow mb-8">
-                    <canvas id="barChart" class="w-full h-auto"></canvas>
-                </div>
-                <!-- Gráfico de línea -->
-                <div class="dashboard-box header-bg box-shadow">
-                    <canvas id="lineChart" class="w-full h-auto"></canvas>
+                <div class="spinner" id="loading-spinner"></div>
+                <div class="dashboard-container" id="chart-container">
+                    <!-- Chart 1: Doughnut Chart -->
+                    <div class="chart-card">
+                        <h2 class="text-2xl font-semibold mb-4 text-center">Gráfico de Rosca</h2>
+                        <canvas id="doughnutChart"></canvas>
+                    </div>
+    
+                    <!-- Chart 2: Bar Chart -->
+                    <div class="chart-card">
+                        <h2 class="text-2xl font-semibold mb-4 text-center">Gráfico de Barras Horizontales</h2>
+                        <canvas id="barChart"></canvas>
+                    </div>
+    
+                    <!-- Chart 3: Area Chart -->
+                    <div class="chart-card">
+                        <h2 class="text-2xl font-semibold mb-4 text-center">Gráfico de Área</h2>
+                        <canvas id="areaChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -620,6 +675,11 @@
                     link.classList.add('active');
                 }
             });
+
+            // Si el dashboard es el de inicio, inicializar los gráficos
+            if (targetId === 'home-dashboard') {
+                initCharts();
+            }
         }
         
         // Lógica para la navegación entre dashboards
@@ -630,163 +690,209 @@
                 showDashboard(targetId);
             });
         });
+        
+        // --- Lógica para la generación de gráficos ---
+        
+        // URL de la hoja de cálculo de Google
+        const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4xGFw_JfEiVB9tbsHckm6rKA2HTytJc8wA2Yi9B1PFZuudTowGCC3hRtBPPa5z92Rpp05OmkqTCcE/pub?output=csv';
+
+        const chartColors = [
+            '#1E3A8A', '#2563EB', '#3B82F6', '#60A5FA', '#93C5FD', '#BFDBFE', '#3F6212', '#4B5563', '#6B7280'
+        ];
+
+        // Función para obtener los datos desde la URL del archivo CSV
+        async function fetchData(nameIndex, valueIndex) {
+            try {
+                const response = await fetch(GOOGLE_SHEET_URL);
+                const csvText = await response.text();
+                const lines = csvText.trim().split('\n');
+                const groupedData = new Map();
+
+                lines.slice(1).forEach(line => {
+                    const columns = line.split(',');
+                    const name = columns[nameIndex]?.trim();
+                    const valueString = columns[valueIndex]?.replace(/[()%\s]/g, '');
+                    const value = parseFloat(valueString);
+                    
+                    if (!isNaN(value)) {
+                        const groupName = name;
+                        groupedData.set(groupName, (groupedData.get(groupName) || 0) + value);
+                    }
+                });
+                const labels = Array.from(groupedData.keys());
+                const values = Array.from(groupedData.values());
+                return { labels, values };
+            } catch (error) {
+                console.error('Error fetching data from Google Sheets:', error);
+                return { labels: [], values: [] };
+            }
+        }
+        
+        // Función para dibujar el gráfico de rosca
+        async function drawDoughnutChart() {
+            const data = await fetchData(0, 6);
+            const doughnutData = {
+                labels: data.labels,
+                datasets: [{
+                    data: data.values,
+                    backgroundColor: chartColors,
+                    hoverOffset: 4
+                }]
+            };
+
+            const doughnutConfig = {
+                type: 'doughnut',
+                data: doughnutData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(2);
+                                    return `${label}: ${percentage}%`;
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+            new Chart(document.getElementById('doughnutChart'), doughnutConfig);
+        }
+        
+        // Función para dibujar el gráfico de barras horizontales
+        async function drawBarChart() {
+            const data = await fetchData(2, 5);
+            const barData = {
+                labels: data.labels,
+                datasets: [{
+                    label: 'Valores Absolutos',
+                    data: data.values,
+                    backgroundColor: chartColors,
+                    borderColor: chartColors,
+                    borderWidth: 1,
+                    // Ajuste para el ancho de la barra
+                    barPercentage: 0.9,
+                    categoryPercentage: 0.9,
+                }]
+            };
+
+            const barConfig = {
+                type: 'bar',
+                data: barData,
+                options: {
+                    responsive: true,
+                    indexAxis: 'y',
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            // Reducir el tamaño de la fuente para las etiquetas del eje Y
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            };
+            new Chart(document.getElementById('barChart'), barConfig);
+        }
+
+        // Función para dibujar el gráfico de área
+        async function drawAreaChart() {
+            const data = await fetchData(1, 6);
+            
+            const secondCurveData = data.values.map(value => {
+                const randomFactor = 0.3 + Math.random() * (1.7 - 0.3);
+                return value * randomFactor;
+            });
+            
+            const areaData = {
+                labels: data.labels,
+                datasets: [{
+                    label: 'Valores Originales',
+                    data: data.values,
+                    borderColor: '#2563EB',
+                    backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    borderWidth: 2,
+                },
+                {
+                    label: 'Valores Aleatorios (30%-170%)',
+                    data: secondCurveData,
+                    borderColor: '#DC2626',
+                    backgroundColor: 'rgba(220, 38, 38, 0.5)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    borderWidth: 2,
+                }]
+            };
+
+            const areaConfig = {
+                type: 'line',
+                data: areaData,
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            };
+            new Chart(document.getElementById('areaChart'), areaConfig);
+        }
+
+        async function initCharts() {
+            const spinner = document.getElementById('loading-spinner');
+            const chartContainer = document.getElementById('chart-container');
+            
+            spinner.style.display = 'block';
+            chartContainer.classList.add('hidden');
+
+            try {
+                await Promise.all([
+                    drawDoughnutChart(),
+                    drawBarChart(),
+                    drawAreaChart()
+                ]);
+            } catch (error) {
+                console.error('Failed to draw charts:', error);
+            } finally {
+                spinner.style.display = 'none';
+                chartContainer.classList.remove('hidden');
+            }
+        }
 
         // Mostrar el dashboard por defecto al cargar la página
         window.addEventListener('DOMContentLoaded', () => {
             showDashboard('home-dashboard');
-            // Crear el gráfico de pastel
-            const pieChartCtx = document.getElementById('pieChart').getContext('2d');
-            const pieChart = new Chart(pieChartCtx, {
-                type: 'pie',
-                data: {
-                    labels: ['Empresa 1', 'Empresa 2', 'Empresa 3'],
-                    datasets: [{
-                        data: [45, 15, 40],
-                        backgroundColor: [
-                            'rgba(214, 19, 54, 0.8)', // Color para Empresa 1
-                            'rgba(255, 100, 100, 0.8)', // Color para Empresa 2
-                            'rgba(122, 235, 188, 0.8)'  // Color para Empresa 3
-                        ],
-                        hoverOffset: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: {
-                                color: 'var(--text-color)'
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: 'Distribución de Empresas',
-                            color: 'var(--text-color)'
-                        }
-                    }
-                }
-            });
-
-            // Crear el gráfico de barras con datos aleatorios
-            const barChartCtx = document.getElementById('barChart').getContext('2d');
-            const barLabels = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto'];
-            const barData = barLabels.map(() => Math.floor(Math.random() * 100));
-
-            const barChart = new Chart(barChartCtx, {
-                type: 'bar',
-                data: {
-                    labels: barLabels,
-                    datasets: [{
-                        label: 'Valores por Mes',
-                        data: barData,
-                        backgroundColor: 'rgba(214, 19, 54, 0.8)',
-                        borderColor: 'rgba(214, 19, 54, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: false,
-                        },
-                        title: {
-                            display: true,
-                            text: 'Valores Aleatorios por Mes (Enero - Agosto)',
-                            color: 'var(--text-color)'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)',
-                            },
-                            ticks: {
-                                color: 'var(--text-color)'
-                            }
-                        },
-                        x: {
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)',
-                            },
-                            ticks: {
-                                color: 'var(--text-color)'
-                            }
-                        }
-                    }
-                }
-            });
-
-            // Crear el gráfico de línea con dos curvas
-            const lineChartCtx = document.getElementById('lineChart').getContext('2d');
-            const lineLabels = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-            const randomData = lineLabels.map(() => Math.floor(Math.random() * 301));
-            const programmedData = [50, 75, 120, 150, 180, 200, 190, 160, 130, 100, 80, 60];
-
-            const lineChart = new Chart(lineChartCtx, {
-                type: 'line',
-                data: {
-                    labels: lineLabels,
-                    datasets: [
-                        {
-                            label: 'Valores Aleatorios',
-                            data: randomData,
-                            borderColor: 'rgba(214, 19, 54, 1)',
-                            backgroundColor: 'rgba(214, 19, 54, 0.2)',
-                            fill: true,
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Valores Programados',
-                            data: programmedData,
-                            borderColor: 'rgba(122, 235, 188, 1)',
-                            backgroundColor: 'rgba(122, 235, 188, 0.2)',
-                            fill: true,
-                            tension: 0.4,
-                            pointHoverBackgroundColor: 'rgba(122, 235, 188, 1)',
-                            pointHoverBorderColor: 'rgba(255, 255, 255, 1)',
-                            pointHoverRadius: 8
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Gráfico de Líneas con Dos Curvas',
-                            color: 'var(--text-color)'
-                        },
-                        legend: {
-                            labels: {
-                                color: 'var(--text-color)'
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 300,
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)',
-                            },
-                            ticks: {
-                                color: 'var(--text-color)'
-                            }
-                        },
-                        x: {
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)',
-                            },
-                            ticks: {
-                                color: 'var(--text-color)'
-                            }
-                        }
-                    }
-                }
-            });
         });
         
     </script>
