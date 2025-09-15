@@ -20,22 +20,24 @@
             --box-color: #e9ecef;
             --border-color: #dcdcdc;
             --text-color: #111;
-            --link-color: #D61336;
-            --accent-color-1: #D61336;
+            --link-color: #4041C2;
+            --accent-color-1: #4041C2;
             --accent-color-2: #7aebbc;
             --box-shadow-color: rgba(0,0,0,0.2);
+            --placeholder-color: #6b7280;
         }
 
         /* Variables para el tema oscuro */
         body.dark-mode {
             --bg-color: #25252b;
-            --box-color: #3a3a45;
+            --box-color: #2d2d39;
             --border-color: #25252b;
             --text-color: #fff;
-            --link-color: #ff6347;
-            --accent-color-1: #800D21;
+            --link-color: #4041C2;
+            --accent-color-1: #4041C2;
             --accent-color-2: #dbeb7a;
-            --box-shadow-color: rgba(255,255,255,0.15);
+            --box-shadow-color: rgba(0,0,0,0.5);
+            --placeholder-color: #9ca3af;
         }
         
         body {
@@ -521,8 +523,17 @@
             <!-- Dashboard -->
             <div id="home-dashboard" class="dashboard-section">
                 <h2 class="text-3xl font-bold mb-6 text-center">Dashboard de Datos Básicos</h2>
-                <div class="dashboard-box header-bg box-shadow">
+                <!-- Gráfico de pastel -->
+                <div class="dashboard-box header-bg box-shadow mb-8">
                      <canvas id="pieChart" class="w-full h-auto"></canvas>
+                </div>
+                <!-- Gráfico de barras -->
+                <div class="dashboard-box header-bg box-shadow mb-8">
+                    <canvas id="barChart" class="w-full h-auto"></canvas>
+                </div>
+                <!-- Gráfico de línea -->
+                <div class="dashboard-box header-bg box-shadow">
+                    <canvas id="lineChart" class="w-full h-auto"></canvas>
                 </div>
             </div>
         </div>
@@ -652,6 +663,126 @@
                             display: true,
                             text: 'Distribución de Empresas',
                             color: 'var(--text-color)'
+                        }
+                    }
+                }
+            });
+
+            // Crear el gráfico de barras con datos aleatorios
+            const barChartCtx = document.getElementById('barChart').getContext('2d');
+            const barLabels = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto'];
+            const barData = barLabels.map(() => Math.floor(Math.random() * 100));
+
+            const barChart = new Chart(barChartCtx, {
+                type: 'bar',
+                data: {
+                    labels: barLabels,
+                    datasets: [{
+                        label: 'Valores por Mes',
+                        data: barData,
+                        backgroundColor: 'rgba(214, 19, 54, 0.8)',
+                        borderColor: 'rgba(214, 19, 54, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false,
+                        },
+                        title: {
+                            display: true,
+                            text: 'Valores Aleatorios por Mes (Enero - Agosto)',
+                            color: 'var(--text-color)'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)',
+                            },
+                            ticks: {
+                                color: 'var(--text-color)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)',
+                            },
+                            ticks: {
+                                color: 'var(--text-color)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Crear el gráfico de línea con dos curvas
+            const lineChartCtx = document.getElementById('lineChart').getContext('2d');
+            const lineLabels = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            const randomData = lineLabels.map(() => Math.floor(Math.random() * 301));
+            const programmedData = [50, 75, 120, 150, 180, 200, 190, 160, 130, 100, 80, 60];
+
+            const lineChart = new Chart(lineChartCtx, {
+                type: 'line',
+                data: {
+                    labels: lineLabels,
+                    datasets: [
+                        {
+                            label: 'Valores Aleatorios',
+                            data: randomData,
+                            borderColor: 'rgba(214, 19, 54, 1)',
+                            backgroundColor: 'rgba(214, 19, 54, 0.2)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Valores Programados',
+                            data: programmedData,
+                            borderColor: 'rgba(122, 235, 188, 1)',
+                            backgroundColor: 'rgba(122, 235, 188, 0.2)',
+                            fill: true,
+                            tension: 0.4,
+                            pointHoverBackgroundColor: 'rgba(122, 235, 188, 1)',
+                            pointHoverBorderColor: 'rgba(255, 255, 255, 1)',
+                            pointHoverRadius: 8
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Gráfico de Líneas con Dos Curvas',
+                            color: 'var(--text-color)'
+                        },
+                        legend: {
+                            labels: {
+                                color: 'var(--text-color)'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 300,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)',
+                            },
+                            ticks: {
+                                color: 'var(--text-color)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)',
+                            },
+                            ticks: {
+                                color: 'var(--text-color)'
+                            }
                         }
                     }
                 }
