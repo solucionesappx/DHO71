@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App YLOC_Daschboard</title>
+    <!-- Incluye el CDN de Tailwind CSS para un estilo rápido y moderno -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Incluye la librería de iconos Font Awesome -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.5.1/css/all.css">
+    <!-- Incluye la librería de Chart.js para los gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Importa la fuente Poppins de Google Fonts */
+        @import url("https://fonts.googleapis.com/css?family=Poppins:200,300,400,500,600,700,800,900&display=swap");
+
+        /* Definición de variables CSS para el tema claro */
+        :root {
+            --bg-color: #f0f2f5;
+            --box-color: #e9ecef;
+            --border-color: #dcdcdc;
+            --text-color: #111;
+            --link-color: #D61336;
+            --accent-color-1: #D61336;
+            --accent-color-2: #7aebbc;
+            --box-shadow-color: rgba(0,0,0,0.2);
+        }
+
+        /* Variables para el tema oscuro */
+        body.dark-mode {
+            --bg-color: #25252b;
+            --box-color: #3a3a45;
+            --border-color: #25252b;
+            --text-color: #fff;
+            --link-color: #ff6347;
+            --accent-color-1: #800D21;
+            --accent-color-2: #dbeb7a;
+            --box-shadow-color: rgba(255,255,255,0.15);
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        .header-bg {
+            background-color: var(--box-color);
+        }
+        .nav-bg {
+            background-color: var(--bg-color);
+        }
+
+        .box-shadow {
+            box-shadow: 0 4px 6px -1px var(--box-shadow-color), 0 2px 4px -2px var(--box-shadow-color);
+        }
+
+        .box-shadow-up {
+            box-shadow: 0 -4px 6px -1px var(--box-shadow-color), 0 -2px 4px -2px var(--box-shadow-color);
+        }
+        
+        .accent-link {
+            color: var(--link-color);
+        }
+
+        .icon-size {
+            height: 1.5rem;
+            width: 1.5rem;
+        }
+        
+        .padding-container {
+            padding: 0 1rem;
+        }
+
+        .flex-row {
+            display: flex;
+            align-items: center;
+        }
+
+        .flex-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .nav-link {
+            padding: 0.5rem;
+            border-radius: 9999px;
+            transition: background-color 0.3s;
+        }
+        
+        .nav-link:hover {
+            background-color: none;
+        }
+        
+        .welcome-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .dashboard-box {
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+        }
+
+        .list-items {
+            list-style-type: disc;
+            list-style-position: inside;
+            margin-top: 1rem;
+        }
+        
+        .toggle-switch-container {
+            position: relative;
+            width: 40px; 
+            height: 22px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            transform: translate3d(0, 0, 0);
+            font-size: 1.1rem;
+        }
+
+        .toggle-switch-container:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            width: 40px; 
+            height: 22px;
+            border-radius: 11px;
+            background-color: var(--text-color);
+            transition: background-color 0.3s cubic-bezier(0.86, 0, 0.07, 1);
+        }
+
+        .toggle-switch-container:active:before {
+            transition: background-color 0.3s cubic-bezier(0.86, 0, 0.07, 1);
+        }
+
+        .toggle-switch-container .toggle-button {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 18px; 
+            height: 18px;
+            border-radius: 50%;
+            background-color: var(--box-color);
+            transition: transform 0.3s cubic-bezier(0.86, 0, 0.07, 1), background-color 0.3s cubic-bezier(0.86, 0, 0.07, 1);
+        }
+
+        .toggle-switch-container.dark-mode:before {
+            background-color: var(--accent-color-1);
+        }
+
+        .toggle-switch-container.dark-mode .toggle-button {
+            transform: translateX(18px);
+            background-color: var(--box-color);
+        }
+
+        /* Estilos para la tabla con CSS Grid */
+        .table-wrapper {
+            overflow: auto; 
+            max-width: 100%;
+            max-height: 60vh;
+            margin-top: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px var(--box-shadow-color), 0 2px 4px -2px var(--box-shadow-color);
+            background-color: var(--box-color);
+        }
+        
+        .data-grid {
+            display: grid;
+            grid-template-columns: auto auto auto auto auto auto auto auto auto auto;
+            width: max-content;
+        }
+
+        .grid-header, .grid-cell {
+            padding: 0.5rem; 
+            height: 30px;
+            display: flex;
+            align-items: center;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .grid-row {
+            display: contents; 
+        }
+
+        /* Fija la primera fila con encabezados */
+        .grid-row:first-child .grid-header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background-color: var(--accent-color-1);
+            font-weight: 600;
+            color: #fff; 
+            text-transform: uppercase;
+        }
+        
+        /* Fija la primera columna */
+        .grid-row > .grid-cell:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 30;
+            background-color: var(--accent-color-1);
+            color: #fff; 
+        }
+
+        /* Fija la celda en la esquina superior izquierda */
+        .grid-row:first-child > .grid-header:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 40;
+            background-color: var(--accent-color-1);
+            color: #fff; 
+        }
+        
+        .grid-cell:last-child, .grid-header:last-child {
+            border-right: none;
+        }
+
+        /* Estilo para las filas pares en modo claro y oscuro, excluyendo la primera celda */
+        :root .data-grid .grid-row:nth-child(even) > div:not(:first-child) {
+            background-color: rgba(0,0,0,0.05);
+        }
+        body.dark-mode .data-grid .grid-row:nth-child(even) > div:not(:first-child) {
+            background-color: rgba(255,255,255,0.05);
+        }
+        
+        .data-grid .grid-row.data-row:hover .grid-cell {
+            background-color: var(--accent-color-1) !important;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .data-grid .grid-row.selected-row .grid-cell {
+            background-color: var(--accent-color-1) !important;
+            color: #fff;
+        }
+
+        .nav-link i, .nav-link span {
+            transition: transform 0.3s ease-in-out, color 0.3s ease, text-shadow 0.3s ease;
+            color: var(--text-color);
+        }
+
+        /* Efecto neón al pasar el cursor o tocar el elemento */
+        .nav-link:hover i,
+        .nav-link:hover span,
+        .nav-link.active i,
+        .nav-link.active span {
+            transform: scale(1.1) translateY(-3px);
+            color: var(--accent-color-1);
+            text-shadow: 0 0 2px var(--accent-color-1), 0 0 10px var(--accent-color-1), 0 0 15px var(--accent-color-1);
+        }
+        
+        /* Nuevo estilo para el icono de cancelar */
+        #clear-search:hover i {
+            transform: scale(1.2);
+            transition: transform 0.2s ease-in-out;
+        }
+
+        /* Regla específica para el botón de cerrar sesión que anula el cambio de color pero mantiene los demás efectos */
+        .logout-link:hover i {
+            color: var(--text-color);
+            /* Cambia el color del "brillo" a blanco o el color del texto del tema actual */
+            text-shadow: 0 0 2px var(--text-color), 0 0 10px var(--text-color), 0 0 15px var(--text-color);
+        }
+        
+        /* Estilos para el spinner de carga */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: var(--accent-color-1);
+            animation: spin 1s ease infinite;
+            margin: 2rem auto;
+            display: none;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Clase para ocultar los dashboards no activos */
+        .hidden {
+            display: none;
+        }
+        
+        /* Estilos para la nueva barra de navegación superior con íconos */
+        .nav-link-top {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+            gap: 0.5rem; /* Espacio entre el ícono y el texto */
+            color: var(--text-color);
+        }
+
+        .nav-link-top:hover {
+            transform: translateY(-2px);
+            color: var(--text-color);
+            text-shadow: none;
+        }
+
+        .nav-link-top.active {
+            color: var(--accent-color-1);
+            text-shadow: none;
+        }
+        
+        .form-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Fondo semitransparente */
+            display: none; /* Oculto por defecto */
+            justify-content: center;
+            align-items: flex-start;
+            z-index: 9999;
+            padding-top: 50px;
+        }
+        
+        .form-content {
+            background-color: var(--box-color);
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+            overflow: hidden;
+            margin-top: 2rem;
+        }
+
+        .form-windows {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+            width: 100%;
+        }
+        
+        /* **NUEVO** Estilos para cada ventana */
+        .form-window {
+            width: 100%;
+            flex-shrink: 0;
+            position: relative; 
+        }
+
+        .nav-icon {
+            font-size: 2rem;
+            cursor: pointer;
+            color: var(--text-color);
+            transition: color 0.2s, transform 0.2s;
+        }
+
+        .nav-icon:hover {
+            color: var(--accent-color-1);
+            transform: scale(1.1);
+        }
+        
+        .circular-btn {
+            background-color: var(--accent-color-1);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            padding: 0.5rem;
+            width: 2.5rem;
+            height: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .circular-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+        }
+        
+        .circular-btn svg {
+            width: 1.5rem;
+            height: 1.5rem;
+            stroke: var(--text-color); /* Se ajusta el color del trazo del SVG para ser visible */
+        }
+        
+        .dark-mode .circular-btn svg {
+            stroke: #fff; /* En modo oscuro el trazo del SVG es blanco */
+        }
+
+        /* Clase para ocultar los botones de navegación */
+        .circular-btn.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        
+        .form-content h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+        
+        .form-group {
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-color);
+            margin-bottom: 0.05rem;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+            border-radius: 0.25rem;
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+
+        /* Botón de cerrar para el formulario */
+        .close-form-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: var(--text-color);
+            transition: transform 0.2s;
+            padding-bottom: 0.5rem;
+        }
+        
+        .close-form-btn:hover {
+            transform: scale(1.2);
+            color: var(--accent-color-1);
+        }
+        
+        .form-step {
+            width: 100%;
+            flex-shrink: 0;
+        }
+
+        /* Media query para pantallas más grandes (mayor a 600px) */
+        @media (min-width: 600px) {
+            .dashboard-box {
+                padding: 2.5rem;
+            }
+
+            .table-wrapper {
+                /* Aumentar el max-height de la tabla para pantallas de escritorio */
+                max-height: 70vh;
+            }
+            
+            /* **NUEVO** Estilos para el enlace de navegación superior en escritorio */
+            .nav-link-top-desktop {
+                flex-direction: row;
+                gap: 0.5rem;
+                padding: 0.5rem 1rem; /* Padding horizontal para un mejor aspecto */
+            }
+        }
+    </style>
+</head>
+<body class="dark-mode transition-colors">
+
+    <!-- 1. Cintillo Fijo (Header) -->
+    <header class="fixed top-0 left-0 w-full header-bg box-shadow z-50 transition-colors">
+        <div class="container mx-auto padding-container py-3 flex items-center justify-between">
+            <!-- Mensaje de Bienvenida (Asume que el usuario está logueado) -->
+            <div class="flex-row space-x-2">
+                <span class="welcome-text">¡Hola, Usuario!</span>
+            </div>
+            <div class="flex-row space-x-4">
+                <!-- Botón de Modo Claro/Oscuro -->
+                <div id="theme-toggle" class="toggle-switch-container dark-mode">
+                    <div class="toggle-button"></div>
+                </div>
+                <!-- Botón para cerrar sesión -->
+                <button class="nav-link logout-link">
+                    <!-- Icono de cerrar sesión de Font Awesome -->
+                    <i class="text-3xl fa-solid fa-right-from-bracket icon-size "></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Nueva barra de navegación para los dashboards -->
+    <nav class="fixed top-16 left-0 w-full nav-bg z-40 transition-colors py-2">
+        <div class="container mx-auto padding-container py-2 flex justify-around items-center">
+            <a href="#" class="nav-link-top nav-link-top-desktop" data-target="home-dashboard">
+                <i class="fa-solid fa-building text-2xl"></i>
+                <span class="font-semibold text-sm">Empresa</span>
+            </a>
+            <a href="#" class="nav-link-top nav-link-top-desktop" data-target="dashboard-two">
+                <i class="fa-solid fa-calendar-days text-2xl"></i>
+                <span class="font-semibold text-sm">Periodo</span>
+            </a>
+            <a href="#" class="nav-link-top nav-link-top-desktop" data-target="dashboard-three">
+                <i class="fa-solid fa-user text-2xl"></i>
+                <span class="font-semibold text-sm">Perfil</span>               
+            </a>
+        </div>
+    </nav>
+
+    <!-- 2. Contenedor principal para las diferentes secciones del dashboard -->
+    <main class="pt-40 pb-20 px-4">
+        <div class="container mx-auto py-12">
+            <!-- Dashboard -->
+            <div id="home-dashboard" class="dashboard-section">
+                <h2 class="text-3xl font-bold mb-6 text-center">Dashboard de Datos Básicos</h2>
+                <div class="dashboard-box header-bg box-shadow">
+                     <canvas id="pieChart" class="w-full h-auto"></canvas>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 3. Barra de Navegación Fija (Footer) -->
+    <nav class="fixed bottom-0 left-0 w-full nav-bg box-shadow-up z-50 transition-colors">
+        <div class="container mx-auto padding-container py-1 flex justify-around items-center">
+            <!-- Botón de Inicio -->
+            <a href="#" class="flex-col nav-link accent-link justify-center gap-1 active">
+                <i class="fa-solid fa-house icon-size"></i>
+                <span class="link-text">Inicio</span>
+            </a>
+
+            <!-- Botón de Buscar -->
+            <a href="#" class="flex-col nav-link justify-center gap-1">
+                <i class="fa-solid fa-magnifying-glass icon-size"></i>
+                <span class="link-text">Buscar</span>
+            </a>
+
+            <!-- Botón de Perfil -->
+            <a href="#" class="flex-col nav-link justify-center gap-1">
+                <i class="fa-solid fa-user icon-size"></i>
+                <span class="link-text">Perfil</span>
+            </a>
+
+            <!-- Botón de Nuevo -->
+            <a href="#" class="flex-col nav-link justify-center gap-1">
+                <i class="fa-solid fa-plus icon-size"></i>
+                <span class="link-text">Nuevo</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Script para el cambio de tema, la navegación y los gráficos -->
+    <script>
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
+        const dashboardSections = document.querySelectorAll('.dashboard-section');
+        const navLinks = document.querySelectorAll('.nav-link-top');
+
+        // Cargar el tema guardado al iniciar
+        const currentTheme = localStorage.getItem('theme');
+        if (currentTheme) {
+            body.classList.add(currentTheme + '-mode');
+            themeToggle.classList.add(currentTheme + '-mode');
+        } else {
+            // Establecer el modo oscuro como predeterminado si no hay preferencia
+            body.classList.add('dark-mode');
+            themeToggle.classList.add('dark-mode');
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            const isDarkMode = body.classList.contains('dark-mode');
+            if (isDarkMode) {
+                body.classList.remove('dark-mode');
+                themeToggle.classList.remove('dark-mode');
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.classList.add('dark-mode');
+                themeToggle.classList.add('dark-mode');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+
+       
+        // Función para mostrar el dashboard seleccionado y actualizar el enlace activo
+        function showDashboard(targetId) {
+            // Ocultar todas las secciones del dashboard
+            dashboardSections.forEach(section => {
+                section.classList.add('hidden');
+            });
+
+            // Mostrar la sección de destino
+            const targetDashboard = document.getElementById(targetId);
+            if (targetDashboard) {
+                targetDashboard.classList.remove('hidden');
+            }
+
+            // Eliminar la clase 'active' de todos los enlaces y añadirla al seleccionado
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('data-target') === targetId) {
+                    link.classList.add('active');
+                }
+            });
+        }
+        
+        // Lógica para la navegación entre dashboards
+        navLinks.forEach(link => {
+            link.addEventListener('click', (event) => {
+                event.preventDefault(); // Evita el comportamiento de enlace predeterminado
+                const targetId = link.getAttribute('data-target');
+                showDashboard(targetId);
+            });
+        });
+
+        // Mostrar el dashboard por defecto al cargar la página
+        window.addEventListener('DOMContentLoaded', () => {
+            showDashboard('home-dashboard');
+            // Crear el gráfico de pastel
+            const pieChartCtx = document.getElementById('pieChart').getContext('2d');
+            const pieChart = new Chart(pieChartCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Empresa 1', 'Empresa 2', 'Empresa 3'],
+                    datasets: [{
+                        data: [45, 15, 40],
+                        backgroundColor: [
+                            'rgba(214, 19, 54, 0.8)', // Color para Empresa 1
+                            'rgba(255, 100, 100, 0.8)', // Color para Empresa 2
+                            'rgba(122, 235, 188, 0.8)'  // Color para Empresa 3
+                        ],
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: 'var(--text-color)'
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Distribución de Empresas',
+                            color: 'var(--text-color)'
+                        }
+                    }
+                }
+            });
+        });
+        
+    </script>
+</body>
+</html>
