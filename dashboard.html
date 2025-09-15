@@ -637,17 +637,17 @@
             // Crear el gráfico de pastel
             const pieChartCtx = document.getElementById('pieChart').getContext('2d');
             const pieChart = new Chart(pieChartCtx, {
-                type: 'doughnut', 
+                type: 'pie',
                 data: {
                     labels: ['Empresa 1', 'Empresa 2', 'Empresa 3'],
                     datasets: [{
                         data: [45, 15, 40],
                         backgroundColor: [
-                            'var(--accent-color-1)',
-                            'rgba(255, 183, 76, 0.8)',
-                            'var(--accent-color-2)'
+                            'rgba(214, 19, 54, 0.8)', // Color para Empresa 1
+                            'rgba(255, 100, 100, 0.8)', // Color para Empresa 2
+                            'rgba(122, 235, 188, 0.8)'  // Color para Empresa 3
                         ],
-                        hoverOffset: 8
+                        hoverOffset: 4
                     }]
                 },
                 options: {
@@ -663,8 +663,7 @@
                             display: true,
                             text: 'Distribución de Empresas',
                             color: 'var(--text-color)'
-                        },
-                        centerText // Se agregó el plugin para el texto central
+                        }
                     }
                 }
             });
