@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App YLOC_BuscarData<</title>
+    <title>App YLOC_BuscarData</title>
     <!-- Incluye el CDN de Tailwind CSS para un estilo rápido y moderno -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Incluye la librería de iconos Font Awesome -->
@@ -171,7 +171,7 @@
         
         .data-grid {
             display: grid;
-            grid-template-columns: auto auto auto auto auto auto auto auto auto auto;
+            grid-template-columns: repeat(10, auto);
             width: max-content;
         }
 
@@ -187,7 +187,14 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        
+
+        /* **NUEVO** Estilo para la columna CÉDULA */
+        .grid-header.cedula-col,
+        .grid-cell.cedula-col {
+            text-align: right;
+            justify-content: flex-end;
+        }
+
         .grid-row {
             display: contents; 
         }
@@ -305,7 +312,7 @@
         }
         
         /* Estilos para la nueva barra de navegación superior con íconos */
-        /* **MODIFICADO** Ahora usa flex-col para apilar el ícono y el texto uno encima del otro */
+        /* **MODIFICADO** Ahora no tiene la clase box-shadow */
         .nav-link-top {
             display: flex;
             flex-direction: column;
@@ -592,318 +599,58 @@
                             <!-- Header Row -->
                             <div class="grid-row header-row">
                                 <div class="grid-header">ID</div>
-                                <div class="grid-header">Nombre</div>
-                                <div class="grid-header">País</div>
-                                <div class="grid-header">Ciudad</div>
-                                <div class="grid-header">Edad</div>
-                                <div class="grid-header">Profesión</div>
                                 <div class="grid-header">Empresa</div>
-                                <div class="grid-header">Teléfono</div>
-                                <div class="grid-header">Sitio Web</div>
-                                <div class="grid-header">Notas</div>
+                                <div class="grid-header">Nómina</div>
+                                <div class="grid-header">Apellidos</div>
+                                <div class="grid-header">Nombres</div>
+                                <!-- **MODIFICADO** Se ha añadido la clase 'cedula-col' -->
+                                <div class="grid-header cedula-col">Cédula</div>
+                                <div class="grid-header">Cargo</div>
+                                <div class="grid-header">Ingreso</div>
+                                <div class="grid-header">Sector</div>
+                                <div class="grid-header">Perfil</div>
                             </div>
-
-                            <!-- Data Rows -->
-                            <div class="grid-row data-row" data-id="1">
+                            <!-- Rows de Datos de Ejemplo -->
+                            <div class="grid-row data-row">
                                 <div class="grid-cell">1</div>
-                                <div class="grid-cell">Sofía Gómez</div>
-                                <div class="grid-cell">México</div>
-                                <div class="grid-cell">Ciudad de México</div>
-                                <div class="grid-cell">28</div>
-                                <div class="grid-cell">Diseñadora Gráfica</div>
-                                <div class="grid-cell">Innovar Soluciones</div>
-                                <div class="grid-cell">+52 55 1234 5678</div>
-                                <div class="grid-cell">www.innovar.com</div>
-                                <div class="grid-cell">Interesada en proyectos de branding.</div>
+                                <div class="grid-cell">TechCorp</div>
+                                <div class="grid-cell">N-001</div>
+                                <div class="grid-cell">Gómez</div>
+                                <div class="grid-cell">Ana</div>
+                                <!-- **MODIFICADO** Se ha añadido la clase 'cedula-col' -->
+                                <div class="grid-cell cedula-col">123456789</div>
+                                <div class="grid-cell">Gerente de Proyectos</div>
+                                <div class="grid-cell">15/03/2018</div>
+                                <div class="grid-cell">IT</div>
+                                <div class="grid-cell">Desarrollo</div>
                             </div>
-                            <div class="grid-row data-row" data-id="2">
+                            <div class="grid-row data-row">
                                 <div class="grid-cell">2</div>
-                                <div class="grid-cell">Ricardo Pérez</div>
-                                <div class="grid-cell">Colombia</div>
-                                <div class="grid-cell">Medellín</div>
-                                <div class="grid-cell">35</div>
-                                <div class="grid-cell">Ingeniero Civil</div>
-                                <div class="grid-cell">Constructora del Sur</div>
-                                <div class="grid-cell">+57 4 9876 5432</div>
-                                <div class="grid-cell">www.constructora.co</div>
-                                <div class="grid-cell">Contactar para proyectos de infraestructura.</div>
-                            </div>
-                            <div class="grid-row data-row" data-id="3">
-                                <div class="grid-cell">3</div>
-                                <div class="grid-cell">Ana López</div>
-                                <div class="grid-cell">España</div>
-                                <div class="grid-cell">Madrid</div>
-                                <div class="grid-cell">22</div>
-                                <div class="grid-cell">Estudiante</div>
-                                <div class="grid-cell">Universidad Complutense</div>
-                                <div class="grid-cell">+34 91 123 4567</div>
-                                <div class="grid-cell">www.ucm.es</div>
-                                <div class="grid-cell">Busca prácticas profesionales.</div>
-                            </div>
-                            <div class="grid-row data-row" data-id="4">
-                                <div class="grid-cell">4</div>
-                                <div class="grid-cell">Juan Torres</div>
-                                <div class="grid-cell">Argentina</div>
-                                <div class="grid-cell">Buenos Aires</div>
-                                <div class="grid-cell">41</div>
+                                <div class="grid-cell">Innovate Ltd.</div>
+                                <div class="grid-cell">N-002</div>
+                                <div class="grid-cell">Pérez</div>
+                                <div class="grid-cell">Carlos</div>
+                                <!-- **MODIFICADO** Se ha añadido la clase 'cedula-col' -->
+                                <div class="grid-cell cedula-col">987654321</div>
                                 <div class="grid-cell">Analista de Datos</div>
-                                <div class="grid-cell">Global Tech</div>
-                                <div class="grid-cell">+54 11 1234 5678</div>
-                                <div class="grid-cell">www.globaltech.com.ar</div>
-                                <div class="grid-cell">Experto en big data y análisis predictivo.</div>
+                                <div class="grid-cell">20/07/2019</div>
+                                <div class="grid-cell">Finanzas</div>
+                                <div class="grid-cell">Contabilidad</div>
                             </div>
-                            <div class="grid-row data-row" data-id="5">
-                                <div class="grid-cell">5</div>
-                                <div class="grid-cell">María Ruiz</div>
-                                <div class="grid-cell">Chile</div>
-                                <div class="grid-cell">Santiago</div>
-                                <div class="grid-cell">30</div>
-                                <div class="grid-cell">Marketing Digital</div>
-                                <div class="grid-cell">Creative Solutions</div>
-                                <div class="grid-cell">+56 2 9876 5432</div>
-                                <div class="grid-cell">www.creativesol.cl</div>
-                                <div class="grid-cell">Especialista en SEO y campañas en redes.</div>
+                            <div class="grid-row data-row">
+                                <div class="grid-cell">3</div>
+                                <div class="grid-cell">Global Solutions</div>
+                                <div class="grid-cell">N-003</div>
+                                <div class="grid-cell">López</div>
+                                <div class="grid-cell">María</div>
+                                <!-- **MODIFICADO** Se ha añadido la clase 'cedula-col' -->
+                                <div class="grid-cell cedula-col">112233445</div>
+                                <div class="grid-cell">Diseñadora UX</div>
+                                <div class="grid-cell">10/11/2020</div>
+                                <div class="grid-cell">Marketing</div>
+                                <div class="grid-cell">Creativo</div>
                             </div>
-                            <div class="grid-row data-row" data-id="6">
-                                <div class="grid-cell">6</div>
-                                <div class="grid-cell">Carlos Castro</div>
-                                <div class="grid-cell">Perú</div>
-                                <div class="grid-cell">Lima</div>
-                                <div class="grid-cell">55</div>
-                                <div class="grid-cell">Arquitecto</div>
-                                <div class="grid-cell">Estudio Castro</div>
-                                <div class="grid-cell">+51 1 123 4567</div>
-                                <div class="grid-cell">www.castroarquitectos.pe</div>
-                                <div class="grid-cell">Diseño de edificios eco-amigables.</div>
-                            </div>
-                            <div class="grid-row data-row" data-id="7">
-                                <div class="grid-cell">7</div>
-                                <div class="grid-cell">Laura Vargas</div>
-                                <div class="grid-cell">Venezuela</div>
-                                <div class="grid-cell">Caracas</div>
-                                <div class="grid-cell">29</div>
-                                <div class="grid-cell">Periodista</div>
-                                <div class="grid-cell">Noticias 24</div>
-                                <div class="grid-cell">+58 212 987 6543</div>
-                                <div class="grid-cell">www.noticias24.ve</div>
-                                <div class="grid-cell">Enfoque en periodismo de investigación.</div>
-                            </div>
-                            <div class="grid-row data-row" data-id="8">
-                                <div class="grid-cell">8</div>
-                                <div class="grid-cell">Diego Mendoza</div>
-                                <div class="grid-cell">Ecuador</div>
-                                <div class="grid-cell">Quito</div>
-                                <div class="grid-cell">34</div>
-                                <div class="grid-cell">Desarrollador de Software</div>
-                                <div class="grid-cell">SoftDev Corp</div>
-                                <div class="grid-cell">+593 2 1234 5678</div>
-                                <div class="grid-cell">www.softdev.ec</div>
-                                <div class="grid-cell">Experiencia en desarrollo de apps móviles.</div>
-                            </div>
-                            <div class="grid-row data-row" data-id="9">
-                                <div class="grid-cell">9</div>
-                                <div class="grid-cell">Fernanda Díaz</div>
-                                <div class="grid-cell">Bolivia</div>
-                                <div class="grid-cell">La Paz</div>
-                                <div class="grid-cell">26</div>
-                                <div class="grid-cell">Nutricionista</div>
-                                <div class="grid-cell">Clínica La Paz</div>
-                                <div class="grid-cell">+591 2 987 6543</div>
-                                <div class="grid-cell">www.clinicalapaz.bo</div>
-                                <div class="grid-cell">Especializada en dietas para deportistas.</div>
-                            </div>
-                            <div class="grid-row data-row" data-id="10">
-                                <div class="grid-cell">10</div>
-                                <div class="grid-cell">Pablo Herrera</div>
-                                <div class="grid-cell">Uruguay</div>
-                                <div class="grid-cell">Montevideo</div>
-                                <div class="grid-cell">45</div>
-                                <div class="grid-cell">Gerente de Ventas</div>
-                                <div class="grid-cell">Importadora del Este</div>
-                                <div class="grid-cell">+598 2 123 4567</div>
-                                <div class="grid-cell">www.importadoradeleste.uy</div>
-                                <div class="grid-cell">Responsable de grandes cuentas.</div>
-                            </div>
-                            <div class="grid-row data-row" data-id="11">
-                                <div class="grid-cell">11</div>
-                                <div class="grid-cell">Valeria Sola</div>
-                                <div class="grid-cell">Paraguay</div>
-                                <div class="grid-cell">Asunción</div>
-                                <div class="grid-cell">31</div>
-                                <div class="grid-cell">Contadora</div>
-                                <div class="grid-cell">Asesores Financieros</div>
-                                <div class="grid-cell">+595 21 987 6543</div>
-                                <div class="grid-cell">www.asesoresfinancieros.py</div>
-                                <div class="grid-cell">Auditoría y consultoría fiscal.</div>
-                            </div>
-                            <div class="grid-row data-row" data-id="12">
-                                <div class="grid-cell">12</div>
-                                <div class="grid-cell">Andrés Ramírez</div>
-                                <div class="grid-cell">Guatemala</div>
-                                <div class="grid-cell">Ciudad de Guatemala</div>
-                                <div class="grid-cell">39</div>
-                                <div class="grid-cell">Consultor IT</div>
-                                <div class="grid-cell">Consultoría Digital</div>
-                                <div class="grid-cell">+502 2 123 4567</div>
-                                <div class="grid-cell">www.consultoriadigital.gt</div>
-                                <div class="grid-cell">Especialista en seguridad de redes.</div>
-                            </div>
-                            <div class="grid-row data-row" data-id="13">
-                                <div class="grid-cell">13</div>
-                                <div class="grid-cell">Camila Soto</div>
-                                <div class="grid-cell">Honduras</div>
-                                <div class="grid-cell">Tegucigalpa</div>
-                                <div class="grid-cell">27</div>
-                                <div class="grid-cell">Abogada</div>
-                                <div class="grid-cell">Bufete Legal Soto</div>
-                                <div class="grid-cell">+504 2221 2345</div>
-                                <div class="grid-cell">www.bufetesoto.hn</div>
-                                <div class="grid-cell">Derecho corporativo y civil.</div>
-                            </div>
-                            <div class="grid-row data-row" data-id="14">
-                                <div class="grid-cell">14</div>
-                                <div class="grid-cell">Gabriel Ortiz</div>
-                                <div class="grid-cell">El Salvador</div>
-                                <div class="grid-cell">San Salvador</div>
-                                <div class="grid-cell">33</div>
-                                <div class="grid-cell">Profesor</div>
-                                <div class="grid-cell">Colegio Bilingüe</div>
-                                <div class="grid-cell">+503 2212 3456</div>
-                                <div class="grid-cell">www.colegiobil.sv</div>
-                                <div class="grid-cell">Enseña historia y geografía.</div>
-                            </div>
-                            <div class="grid-row data-row" data-id="15">
-                                <div class="grid-cell">15</div>
-                                <div class="grid-cell">Isabella Gil</div>
-                                <div class="grid-cell">Costa Rica</div>
-                                <div class="grid-cell">San José</div>
-                                <div class="grid-cell">24</div>
-                                <div class="grid-cell">Artista Plástica</div>
-                                <div class="grid-cell">Galería de Arte</div>
-                                <div class="grid-cell">+506 2200 1122</div>
-                                <div class="grid-cell">www.galeriaarte.cr</div>
-                                <div class="grid-cell">Exhibiciones de arte contemporáneo.</div>
-                            </div>
-                            <div class="grid-row data-row" data-id="16">
-                                <div class="grid-cell">16</div>
-                                <div class="grid-cell">Felipe Vega</div>
-                                <div class="grid-cell">Panamá</div>
-                                <div class="grid-cell">Ciudad de Panamá</div>
-                                <div class="grid-cell">48</div>
-                                <div class="grid-cell">Médico</div>
-                                <div class="grid-cell">Hospital Central</div>
-                                <div class="grid-cell">+507 234 5678</div>
-                                <div class="grid-cell">www.hospitalcentral.pa</div>
-                                <div class="grid-cell">Especialista en cardiología.</div>
-                            </div>
-                            <div class="grid-row data-row" data-id="17">
-                                <div class="grid-cell">17</div>
-                                <div class="grid-cell">Elena Ríos</div>
-                                <div class="grid-cell">Cuba</div>
-                                <div class="grid-cell">La Habana</div>
-                                <div class="grid-cell">50</div>
-                                <div class="grid-cell">Directora de cine</div>
-                                <div class="grid-cell">Estudios Habana</div>
-                                <div class="grid-cell">+53 7 123 4567</div>
-                                <div class="grid-cell">www.estudioshabana.cu</div>
-                                <div class="grid-cell">Galardonada en festivales internacionales.</div>
-                            </div>
-                            <div class="grid-row data-row" data-id="18">
-                                <div class="grid-cell">18</div>
-                                <div class="grid-cell">Luis Fuentes</div>
-                                <div class="grid-cell">República Dominicana</div>
-                                <div class="grid-cell">Santo Domingo</div>
-                                <div class="grid-cell">37</div>
-                                <div class="grid-cell">Chef Ejecutivo</div>
-                                <div class="grid-cell">Restaurante El Sabor</div>
-                                <div class="grid-cell">+1 809 987 6543</div>
-                                <div class="grid-cell">www.elsabor.do</div>
-                                <div class="grid-cell">Especializado en cocina caribeña.</div>
-                            </div>
-                            <div class="grid-row data-row" data-id="19">
-                                <div class="grid-cell">19</div>
-                                <div class="grid-cell">Andrea Soto</div>
-                                <div class="grid-cell">Puerto Rico</div>
-                                <div class="grid-cell">San Juan</div>
-                                <div class="grid-cell">29</div>
-                                <div class="grid-cell">Arquitecta</div>
-                                <div class="grid-cell">Soto & Asociados</div>
-                                <div class="grid-cell">+1 787 555 1234</div>
-                                <div class="grid-cell">www.sotoasociados.pr</div>
-                                <div class="grid-cell">Diseño de espacios urbanos sostenibles.</div>
-                            </div>
-                            <div class="grid-row data-row" data-id="20">
-                                <div class="grid-cell">20</div>
-                                <div class="grid-cell">Marco Reyes</div>
-                                <div class="grid-cell">Cuba</div>
-                                <div class="grid-cell">La Habana</div>
-                                <div class="grid-cell">44</div>
-                                <div class="grid-cell">Historiador</div>
-                                <div class="grid-cell">Museo Nacional de Historia</div>
-                                <div class="grid-cell">+53 7 987 6543</div>
-                                <div class="grid-cell">www.museohabana.cu</div>
-                                <div class="grid-cell">Experto en la Revolución Cubana.</div>
-                            </div>
-                            <div class="grid-row data-row" data-id="21">
-                                <div class="grid-cell">21</div>
-                                <div class="grid-cell">Patricia Vargas</div>
-                                <div class="grid-cell">Panamá</div>
-                                <div class="grid-cell">Ciudad de Panamá</div>
-                                <div class="grid-cell">31</div>
-                                <div class="grid-cell">Bióloga Marina</div>
-                                <div class="grid-cell">Instituto de Biodiversidad</div>
-                                <div class="grid-cell">+507 123 4567</div>
-                                <div class="grid-cell">www.instituto.pa</div>
-                                <div class="grid-cell">Investigación en arrecifes de coral.</div>
-                            </div>
-                            <div class="grid-row data-row" data-id="22">
-                                <div class="grid-cell">22</div>
-                                <div class="grid-cell">Daniel Medina</div>
-                                <div class="grid-cell">Venezuela</div>
-                                <div class="grid-cell">Caracas</div>
-                                <div class="grid-cell">26</div>
-                                <div class="grid-cell">Músico</div>
-                                <div class="grid-cell">Orquesta Nacional</div>
-                                <div class="grid-cell">+58 212 123 4567</div>
-                                <div class="grid-cell">www.orquestanacional.ve</div>
-                                <div class="grid-cell">Violinista principal.</div>
-                            </div>
-                            <div class="grid-row data-row" data-id="23">
-                                <div class="grid-cell">23</div>
-                                <div class="grid-cell">Claudia Jiménez</div>
-                                <div class="grid-cell">México</div>
-                                <div class="grid-cell">Guadalajara</div>
-                                <div class="grid-cell">38</div>
-                                <div class="grid-cell">Ingeniera Ambiental</div>
-                                <div class="grid-cell">Soluciones Sostenibles</div>
-                                <div class="grid-cell">+52 33 9876 5432</div>
-                                <div class="grid-cell">www.solucionessostenibles.mx</div>
-                                <div class="grid-cell">Proyectos de tratamiento de agua.</div>
-                            </div>
-                            <div class="grid-row data-row" data-id="24">
-                                <div class="grid-cell">24</div>
-                                <div class="grid-cell">Roberto Muñoz</div>
-                                <div class="grid-cell">Colombia</div>
-                                <div class="grid-cell">Bogotá</div>
-                                <div class="grid-cell">47</div>
-                                <div class="grid-cell">Empresario</div>
-                                <div class="grid-cell">Grupo Muñoz</div>
-                                <div class="grid-cell">+57 1 1234 5678</div>
-                                <div class="grid-cell">www.grupomunoz.co</div>
-                                <div class="grid-cell">Inversiones en tecnología.</div>
-                            </div>
-                            <div class="grid-row data-row" data-id="25">
-                                <div class="grid-cell">25</div>
-                                <div class="grid-cell">Verónica Castro</div>
-                                <div class="grid-cell">España</div>
-                                <div class="grid-cell">Sevilla</div>
-                                <div class="grid-cell">25</div>
-                                <div class="grid-cell">Diseñadora de Moda</div>
-                                <div class="grid-cell">Atelier Castro</div>
-                                <div class="grid-cell">+34 95 987 6543</div>
-                                <div class="grid-cell">www.ateliercastro.es</div>
-                                <div class="grid-cell">Colección de alta costura.</div>
-                            </div>
+  
                         </div>
                     </div>
                 </div>
@@ -914,6 +661,35 @@
                 <h2 class="text-3xl font-bold mb-6 text-center">Dashboard de Vacaciones</h2>
                 <div class="dashboard-box header-bg box-shadow">
                     <p>Esta es la sección de Vacaciones. Puedes usar este espacio para mostrar diferentes datos o funcionalidades. Por ejemplo, un gráfico de rendimiento o una lista de proyectos. ¡Adelante, eres libre de explorar!</p>
+                </div>
+                
+                <!-- Estructura de tabla para el segundo dashboard -->
+                <div class="flex flex-col items-start mt-8">
+                    <div class="flex items-center justify-between w-full">
+                        <h3 class="text-2xl font-bold mb-2 text-center">Datos de Vacaciones</h3>
+                    </div>
+                    <div class="table-wrapper w-full"> 
+                        <div class="data-grid" id="vacations-grid"> 
+                            <!-- Header Row --> 
+                            <div class="grid-row header-row"> 
+                                <div class="grid-header">ID</div> 
+                                <div class="grid-header">Empresa</div> 
+                                <div class="grid-header">Nómina</div> 
+                                <div class="grid-header">Apellidos</div> 
+                                <div class="grid-header">Nombres</div> 
+                                <!-- **MODIFICADO** Se ha añadido la clase 'cedula-col' -->
+                                <div class="grid-header cedula-col">Cédula</div> 
+                                <div class="grid-header">Cargo</div> 
+                                <div class="grid-header">Ingreso</div> 
+                                <div class="grid-header">Sector</div> 
+                                <div class="grid-header">Perfil</div> 
+                            </div>
+                            <!-- Se añade un mensaje de carga inicial que será sustituido por los datos -->
+                            <div class="grid-row">
+                                <div class="grid-cell" style="grid-column: 1 / -1; text-align: center;">Cargando datos...</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -959,39 +735,39 @@
                 
                 <div id="step-1" class="form-step">
                     <div class="form-group">
-                        <label for="form-nombre">Nombre</label>
-                        <input type="text" id="form-nombre" readonly>
+                        <label for="form-nombre">Nombres</label>
+                        <input type="text" id="form-nombres" readonly>
                     </div>
                     <div class="form-group">
-                        <label for="form-pais">País</label>
-                        <input type="text" id="form-pais" readonly>
+                        <label for="form-apellidos">Apellidos</label>
+                        <input type="text" id="form-apellidos" readonly>
                     </div>
-                    <div class="form-group">
-                        <label for="form-ciudad">Ciudad</label>
-                        <input type="text" id="form-ciudad" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label for="form-profesion">Profesión</label>
-                        <input type="text" id="form-profesion" readonly>
-                    </div>
-                </div>
-                
-                <div id="step-2" class="form-step hidden">
                     <div class="form-group">
                         <label for="form-empresa">Empresa</label>
                         <input type="text" id="form-empresa" readonly>
                     </div>
                     <div class="form-group">
-                        <label for="form-telefono">Teléfono</label>
-                        <input type="text" id="form-telefono" readonly>
+                        <label for="form-nomina">Nómina</label>
+                        <input type="text" id="form-nomina" readonly>
+                    </div>
+                </div>
+                
+                <div id="step-2" class="form-step hidden">
+                    <div class="form-group">
+                        <label for="form-cedula">Cédula</label>
+                        <input type="text" id="form-cedula" readonly>
                     </div>
                     <div class="form-group">
-                        <label for="form-sitio-web">Sitio Web</label>
-                        <input type="text" id="form-sitio-web" readonly>
+                        <label for="form-cargo">Cargo</label>
+                        <input type="text" id="form-cargo" readonly>
                     </div>
                     <div class="form-group">
-                        <label for="form-notas">Notas</label>
-                        <textarea id="form-notas" rows="4" readonly class="w-full resize-none"></textarea>
+                        <label for="form-ingreso">Ingreso</label>
+                        <input type="text" id="form-ingreso" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="form-sector">Sector</label>
+                        <input type="text" id="form-sector" readonly>
                     </div>
                 </div>
             </form>
@@ -1028,7 +804,6 @@
         </div>
     </nav>
 
-    <!-- Script para el cambio de tema y la nueva funcionalidad de búsqueda -->
     <script>
         const themeToggle = document.getElementById('theme-toggle');
         const body = document.body;
@@ -1038,15 +813,14 @@
         const closeFormBtns = document.querySelectorAll('.close-form-btn'); // Se ha cambiado a querySelectorAll
         // Se ha ajustado para el nuevo HTML
         const formId = document.getElementById('form-id');
-        const formNombre = document.getElementById('form-nombre');
-        const formPais = document.getElementById('form-pais');
-        const formCiudad = document.getElementById('form-ciudad');
-        const formProfesion = document.getElementById('form-profesion');
+        const formNombres = document.getElementById('form-nombres');
+        const formApellidos = document.getElementById('form-apellidos');
         const formEmpresa = document.getElementById('form-empresa');
-        // Nuevos campos para la segunda ventana
-        const formTelefono = document.getElementById('form-telefono');
-        const formSitioWeb = document.getElementById('form-sitio-web');
-        const formNotas = document.getElementById('form-notas');
+        const formNomina = document.getElementById('form-nomina');
+        const formCedula = document.getElementById('form-cedula');
+        const formCargo = document.getElementById('form-cargo');
+        const formIngreso = document.getElementById('form-ingreso');
+        const formSector = document.getElementById('form-sector');
         
         // Cargar el tema guardado al iniciar
         const currentTheme = localStorage.getItem('theme');
@@ -1072,45 +846,30 @@
             }
         });
 
-        // Lógica para el motor de búsqueda dinámico
         const searchInput = document.getElementById('search-input');
         const clearButton = document.getElementById('clear-search');
-        // Se ha actualizado el selector para apuntar solo a las filas de datos
-        const dataRows = document.querySelectorAll('.data-grid .data-row');
+        let dataRows = document.querySelectorAll('.data-grid .data-row');
 
-        // Escuchar el evento 'input' en el campo de búsqueda
-        searchInput.addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
-
+        // Lógica para el motor de búsqueda dinámico
+        function filterTable() {
+            const searchTerm = searchInput.value.toLowerCase();
             dataRows.forEach(row => {
-                // Obtener todas las celdas de la fila, excepto la primera (ID)
                 const cells = row.querySelectorAll('.grid-cell');
-                
                 let foundMatch = false;
                 cells.forEach(cell => {
                     const cellText = cell.textContent.toLowerCase();
-                    // Buscamos la cadena de búsqueda en el contenido de la celda.
-                    // Usamos cell.cellIndex para omitir la primera celda (índice 0).
                     if (cellText.includes(searchTerm)) {
                         foundMatch = true;
                     }
                 });
-
-                // Mostramos u ocultamos la fila según si se encontró una coincidencia
-                if (foundMatch) {
-                    row.style.display = 'contents';
-                } else {
-                    row.style.display = 'none';
-                }
+                row.style.display = foundMatch ? 'contents' : 'none';
             });
-        });
+        }
 
-        // Escuchar el evento 'click' en el botón de cancelar
+        searchInput.addEventListener('input', filterTable);
         clearButton.addEventListener('click', () => {
-            searchInput.value = ''; // Borrar el texto del campo de búsqueda
-            dataRows.forEach(row => {
-                row.style.display = 'contents'; // Mostrar todas las filas de nuevo
-            });
+            searchInput.value = '';
+            filterTable();
         });
 
         // Lógica para la navegación y selección de filas
@@ -1118,20 +877,14 @@
         const dashboardSections = document.querySelectorAll('.dashboard-section');
         const dataGrid = document.querySelector('.data-grid');
         
-        // Función para mostrar el dashboard seleccionado y actualizar el enlace activo
         function showDashboard(targetId) {
-            // Ocultar todas las secciones del dashboard
             dashboardSections.forEach(section => {
                 section.classList.add('hidden');
             });
-
-            // Mostrar la sección de destino
             const targetDashboard = document.getElementById(targetId);
             if (targetDashboard) {
                 targetDashboard.classList.remove('hidden');
             }
-
-            // Eliminar la clase 'active' de todos los enlaces y añadirla al seleccionado
             navLinks.forEach(link => {
                 link.classList.remove('active');
                 if (link.getAttribute('data-target') === targetId) {
@@ -1140,29 +893,26 @@
             });
         }
         
-        // Lógica para la navegación entre dashboards
         navLinks.forEach(link => {
             link.addEventListener('click', (event) => {
-                event.preventDefault(); // Evita el comportamiento de enlace predeterminado
+                event.preventDefault();
                 const targetId = link.getAttribute('data-target');
                 showDashboard(targetId);
             });
         });
 
-        // Mostrar el dashboard por defecto al cargar la página
         window.addEventListener('DOMContentLoaded', () => {
             showDashboard('home-dashboard');
         });
         
-        // **NUEVA LÓGICA** para la navegación del formulario
         const step1 = document.getElementById('step-1');
         const step2 = document.getElementById('step-2');
         const prevBtn = document.getElementById('prev-btn');
         const nextBtn = document.getElementById('next-btn');
         const formTitle = document.getElementById('form-title');
         
-        let formSteps = [step1, step2]; // Definir los pasos del formulario
-        let currentStepIndex = 0; // Índice del paso actual
+        let formSteps = [step1, step2];
+        let currentStepIndex = 0;
 
         function showStep(stepIndex) {
             formSteps.forEach(step => {
@@ -1174,21 +924,16 @@
         }
 
         function updateFormUI() {
-            // Actualizar título del formulario
             if (currentStepIndex === 0) {
                 formTitle.textContent = 'Información Personal';
             } else if (currentStepIndex === 1) {
                 formTitle.textContent = 'Información Adicional';
             }
-
-            // Actualizar visibilidad del botón 'Anterior'
             if (currentStepIndex === 0) {
                 prevBtn.classList.add('hidden');
             } else {
                 prevBtn.classList.remove('hidden');
             }
-            
-            // Actualizar icono del botón 'Siguiente'
             if (currentStepIndex === formSteps.length - 1) {
                 nextBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -1204,7 +949,6 @@
             if (currentStepIndex < formSteps.length - 1) {
                 showStep(currentStepIndex + 1);
             }
-            // Agrega aquí la lógica de envío del formulario si estás en el último paso
         });
 
         prevBtn.addEventListener('click', () => {
@@ -1213,56 +957,203 @@
             }
         });
 
-        // Lógica para seleccionar y mostrar datos en el formulario modal
+        function populateForm(rowData) {
+            formId.value = rowData.id;
+            formNombres.value = rowData.nombres;
+            formApellidos.value = rowData.apellidos;
+            formEmpresa.value = rowData.empresa;
+            formNomina.value = rowData.nomina;
+            formCedula.value = rowData.cedula;
+            formCargo.value = rowData.cargo;
+            formIngreso.value = rowData.ingreso;
+            formSector.value = rowData.sector;
+        }
+
         dataGrid.addEventListener('click', (event) => {
             const row = event.target.closest('.data-row');
             if (row) {
-                // Elimina la clase 'selected-row' de cualquier fila previamente seleccionada
                 const selectedRow = document.querySelector('.selected-row');
                 if (selectedRow) {
                     selectedRow.classList.remove('selected-row');
                 }
-                // Añade la clase 'selected-row' a la fila clicada
                 row.classList.add('selected-row');
                 
-                // Extraer datos de la fila seleccionada
                 const cells = row.querySelectorAll('.grid-cell');
                 const rowData = {
                     id: cells[0].textContent,
-                    nombre: cells[1].textContent,
-                    pais: cells[2].textContent,
-                    ciudad: cells[3].textContent,
-                    edad: cells[4].textContent,
-                    profesion: cells[5].textContent,
-                    empresa: cells[6].textContent,
-                    telefono: cells[7].textContent,
-                    sitioWeb: cells[8].textContent,
-                    notas: cells[9].textContent
+                    empresa: cells[1].textContent,
+                    nomina: cells[2].textContent,
+                    apellidos: cells[3].textContent,
+                    nombres: cells[4].textContent,
+                    cedula: cells[5].textContent,
+                    cargo: cells[6].textContent,
+                    ingreso: cells[7].textContent,
+                    sector: cells[8].textContent,
+                    perfil: cells[9].textContent
                 };
                 
-                // Rellenar el formulario con los datos de la fila
-                formId.value = rowData.id;
-                formNombre.value = rowData.nombre;
-                formPais.value = rowData.pais;
-                formCiudad.value = rowData.ciudad;
-                formProfesion.value = rowData.profesion;
-                formEmpresa.value = rowData.empresa;
-                formTelefono.value = rowData.telefono;
-                formSitioWeb.value = rowData.sitioWeb;
-                formNotas.value = rowData.notas;
-                
-                // Mostrar el formulario y el primer paso
+                populateForm(rowData);
                 dataForm.style.display = 'flex';
-                showStep(0); // Mostrar el primer paso al abrir el formulario
+                showStep(0);
             }
         });
         
-        // Lógica para cerrar el formulario
         closeFormBtns.forEach(btn => {
             btn.addEventListener('click', () => {
                 dataForm.style.display = 'none';
             });
         });
+        
+        // Código para la tabla del segundo dashboard, integrado desde el fragmento proporcionado
+        document.addEventListener("DOMContentLoaded", () => {
+            const vacationsGrid = document.getElementById('vacations-grid');
+            
+            // La URL de tu script de Google Apps
+            const GAS_URL = 'https://script.google.com/macros/s/AKfycbx87WvxA9ca1KyGMA1wsw1npZw5vPtjoItomhF823BICXScNrWGFh5m0Dj6Veb24CtHXQ/exec';
+
+            // Mapeo de los encabezados del HTML a las claves de los datos JSON
+            const headerMapping = {
+                'ID': 'ID',
+                'Empresa': 'EMPRESA',
+                'Nómina': 'NOMINA',
+                'Apellidos': 'APELLIDOS',
+                'Nombres': 'NOMBRES',
+                'Cédula': 'CÉDULA',
+                'Cargo': 'CARGO',
+                'Ingreso': 'INGRESO',
+                'Sector': 'SECTOR',
+                'Perfil': 'PERFIL'
+            };
+
+            /**
+             * Función asíncrona para cargar los datos desde la fuente externa.
+             */
+            async function loadVacationsData() {
+                console.log("Cargando datos de vacaciones...");
+                
+                try {
+                    const response = await fetch(`${GAS_URL}?sheet=V¿BD_Personal`);
+                    const result = await response.json();
+
+                    if (result.error) {
+                        vacationsGrid.innerHTML = `
+                        <div class="grid-row header-row">
+                          <div class="grid-header">ID</div>
+                          <div class="grid-header">Empresa</div>
+                          <div class="grid-header">Nómina</div>
+                          <div class="grid-header">Apellidos</div>
+                          <div class="grid-header">Nombres</div>
+                          <div class="grid-header cedula-col">Cédula</div>
+                          <div class="grid-header">Cargo</div>
+                          <div class="grid-header">Ingreso</div>
+                          <div class="grid-header">Sector</div>
+                          <div class="grid-header">Perfil</div>
+                        </div>
+                        <div class="grid-row">
+                            <div class="grid-cell" style="grid-column: 1 / -1; text-align: center; color: red;">Error de la API: ${result.error}</div>
+                        </div>`;
+                        console.error('GAS API Error:', result.error);
+                        return;
+                    }
+
+                    const allData = result.data;
+                    renderTable(allData);
+                    console.log("Datos de vacaciones cargados correctamente.");
+
+                } catch (error) {
+                    vacationsGrid.innerHTML = `
+                    <div class="grid-row header-row">
+                      <div class="grid-header">ID</div>
+                      <div class="grid-header">Empresa</div>
+                      <div class="grid-header">Nómina</div>
+                      <div class="grid-header">Apellidos</div>
+                      <div class="grid-header">Nombres</div>
+                      <div class="grid-header cedula-col">Cédula</div>
+                      <div class="grid-header">Cargo</div>
+                      <div class="grid-header">Ingreso</div>
+                      <div class="grid-header">Sector</div>
+                      <div class="grid-header">Perfil</div>
+                    </div>
+                    <div class="grid-row">
+                        <div class="grid-cell" style="grid-column: 1 / -1; text-align: center; color: red;">No se pudo conectar con el script. Por favor, asegúrese de que la URL sea correcta.</div>
+                    </div>`;
+                    console.error('Fetch Error:', error);
+                }
+            }
+            
+            // Función para formatear la fecha a dd/mm/aaaa
+            function formatDate(date) {
+                const d = new Date(date);
+                const day = String(d.getDate()).padStart(2, '0');
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const year = d.getFullYear();
+                return `${day}/${month}/${year}`;
+            }
+
+
+            /**
+             * Función para construir y mostrar la tabla a partir de los datos.
+             * Se ha modificado para incluir el correlativo en la columna ID.
+             * @param {Array<Object>} data - Un array de objetos con los datos de la tabla.
+             */
+            function renderTable(data) {
+                // Elimina el mensaje de carga o los datos anteriores
+                Array.from(vacationsGrid.children).forEach(child => {
+                    if (!child.classList.contains('header-row')) {
+                        child.remove();
+                    }
+                });
+
+                if (!data || data.length === 0) {
+                    const noDataRow = document.createElement('div');
+                    noDataRow.className = 'grid-row';
+                    noDataRow.innerHTML = '<div class="grid-cell" style="grid-column: 1 / -1; text-align: center;">No hay datos para mostrar.</div>';
+                    vacationsGrid.appendChild(noDataRow);
+                    return;
+                }
+                
+                const gridHeaders = document.querySelectorAll('#vacations-grid .grid-header');
+                const cedulaIndex = Array.from(gridHeaders).findIndex(header => header.textContent.trim() === 'Cédula');
+
+                // Recorre cada fila (objeto) en los datos
+                data.forEach((row, index) => {
+                    const gridRow = document.createElement('div');
+                    gridRow.className = 'grid-row data-row';
+                    
+                    // Asigna un ID único a la fila, usando el correlativo para mayor claridad
+                    gridRow.dataset.id = (index + 1);
+
+                    // Crea la celda del ID con el número correlativo
+                    const idCell = document.createElement('div');
+                    idCell.className = 'grid-cell';
+                    idCell.textContent = (index + 1);
+                    gridRow.appendChild(idCell);
+
+                    // Crea el resto de las celdas, excluyendo el ID del mapeo
+                    Object.keys(headerMapping).slice(1).forEach((key, colIndex) => {
+                        const cell = document.createElement('div');
+                        cell.className = 'grid-cell';
+                        const jsonKey = headerMapping[key];
+                        cell.textContent = row[jsonKey] || '';
+                        
+                        // Si es la columna Cédula, añade la clase de justificación
+                        if (colIndex === cedulaIndex - 1) { // El índice del bucle no incluye el ID, por eso se resta 1
+                           cell.classList.add('cedula-col');
+                        }
+                        
+                        gridRow.appendChild(cell);
+                    });
+                    vacationsGrid.appendChild(gridRow);
+                });
+                
+                // Actualiza la lista de filas de datos para el motor de búsqueda y el formulario
+                dataRows = document.querySelectorAll('#vacations-grid .data-row');
+            }
+            
+            // Llama a la función para iniciar la carga de datos al cargar la página
+            loadVacationsData();
+        });
+        
     </script>
 </body>
 </html>
