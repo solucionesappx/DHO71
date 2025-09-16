@@ -188,9 +188,17 @@
             text-overflow: ellipsis;
         }
 
-        /* **NUEVO** Estilo para la columna CÉDULA */
+        /* **NUEVO** Regla para centrar solo el texto de los encabezados */
+        .grid-header {
+            text-align: center;
+            justify-content: center;
+        }
+
+        /* **MODIFICADO** Ahora incluye la columna INGRESO */
         .grid-header.cedula-col,
-        .grid-cell.cedula-col {
+        .grid-cell.cedula-col,
+        .grid-header.ingreso-col,
+        .grid-cell.ingreso-col {
             text-align: right;
             justify-content: flex-end;
         }
@@ -606,7 +614,8 @@
                                 <!-- **MODIFICADO** Se ha añadido la clase 'cedula-col' -->
                                 <div class="grid-header cedula-col">Cédula</div>
                                 <div class="grid-header">Cargo</div>
-                                <div class="grid-header">Ingreso</div>
+                                <!-- **MODIFICADO** Se ha añadido la clase 'ingreso-col' -->
+                                <div class="grid-header ingreso-col">Ingreso</div>
                                 <div class="grid-header">Sector</div>
                                 <div class="grid-header">Perfil</div>
                             </div>
@@ -620,7 +629,8 @@
                                 <!-- **MODIFICADO** Se ha añadido la clase 'cedula-col' -->
                                 <div class="grid-cell cedula-col">123456789</div>
                                 <div class="grid-cell">Gerente de Proyectos</div>
-                                <div class="grid-cell">15/03/2018</div>
+                                <!-- **MODIFICADO** Se ha añadido la clase 'ingreso-col' -->
+                                <div class="grid-cell ingreso-col">15/03/2018</div>
                                 <div class="grid-cell">IT</div>
                                 <div class="grid-cell">Desarrollo</div>
                             </div>
@@ -633,7 +643,8 @@
                                 <!-- **MODIFICADO** Se ha añadido la clase 'cedula-col' -->
                                 <div class="grid-cell cedula-col">987654321</div>
                                 <div class="grid-cell">Analista de Datos</div>
-                                <div class="grid-cell">20/07/2019</div>
+                                <!-- **MODIFICADO** Se ha añadido la clase 'ingreso-col' -->
+                                <div class="grid-cell ingreso-col">20/07/2019</div>
                                 <div class="grid-cell">Finanzas</div>
                                 <div class="grid-cell">Contabilidad</div>
                             </div>
@@ -646,7 +657,8 @@
                                 <!-- **MODIFICADO** Se ha añadido la clase 'cedula-col' -->
                                 <div class="grid-cell cedula-col">112233445</div>
                                 <div class="grid-cell">Diseñadora UX</div>
-                                <div class="grid-cell">10/11/2020</div>
+                                <!-- **MODIFICADO** Se ha añadido la clase 'ingreso-col' -->
+                                <div class="grid-cell ingreso-col">10/11/2020</div>
                                 <div class="grid-cell">Marketing</div>
                                 <div class="grid-cell">Creativo</div>
                             </div>
@@ -680,7 +692,8 @@
                                 <!-- **MODIFICADO** Se ha añadido la clase 'cedula-col' -->
                                 <div class="grid-header cedula-col">Cédula</div> 
                                 <div class="grid-header">Cargo</div> 
-                                <div class="grid-header">Ingreso</div> 
+                                <!-- **MODIFICADO** Se ha añadido la clase 'ingreso-col' -->
+                                <div class="grid-header ingreso-col">Ingreso</div> 
                                 <div class="grid-header">Sector</div> 
                                 <div class="grid-header">Perfil</div> 
                             </div>
@@ -1080,7 +1093,7 @@
                     console.error('Fetch Error:', error);
                 }
             }
-            
+           
             // Función para formatear la fecha a dd/mm/aaaa
             function formatDate(date) {
                 const d = new Date(date);
@@ -1114,13 +1127,12 @@
                 
                 const gridHeaders = document.querySelectorAll('#vacations-grid .grid-header');
                 const cedulaIndex = Array.from(gridHeaders).findIndex(header => header.textContent.trim() === 'Cédula');
+                const ingresoIndex = Array.from(gridHeaders).findIndex(header => header.textContent.trim() === 'Ingreso');
 
                 // Recorre cada fila (objeto) en los datos
                 data.forEach((row, index) => {
                     const gridRow = document.createElement('div');
                     gridRow.className = 'grid-row data-row';
-                    
-                    // Asigna un ID único a la fila, usando el correlativo para mayor claridad
                     gridRow.dataset.id = (index + 1);
 
                     // Crea la celda del ID con el número correlativo
@@ -1134,12 +1146,20 @@
                         const cell = document.createElement('div');
                         cell.className = 'grid-cell';
                         const jsonKey = headerMapping[key];
-                        cell.textContent = row[jsonKey] || '';
+                        let cellContent = row[jsonKey] || '';
                         
+                        // Si es la columna de Ingreso, formatea la fecha y añade la clase
+                        if (key === 'Ingreso') {
+                            cellContent = formatDate(cellContent);
+                            cell.classList.add('ingreso-col');
+                        }
+
                         // Si es la columna Cédula, añade la clase de justificación
                         if (colIndex === cedulaIndex - 1) { // El índice del bucle no incluye el ID, por eso se resta 1
                            cell.classList.add('cedula-col');
                         }
+            
+                        cell.textContent = cellContent;
                         
                         gridRow.appendChild(cell);
                     });
