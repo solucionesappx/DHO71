@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Incluye la librería de iconos Font Awesome -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.5.1/css/all.css">
+    <!-- Incluye la librería Chart.js para los gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* Importa la fuente Poppins de Google Fonts */
         @import url("https://fonts.googleapis.com/css?family=Poppins:200,300,400,500,600,700,800,900&display=swap");
@@ -552,12 +554,16 @@
         <div class="container mx-auto py-6">
             <!-- Primer Dashboard (activo por defecto) -->
             <div id="dashboard-two" class="dashboard-section hidden">
-                <h2 class="text-3xl font-bold mb-2 text-center">Datos Básicos del Personal</h2>
-                <div class="dashboard-box header-bg box-shadow">
-                    <p>Caracterización de la Data</p>
-                <div class="relative w-full mx-auto">
-                    <canvas id="doughnutChart"></canvas>
-                 </div>
+                <h2 class="text-3xl font-bold mb-2 text-center">Caracterización de la Data</h2>
+                <div class="dashboard-box header-bg box-shadow mb-8">
+                    <!-- Contenedor del spinner y el gráfico -->
+                    <!-- MODIFICADO: Se ha cambiado a w-full h-[50vh] -->
+                    <div id="chart-container-wrapper" class="relative w-full h-[25vh]">
+                        <!-- Spinner de carga -->
+                        <div id="chart-spinner" class="spinner absolute top-1/8 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
+                        <!-- Gráfico de Chart.js (inicialmente oculto) -->
+                        <canvas id="barChart" style="display: none;"></canvas>
+                    </div>
                 </div>
                 
                 <!-- Estructura de tabla para el segundo dashboard -->
@@ -1071,6 +1077,114 @@
             loadPersonData();
         });
         
+    </script>
+
+    <script>
+        // Lógica para cargar y renderizar el gráfico de barras verticales
+        async function loadChartData() {
+            console.log("Cargando datos para el gráfico...");
+            
+            // Obtiene las referencias a los elementos del DOM
+            const spinner = document.getElementById('chart-spinner');
+            const chartCanvas = document.getElementById('barChart');
+            const chartContainerWrapper = document.getElementById('chart-container-wrapper');
+
+            // Muestra el spinner y oculta el canvas
+            spinner.style.display = 'block';
+            chartCanvas.style.display = 'none';
+
+            const GAS_URL_CHART = 'https://script.google.com/macros/s/AKfycbx87WvxA9ca1KyGMA1wsw1npZw5vPtjoItomhF823BICXScNrWGFh5m0Dj6Veb24CtHXQ/exec';
+
+            try {
+                const response = await fetch(`${GAS_URL_CHART}?sheet=V¿BD_Personal`);
+                const result = await response.json();
+
+                if (result.error) {
+                    // Oculta el spinner y muestra el error
+                    spinner.style.display = 'none';
+                    chartContainerWrapper.innerHTML = `<p class="text-center text-red-500">Error: No se pudo cargar el gráfico. Verifique la URL de los datos.</p>`;
+                    console.error('GAS API Error:', result.error);
+                    return;
+                }
+
+                const allData = result.data;
+                const counts = {};
+                
+                allData.forEach(row => {
+                    const category = row['EMPRESA'] || 'Sin Empresa';
+                    counts[category] = (counts[category] || 0) + 1;
+                });
+                
+                const labels = Object.keys(counts);
+                const values = Object.values(counts);
+
+                const ctx = chartCanvas.getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Cantidad',
+                            data: values,
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.6)',
+                                'rgba(54, 162, 235, 0.6)',
+                                'rgba(255, 206, 86, 0.6)',
+                                'rgba(75, 192, 192, 0.6)',
+                                'rgba(153, 102, 255, 0.6)',
+                                'rgba(255, 159, 64, 0.6)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false // Oculta la leyenda
+                            },
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Cantidad'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Empresas'
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Oculta el spinner y muestra el canvas después de que el gráfico se ha creado
+                spinner.style.display = 'none';
+                chartCanvas.style.display = 'block';
+
+            } catch (error) {
+                console.error("Error al cargar o procesar los datos del gráfico:", error);
+                // Oculta el spinner y muestra el error
+                spinner.style.display = 'none';
+                chartContainerWrapper.innerHTML = `<p class="text-center text-red-500">Error: No se pudo cargar el gráfico. Verifique la URL de los datos.</p>`;
+            }
+        }
+        
+        // Carga el gráfico al cargar la página
+        window.addEventListener('load', loadChartData);
     </script>
 </body>
 </html>
