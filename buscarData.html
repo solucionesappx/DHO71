@@ -558,9 +558,9 @@
                 <div class="dashboard-box header-bg box-shadow mb-8">
                     <!-- Contenedor del spinner y el gráfico -->
                     <!-- MODIFICADO: Se ha cambiado a w-full h-[50vh] -->
-                    <div id="chart-container-wrapper" class="relative w-full h-[25vh]">
+                    <div id="chart-container-wrapper" class="relative w-full h-[50vh]">
                         <!-- Spinner de carga -->
-                        <div id="chart-spinner" class="spinner absolute top-1/8 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
+                        <div id="chart-spinner" class="spinner absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
                         <!-- Gráfico de Chart.js (inicialmente oculto) -->
                         <canvas id="barChart" style="display: none;"></canvas>
                     </div>
@@ -1162,10 +1162,7 @@
                                 }
                             },
                             x: {
-                                title: {
-                                    display: true,
-                                    text: 'Empresas'
-                                }
+                                display: false // Agregamos esta línea para ocultar completamente el eje X
                             }
                         }
                     }
