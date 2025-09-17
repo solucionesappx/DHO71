@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App YLOC_BuscarData</title>
+    <title>App YLOC_BuscarData V</title>
     <!-- Incluye el CDN de Tailwind CSS para un estilo rápido y moderno -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Incluye la librería de iconos Font Awesome -->
@@ -186,20 +186,20 @@
             text-overflow: ellipsis;
         }
 
-        /* **NUEVO** Regla para centrar solo el texto de los encabezados */
+        /* Regla para centrar solo el texto de los encabezados */
         .grid-header {
             text-align: center;
             justify-content: center;
         }
 
-        /* **MODIFICADO** Ahora incluye la columna INGRESO */
+        /* Ahora incluye la columna INGRESO y CÉDULA */
         .grid-cell.cedula-col,
         .grid-cell.ingreso-col {
             text-align: right;
             justify-content: flex-end;
         }
 
-        /* **MODIFICADO** Ahora incluye la columna INGRESO */
+        /* Ahora incluye la columna INGRESO y CÉDULA */
         .grid-header.cedula-col,
         .grid-header.ingreso-col {
             text-align: center;
@@ -251,11 +251,7 @@
             background-color: rgba(255,255,255,0.05);
         }
         
-        /*
-            CORRECCIÓN DEFINITIVA: Se ha unificado y simplificado la lógica del hover.
-            La regla de hover ahora tiene mayor especificidad y anula el color de fondo
-            de las filas pares y impares, garantizando que el efecto funcione en todas las filas.
-        */
+
         .data-grid .grid-row.data-row:hover .grid-cell {
             background-color: var(--accent-color-1) !important;
             color: #fff;
@@ -284,10 +280,12 @@
         .nav-link.active span {
             transform: scale(1.1) translateY(-3px);
             color: var(--accent-color-1);
-            text-shadow: 0 0 2px var(--accent-color-1), 0 0 10px var(--accent-color-1), 0 0 15px var(--accent-color-1);
+            text-shadow: 0 0 1px var(--accent-color-1), 0 0 5px var(--accent-color-1); /* Disminuimos el efecto de neón */
         }
         
-        /* Nuevo estilo para el icono de cancelar */
+
+
+        /* Estilo para el icono de cancelar */
         #clear-search:hover i {
             transform: scale(1.2);
             transition: transform 0.2s ease-in-out;
@@ -296,7 +294,6 @@
         /* Regla específica para el botón de cerrar sesión que anula el cambio de color pero mantiene los demás efectos */
         .logout-link:hover i {
             color: var(--text-color);
-            /* Cambia el color del "brillo" a blanco o el color del texto del tema actual */
             text-shadow: 0 0 2px var(--text-color), 0 0 10px var(--text-color), 0 0 15px var(--text-color);
         }
         
@@ -323,7 +320,6 @@
         }
         
         /* Estilos para la nueva barra de navegación superior con íconos */
-        /* **MODIFICADO** Ahora no tiene la clase box-shadow */
         .nav-link-top {
             display: flex;
             flex-direction: column;
@@ -346,7 +342,7 @@
             text-shadow: none;
         }
         
-        /* **NUEVO** Estilos para el formulario modal */
+        /* Estilos para el formulario modal */
         .form-container {
             position: fixed;
             top: 0;
@@ -356,10 +352,9 @@
             background-color: rgba(0, 0, 0, 0.5); /* Fondo semitransparente */
             display: none; /* Oculto por defecto */
             justify-content: center;
-            /* **MODIFICADO** Alinear el contenido al principio (parte superior) */
             align-items: flex-start;
             z-index: 9999;
-            /* **NUEVO** padding superior para evitar que se solape con el cintillo */
+            /* padding superior para evitar que se solape con el cintillo */
             padding-top: 50px;
         }
         
@@ -374,26 +369,25 @@
             position: relative;
             /* Se ha añadido overflow: hidden para ocultar las ventanas que no están activas */
             overflow: hidden;
-            /* **NUEVO** Margin top para separar del borde superior */
+            /* Margin top para separar del borde superior */
             margin-top: 2rem;
         }
 
-        /* **NUEVO** Estilos para el contenedor de las ventanas del formulario */
+        /* Estilos para el contenedor de las ventanas del formulario */
         .form-windows {
             display: flex;
             transition: transform 0.5s ease-in-out;
-            /* **CORRECCIÓN** Se establece una anchura explícita para el contenedor */
             width: 100%;
         }
         
-        /* **NUEVO** Estilos para cada ventana */
+        /* Estilos para cada ventana */
         .form-window {
             width: 100%;
             flex-shrink: 0;
             position: relative; /* Añadido para posicionar el botón de cierre */
         }
 
-        /* **MODIFICADO** Los íconos de navegación ahora son absolutos */
+        /* Los íconos de navegación ahora son absolutos */
         .nav-icon {
             font-size: 2rem;
             cursor: pointer;
@@ -543,148 +537,51 @@
         </div>
     </header>
 
-    <!-- Nueva barra de navegación para los dashboards -->
-    <!-- **MODIFICADO** Ahora no tiene la clase box-shadow -->
-    <nav class="fixed top-16 left-0 w-full nav-bg z-40 transition-colors py-2">
+    <!-- Barra de navegación para los dashboards -->
+    <nav class="fixed top-16 left-0 w-full nav-bg z-40 transition-colors py-4">
         <div class="container mx-auto padding-container py-2 flex justify-around items-center">
-            <!-- **MODIFICADO** Enlaces con íconos y texto apilados verticalmente -->
-            <a href="#" class="nav-link-top nav-link-top-desktop" data-target="home-dashboard">
-                <i class="fa-solid fa-building text-2xl"></i>
-                <span class="font-semibold text-sm">Empresa</span>
-            </a>
             <a href="#" class="nav-link-top nav-link-top-desktop" data-target="dashboard-two">
-                <i class="fa-solid fa-calendar-days text-2xl"></i>
-                <span class="font-semibold text-sm">Periodo</span>
-            </a>
-            <a href="#" class="nav-link-top nav-link-top-desktop" data-target="dashboard-three">
-                <i class="fa-solid fa-user text-2xl"></i>
-                <span class="font-semibold text-sm">Perfil</span>               
+                <i class="fa-solid fa-users text-2xl py-2"></i>
+                <span class="font-semibold text-sm">Datos del Personal</span>
             </a>
         </div>
     </nav>
 
-    <!-- 2. Contenedor principal para las diferentes secciones del dashboard -->
-    <!-- **MODIFICADO** Aumenta el padding-top para evitar que el contenido se solape con las nuevas barras de navegación -->
+    <!-- Contenedor principal para las diferentes secciones del dashboard -->
     <main class="pt-40 pb-20 px-4">
-        <div class="container mx-auto py-12">
-            <!-- Dashboard de Datos Básicos -->
-            <div id="home-dashboard" class="dashboard-section">
-                <h2 class="text-3xl font-bold mb-6 text-center">Dashboard de Datos Básicos</h2>
-                <div class="dashboard-box header-bg box-shadow">
-                    <p>
-                        Esta es el área del dashboard de Datos Básicos. Aquí es donde puedes agregar todos los componentes futuros de tu aplicación. 
-                        Actualmente, está vacía y lista para que la llenes con contenido dinámico.
-                    </p>
-                    <ul class="list-items">
-                        <li>Sección de noticias</li>
-                        <li>Lista de tareas</li>
-                        <li>Gráficos y estadísticas</li>
-                        <li>... y mucho más!</li>
-                    </ul>
-
-                </div>
-                
-                <div class="flex flex-col items-start mt-8">
-                    <!-- Se ha reducido el margen inferior para reducir el espacio con el elemento de abajo -->
-                    <h3 class="text-2xl font-bold mb-2 text-center w-full">Datos de Ejemplo con CSS Grid</h3>
-
-                    <!-- Motor de Búsqueda Dinámica -->
-                    <!-- Se ha reducido el margen superior para reducir el espacio con el elemento de arriba -->
-                    <div class="mt-2 mb-0 flex items-center justify-start gap-4 w-full">
-                        <!-- Campo de búsqueda con estilo minimalista (con fondo y sin sombra) -->
-                        <input type="text" id="search-input" placeholder="Buscar información..."
-                            class="flex-1 p-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent-color-1 transition-all"
-                            style="background-color: var(--box-color); border: 1px solid var(--border-color); color: var(--text-color);">
-                        
-                        <!-- Botón de cancelar con ícono -->
-                        <!-- Se ha aumentado el tamaño y se ha añadido la clase 'font-bold' para enfatizar -->
-                        <button id="clear-search"
-                            class="p-2 rounded-full transition-all"
-                            style="background-color: transparent; box-shadow: none;">
-                            <i class="fa-solid fa-xmark text-3xl font-bold" style="color: var(--accent-color-1);"></i>
-                        </button>
-                    </div>
-
-                    <div class="table-wrapper w-full">
-                        <div class="data-grid">
-                            <!-- Header Row -->
-                            <div class="grid-row header-row">
-                                <div class="grid-header">ID</div>
-                                <div class="grid-header">Empresa</div>
-                                <div class="grid-header">Nómina</div>
-                                <div class="grid-header">Apellidos</div>
-                                <div class="grid-header">Nombres</div>
-                                <!-- **MODIFICADO** Se ha añadido la clase 'cedula-col' -->
-                                <div class="grid-header cedula-col">Cédula</div>
-                                <div class="grid-header">Cargo</div>
-                                <!-- **MODIFICADO** Se ha añadido la clase 'ingreso-col' -->
-                                <div class="grid-header ingreso-col">Ingreso</div>
-                                <div class="grid-header">Sector</div>
-                                <div class="grid-header">Perfil</div>
-                            </div>
-                            <!-- Rows de Datos de Ejemplo -->
-                            <div class="grid-row data-row">
-                                <div class="grid-cell">1</div>
-                                <div class="grid-cell">TechCorp</div>
-                                <div class="grid-cell">N-001</div>
-                                <div class="grid-cell">Gómez</div>
-                                <div class="grid-cell">Ana</div>
-                                <!-- **MODIFICADO** Se ha añadido la clase 'cedula-col' -->
-                                <div class="grid-cell cedula-col">123456789</div>
-                                <div class="grid-cell">Gerente de Proyectos</div>
-                                <!-- **MODIFICADO** Se ha añadido la clase 'ingreso-col' -->
-                                <div class="grid-cell ingreso-col">15/03/2018</div>
-                                <div class="grid-cell">IT</div>
-                                <div class="grid-cell">Desarrollo</div>
-                            </div>
-                            <div class="grid-row data-row">
-                                <div class="grid-cell">2</div>
-                                <div class="grid-cell">Innovate Ltd.</div>
-                                <div class="grid-cell">N-002</div>
-                                <div class="grid-cell">Pérez</div>
-                                <div class="grid-cell">Carlos</div>
-                                <!-- **MODIFICADO** Se ha añadido la clase 'cedula-col' -->
-                                <div class="grid-cell cedula-col">987654321</div>
-                                <div class="grid-cell">Analista de Datos</div>
-                                <!-- **MODIFICADO** Se ha añadido la clase 'ingreso-col' -->
-                                <div class="grid-cell ingreso-col">20/07/2019</div>
-                                <div class="grid-cell">Finanzas</div>
-                                <div class="grid-cell">Contabilidad</div>
-                            </div>
-                            <div class="grid-row data-row">
-                                <div class="grid-cell">3</div>
-                                <div class="grid-cell">Global Solutions</div>
-                                <div class="grid-cell">N-003</div>
-                                <div class="grid-cell">López</div>
-                                <div class="grid-cell">María</div>
-                                <!-- **MODIFICADO** Se ha añadido la clase 'cedula-col' -->
-                                <div class="grid-cell cedula-col">112233445</div>
-                                <div class="grid-cell">Diseñadora UX</div>
-                                <!-- **MODIFICADO** Se ha añadido la clase 'ingreso-col' -->
-                                <div class="grid-cell ingreso-col">10/11/2020</div>
-                                <div class="grid-cell">Marketing</div>
-                                <div class="grid-cell">Creativo</div>
-                            </div>
-  
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Segundo Dashboard (oculto por defecto) -->
+        <div class="container mx-auto py-6">
+            <!-- Primer Dashboard (activo por defecto) -->
             <div id="dashboard-two" class="dashboard-section hidden">
-                <h2 class="text-3xl font-bold mb-6 text-center">Dashboard de Vacaciones</h2>
+                <h2 class="text-3xl font-bold mb-2 text-center">Datos Básicos del Personal</h2>
                 <div class="dashboard-box header-bg box-shadow">
-                    <p>Esta es la sección de Vacaciones. Puedes usar este espacio para mostrar diferentes datos o funcionalidades. Por ejemplo, un gráfico de rendimiento o una lista de proyectos. ¡Adelante, eres libre de explorar!</p>
+                    <p>Caracterización de la Data</p>
+                <div class="relative w-full mx-auto">
+                    <canvas id="doughnutChart"></canvas>
+                 </div>
                 </div>
                 
                 <!-- Estructura de tabla para el segundo dashboard -->
                 <div class="flex flex-col items-start mt-8">
                     <div class="flex items-center justify-between w-full">
-                        <h3 class="text-2xl font-bold mb-2 text-center">Datos de Vacaciones</h3>
+                        <h3 class="text-2xl font-bold mb-2 text-center">Datos Básicos</h3>
                     </div>
+                <!-- Motor de Búsqueda Dinámica -->
+                <!-- Se ha reducido el margen superior para reducir el espacio con el elemento de arriba -->
+                <div class="mt-2 mb-0 flex items-center justify-start gap-4 w-full">
+                    <!-- **MODIFICADO** ID del campo de búsqueda a search-input-two -->
+                    <input type="text" id="search-input-two" placeholder="Buscar información..."
+                        class="flex-1 p-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent-color-1 transition-all"
+                        style="background-color: var(--box-color); border: 1px solid var(--border-color); color: var(--text-color);">
+                        
+                    <!-- **MODIFICADO** ID del botón de cancelar a clear-search-two -->
+                    <button id="clear-search-two"
+                        class="p-2 rounded-full transition-all"
+                        style="background-color: transparent; box-shadow: none;">
+                        <i class="fa-solid fa-xmark text-3xl font-bold" style="color: var(--accent-color-1);"></i>
+                    </button>
+                    </div>               
                     <div class="table-wrapper w-full"> 
-                        <div class="data-grid" id="vacations-grid"> 
+                        <div class="data-grid" id="Person-grid"> 
                             <!-- Header Row --> 
                             <div class="grid-row header-row"> 
                                 <div class="grid-header">ID</div> 
@@ -692,10 +589,8 @@
                                 <div class="grid-header">Nómina</div> 
                                 <div class="grid-header">Apellidos</div> 
                                 <div class="grid-header">Nombres</div> 
-                                <!-- **MODIFICADO** Se ha añadido la clase 'cedula-col' -->
                                 <div class="grid-header cedula-col">Cédula</div> 
                                 <div class="grid-header">Cargo</div> 
-                                <!-- **MODIFICADO** Se ha añadido la clase 'ingreso-col' -->
                                 <div class="grid-header ingreso-col">Ingreso</div> 
                                 <div class="grid-header">Sector</div> 
                                 <div class="grid-header">Perfil</div> 
@@ -706,14 +601,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Tercer Dashboard (oculto por defecto) -->
-            <div id="dashboard-three" class="dashboard-section hidden">
-                <h2 class="text-3xl font-bold mb-6 text-center">Dashboard de Absentismos</h2>
-                <div class="dashboard-box header-bg box-shadow">
-                    <p>Esta es la sección de Absentismos. Es perfecta para un panel de control personalizado o para mostrar información del usuario, como un historial de actividad o preferencias. ¡Las posibilidades son infinitas!</p>
                 </div>
             </div>
         </div>
@@ -862,13 +749,14 @@
             }
         });
 
-        const searchInput = document.getElementById('search-input');
-        const clearButton = document.getElementById('clear-search');
-        let dataRows = document.querySelectorAll('.data-grid .data-row');
-
-        // Lógica para el motor de búsqueda dinámico
-        function filterTable() {
-            const searchTerm = searchInput.value.toLowerCase();
+        // **MODIFICADO** Lógica para el motor de búsqueda dinámico (ahora es una función reutilizable)
+        /**
+         * Filtra las filas de una tabla basándose en un término de búsqueda.
+         * @param {string} searchTerm - El término de búsqueda en minúsculas.
+         * @param {HTMLElement} tableElement - El elemento del contenedor de la tabla.
+         */
+        function filterTable(searchTerm, tableElement) {
+            const dataRows = tableElement.querySelectorAll('.data-grid .data-row');
             dataRows.forEach(row => {
                 const cells = row.querySelectorAll('.grid-cell');
                 let foundMatch = false;
@@ -881,17 +769,25 @@
                 row.style.display = foundMatch ? 'contents' : 'none';
             });
         }
-
-        searchInput.addEventListener('input', filterTable);
-        clearButton.addEventListener('click', () => {
-            searchInput.value = '';
-            filterTable();
+        
+        // **NUEVO** Asignar la lógica de búsqueda a cada dashboard
+        const searchInputTwo = document.getElementById('search-input-two');
+        const clearButtonTwo = document.getElementById('clear-search-two');
+        const PersonGrid = document.getElementById('Person-grid');
+        
+        // Listener para el segundo dashboard
+        searchInputTwo.addEventListener('input', () => {
+            filterTable(searchInputTwo.value.toLowerCase(), PersonGrid);
+        });
+        
+        clearButtonTwo.addEventListener('click', () => {
+            searchInputTwo.value = '';
+            filterTable('', PersonGrid);
         });
 
         // Lógica para la navegación y selección de filas
         const navLinks = document.querySelectorAll('[data-target]');
         const dashboardSections = document.querySelectorAll('.dashboard-section');
-        const dataGrid = document.querySelector('.data-grid');
         
         function showDashboard(targetId) {
             dashboardSections.forEach(section => {
@@ -918,7 +814,8 @@
         });
 
         window.addEventListener('DOMContentLoaded', () => {
-            showDashboard('home-dashboard');
+            // **MODIFICADO** Ahora se muestra el dashboard 'dashboard-two' por defecto
+            showDashboard('dashboard-two');
         });
         
         const step1 = document.getElementById('step-1');
@@ -984,11 +881,12 @@
             formIngreso.value = rowData.ingreso;
             formSector.value = rowData.sector;
         }
-
-        dataGrid.addEventListener('click', (event) => {
+        
+        // **NUEVO** Lógica de evento para la tabla dinámica (Dashboard Dos)
+        PersonGrid.addEventListener('click', (event) => {
             const row = event.target.closest('.data-row');
             if (row) {
-                const selectedRow = document.querySelector('.selected-row');
+                const selectedRow = PersonGrid.querySelector('.selected-row');
                 if (selectedRow) {
                     selectedRow.classList.remove('selected-row');
                 }
@@ -1022,7 +920,6 @@
         
         // Código para la tabla del segundo dashboard, integrado desde el fragmento proporcionado
         document.addEventListener("DOMContentLoaded", () => {
-            const vacationsGrid = document.getElementById('vacations-grid');
             
             // La URL de tu script de Google Apps
             const GAS_URL = 'https://script.google.com/macros/s/AKfycbx87WvxA9ca1KyGMA1wsw1npZw5vPtjoItomhF823BICXScNrWGFh5m0Dj6Veb24CtHXQ/exec';
@@ -1044,7 +941,7 @@
             /**
              * Función asíncrona para cargar los datos desde la fuente externa.
              */
-            async function loadVacationsData() {
+            async function loadPersonData() {
                 console.log("Cargando datos de vacaciones...");
                 
                 try {
@@ -1052,7 +949,7 @@
                     const result = await response.json();
 
                     if (result.error) {
-                        vacationsGrid.innerHTML = `
+                        PersonGrid.innerHTML = `
                         <div class="grid-row header-row">
                           <div class="grid-header">ID</div>
                           <div class="grid-header">Empresa</div>
@@ -1077,7 +974,7 @@
                     console.log("Datos de vacaciones cargados correctamente.");
 
                 } catch (error) {
-                    vacationsGrid.innerHTML = `
+                    PersonGrid.innerHTML = `
                     <div class="grid-row header-row">
                       <div class="grid-header">ID</div>
                       <div class="grid-header">Empresa</div>
@@ -1114,7 +1011,7 @@
              */
             function renderTable(data) {
                 // Elimina el mensaje de carga o los datos anteriores
-                Array.from(vacationsGrid.children).forEach(child => {
+                Array.from(PersonGrid.children).forEach(child => {
                     if (!child.classList.contains('header-row')) {
                         child.remove();
                     }
@@ -1124,11 +1021,11 @@
                     const noDataRow = document.createElement('div');
                     noDataRow.className = 'grid-row';
                     noDataRow.innerHTML = '<div class="grid-cell" style="grid-column: 1 / -1; text-align: center;">No hay datos para mostrar.</div>';
-                    vacationsGrid.appendChild(noDataRow);
+                    PersonGrid.appendChild(noDataRow);
                     return;
                 }
                 
-                const gridHeaders = document.querySelectorAll('#vacations-grid .grid-header');
+                const gridHeaders = document.querySelectorAll('#Person-grid .grid-header');
                 const cedulaIndex = Array.from(gridHeaders).findIndex(header => header.textContent.trim() === 'Cédula');
                 const ingresoIndex = Array.from(gridHeaders).findIndex(header => header.textContent.trim() === 'Ingreso');
 
@@ -1166,15 +1063,12 @@
                         
                         gridRow.appendChild(cell);
                     });
-                    vacationsGrid.appendChild(gridRow);
+                    PersonGrid.appendChild(gridRow);
                 });
-                
-                // Actualiza la lista de filas de datos para el motor de búsqueda y el formulario
-                dataRows = document.querySelectorAll('#vacations-grid .data-row');
             }
             
             // Llama a la función para iniciar la carga de datos al cargar la página
-            loadVacationsData();
+            loadPersonData();
         });
         
     </script>
