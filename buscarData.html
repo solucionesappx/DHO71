@@ -1192,6 +1192,40 @@
         
         // Carga el gráfico al cargar la página
         window.addEventListener('load', loadChartData);
+        // Lógica para la navegación de los enlaces de la barra inferior y el botón de cerrar sesión
+        document.addEventListener('DOMContentLoaded', () => {
+            const navLinks = document.querySelectorAll('#nav-footer .nav-link');
+            const logoutButton = document.getElementById('logout-button');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', (event) => {
+                    // Previene el comportamiento predeterminado del enlace para que la lógica de JS se ejecute.
+                    event.preventDefault();
+                    
+                    // Obtiene el texto del span dentro del enlace para saber qué página cargar.
+                    const linkText = event.currentTarget.querySelector('span').textContent;
+
+                    switch (linkText) {
+                        case 'Inicio':
+                            window.location.href = 'dashboard.html';
+                            break;
+                        case 'Buscar':
+                            window.location.href = 'buscarData.html';
+                            break;
+                        case 'Perfil':
+                            window.location.href = 'perfilUsuario.html';
+                            break;
+                        case 'Nuevo':
+                            window.location.href = 'menuAdmin.html';
+                            break;
+                        default:
+                            console.log('Enlace de navegación no reconocido.');
+                            break;
+                    }
+                });
+            });
+
+        
     </script>
 </body>
 </html>
