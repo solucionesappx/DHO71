@@ -169,7 +169,14 @@
             box-shadow: 0 4px 6px -1px var(--box-shadow-color), 0 2px 4px -2px var(--box-shadow-color);
             background-color: var(--box-color);
         }
-        
+
+            /* Nuevo estilo para el contenedor de la tabla con scroll */
+    .table-scroll-container {
+        flex-grow: 1; /* Permite que el contenedor crezca para llenar el espacio */
+        width: 100%;
+        overflow: auto;
+        max-height: 480px;      
+    }
         .data-grid {
             display: grid;
             grid-template-columns: repeat(10, auto);
