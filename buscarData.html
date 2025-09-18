@@ -541,7 +541,8 @@
     </header>
 
     <!-- Barra de navegación para los dashboards -->
-    <nav class="fixed top-16 left-0 w-full nav-bg z-40 transition-colors py-4">
+    <!-- Se ha actualizado 'top-16' a 'top-20' para evitar la superposición -->
+    <nav class="fixed top-20 left-0 w-full nav-bg z-40 transition-colors py-4">
         <div class="container mx-auto padding-container py-2 flex justify-around items-center">
             <a href="#" class="nav-link-top nav-link-top-desktop" data-target="dashboard-two">
                 <i class="fa-solid fa-users text-2xl py-2"></i>
@@ -551,7 +552,8 @@
     </nav>
 
     <!-- Contenedor principal para las diferentes secciones del dashboard -->
-    <main class="pt-40 pb-20 px-4">
+    <!-- Se ha actualizado 'pt-40' a 'pt-52' para empujar el contenido hacia abajo -->
+    <main class="pt-52 pb-20 px-4">
         <div class="container mx-auto py-6">
             <!-- Primer Dashboard (activo por defecto) -->
             <div id="dashboard-two" class="dashboard-section hidden">
