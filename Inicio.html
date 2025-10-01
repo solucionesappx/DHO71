@@ -246,7 +246,8 @@
                     </div>
                     
                     <!-- Contenido del Detalle del Trabajador (Grid responsivo) -->
-                    <div id="modalBodyContent" class="grid grid-cols-1 gap-4 text-left">
+                    <!-- CAMBIO CLAVE: Reducido de gap-4 a gap-2 -->
+                    <div id="modalBodyContent" class="grid grid-cols-1 gap-2 text-left">
                         <!-- El contenido se inyecta con JavaScript -->
                         <p class="text-gray-400">Cargando...</p>
                     </div>
@@ -284,7 +285,7 @@
         // Se usa el nombre de campo ORIGINAL (key) para referirse a la propiedad en el objeto.
         const MODAL_FIELD_MAP = [
             'NOMBRES', 'APELLIDOS', 'CEDULA', 'NACIMIENTO', 'EMPRESA', 'INGRESO', 
-            'CARGO', 'NOMINA', 'SECTOR', 'PERFIL', 'CTRL2', 'CTRL1' // Usamos nombres originales
+            'CARGO', 'NOMINA', 'SECTOR', 'PERFIL', 'CTRL2', 'CTRL1' // CTRL2 se excluye en populateModal
         ];
 
         const JSON_FIELD_MAP = [
@@ -293,7 +294,7 @@
         
         // --- NUEVO: Mapeo para el display (Traducción de columnas) ---
         const COLUMN_DISPLAY_MAP = {
-            'CTRL2': 'DÍAS VACACIONES', // Requisito 5: Nueva etiqueta
+            'CTRL2': 'DÍAS VACACIONES', // Requisito 5: Nueva etiqueta (Se mantiene en la tabla)
             'CTRL1': 'NOTA'
             // Añadir otros mapeos si es necesario
         };
@@ -548,7 +549,7 @@
             }
 
             // --- DEFINICIÓN DE COLUMNAS ---
-            // Se usa el nombre de campo ORIGINAL (key) y el nombre para mostrar (display)
+            // Se usa el nombre de campo ORIGINAL (key) para referirse a la propiedad en el objeto.
             const columnDefinitions = [
                 { 
                     key: 'ID', 
@@ -571,7 +572,7 @@
                 { key: 'SECTOR', display: 'SECTOR', isSortable: true, width: 'w-24' },
                 { key: 'PERFIL', display: 'PERFIL', isSortable: true, width: 'w-24' },
                 // *** Mapeo de nombres de campo ***
-                { key: 'CTRL2', display: COLUMN_DISPLAY_MAP['CTRL2'], isSortable: true, width: 'w-16' }, // DÍAS VACACIONES
+                { key: 'CTRL2', display: COLUMN_DISPLAY_MAP['CTRL2'], isSortable: true, width: 'w-16' }, // DÍAS VACACIONES (Se mantiene en la tabla)
                 { key: 'CTRL1', display: COLUMN_DISPLAY_MAP['CTRL1'], isSortable: true, width: 'w-16' }, // NOTA
                 // *******************************
                 { key: 'NACIMIENTO', display: 'NACIMIENTO', isSortable: true, width: 'w-24', format: formatDate },
@@ -890,7 +891,7 @@
         }
 
         // ------------------------------------------------------------------
-        // --- NUEVO: FUNCIONES PARA MODAL Y JSON DE FILTRADO ---
+        // --- FUNCIONES PARA MODAL Y JSON DE FILTRADO ---
         // ------------------------------------------------------------------
         
         /**
@@ -922,13 +923,15 @@
 
         /**
          * Función auxiliar para crear y añadir un campo de detalle al contenedor.
-         * @param {string} labelText El texto de la etiqueta.
-         * @param {string} valueText El valor del campo.
-         * @param {string} [customClasses=''] Clases Tailwind adicionales para el valor.
+         * @param {HTMLElement} modalBody - El contenedor donde se añadirán los campos.
+         * @param {string} labelText - El texto de la etiqueta.
+         * @param {string} valueText - El valor del campo.
+         * @param {string} [customClasses=''] - Clases Tailwind adicionales para el valor.
          */
         function createDetailField(modalBody, labelText, valueText, customClasses = '') {
             const itemDiv = document.createElement('div');
-            itemDiv.className = 'p-2 rounded-lg light:bg-gray-100 dark:bg-gray-800 border-l-4 border-blue-500 shadow-md';
+            // CAMBIO CLAVE: Reducido de p-2 a p-1.5
+            itemDiv.className = 'p-1.5 rounded-lg light:bg-gray-100 dark:bg-gray-800 border-l-4 border-blue-500 shadow-md';
             itemDiv.innerHTML = `
                 <!-- Etiqueta (más pequeña) -->
                 <p class="text-xs font-medium light:text-gray-500 dark:text-gray-400 uppercase tracking-wider">${labelText}</p>
@@ -944,17 +947,25 @@
         function populateModal(record) {
             const modalBody = document.getElementById('modalBodyContent');
             modalBody.innerHTML = ''; // Limpiar contenido anterior
+            
+            const nombres = record.NOMBRES ? String(record.NOMBRES).trim() : 'N/A';
+            const apellidos = record.APELLIDOS ? String(record.APELLIDOS).trim() : 'N/A';
+            
+            // AJUSTE: Concatenación directa con <br> forzando la estructura NOMBRES (arriba) y APELLIDOS (abajo).
+            // Se usa un div envolvente para que el <br> sea interpretado correctamente.
+            const fullNameHtml = `<div>${nombres}<br>${apellidos}</div>`;
+
 
             // REQUISITO 3 & 4: Campo Compuesto (NOMBRES + APELLIDOS)
-            const fullName = `${record.NOMBRES || ''} ${record.APELLIDOS || ''}`.trim();
-            createDetailField(modalBody, 'Nombre Completo', fullName, 'text-lg font-extrabold text-blue-400');
+            createDetailField(modalBody, 'Nombre Completo', fullNameHtml, 'text-lg font-extrabold text-blue-400');
 
             // Campos a excluir NOMBRES y APELLIDOS (ya están en Nombre Completo)
-            const excludedKeys = ['NOMBRES', 'APELLIDOS'];
+            // IMPORTANTE: Se añade CTRL2 (DÍAS VACACIONES) a la lista de exclusión para no mostrarlo en el modal.
+            const excludedKeys = ['NOMBRES', 'APELLIDOS', 'CTRL2']; 
 
             MODAL_FIELD_MAP.forEach(key => {
                 if (excludedKeys.includes(key)) {
-                    return; // Saltar NOMBRES y APELLIDOS
+                    return; // Saltar NOMBRES, APELLIDOS, y DÍAS VACACIONES (CTRL2)
                 }
 
                 let value = record[key];
@@ -967,15 +978,13 @@
                     customClasses = 'text-green-400';
                 } else if (key === 'INGRESO' || key === 'NACIMIENTO') {
                     value = formatDate(value);
-                } else if (key === 'CTRL2') { // REQUISITO 5: DÍAS VACACIONES (mostrar siempre)
-                    value = value === null || value === undefined || value === '' ? '0' : value;
                 } else if (key === 'CTRL1') { // REQUISITO 6: NOTA (no mostrar si N/A o vacío)
                     if (!value || String(value).trim().toUpperCase() === 'N/A') {
                         return; // Omitir el campo completo
                     }
                 }
                 
-                // Mostrar N/A si el valor final está vacío (excepto CTRL1 manejado arriba)
+                // Mostrar N/A si el valor final está vacío
                 const finalValue = value === null || value === undefined || String(value).trim() === '' ? 'N/A' : String(value);
 
                 // Crear y añadir el campo
@@ -990,8 +999,6 @@
             const modal = document.getElementById('DetalleTrabajadorModal');
             if (modal) {
                 modal.style.display = 'flex';
-                // Opcional: Ocultar el scroll del cuerpo principal mientras el modal está abierto
-                // mainContent.style.overflowY = 'hidden'; // No lo hacemos para permitir scroll del fondo
             }
         }
 
@@ -1002,8 +1009,6 @@
             const modal = document.getElementById('DetalleTrabajadorModal');
             if (modal) {
                 modal.style.display = 'none';
-                // Opcional: Restaurar el scroll del cuerpo principal
-                // mainContent.style.overflowY = 'auto';
             }
         }
         // ------------------------------------------------------------------
