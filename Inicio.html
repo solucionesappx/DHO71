@@ -113,14 +113,24 @@
             display: none;
         }
         
-        /* * ESTILO ESPECÍFICO PARA LA COLUMNA STICKY (ID)
-         * Usamos una variable CSS para el color de fondo para la consistencia
-         */
+        /* * ESTILO ESPECÍFICO PARA LA COLUMNA STICKY (ID) */
         .sticky-id-cell {
             background-color: var(--color-header) !important; /* Mismo color que el encabezado (#2D59A1) */
             color: var(--color-data-text) !important; /* Texto blanco puro */
             border-right: 1px solid rgba(255, 255, 255, 0.2); /* Separador suave */
         }
+        
+        /* Estilo para los encabezados de la tabla interactivos */
+        .sortable-header {
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.1s;
+        }
+
+        .sortable-header:hover {
+            background-color: rgba(255, 255, 255, 0.1); /* Ligero hover para feedback */
+        }
+        
     </style>
 </head>
 <body class="dark transition-colors duration-300">
@@ -192,9 +202,11 @@
         // --- ESTADO GLOBAL ---
         let employeeData = []; // Almacena el dataset completo sin filtrar
         let debounceTimer; // Para controlar la frecuencia de búsqueda
-        // Estado de ordenación: 'asc' (ascendente), 'desc' (descendente), null (sin ordenar)
+        
+        // Estado de ordenación:
+        let currentSortColumn = null; 
+        // 'asc' (ascendente), 'desc' (descendente), null (sin ordenar)
         let sortOrder = null; 
-        const SORT_COLUMN_KEY = 'NOMBRES'; // Columna por defecto para ordenar
 
         // --- CONSTANTES ---
         // URL de la API de Google Apps Script para obtener datos
@@ -249,7 +261,7 @@
                     <div class="relative flex-grow rounded-xl"> 
                         <!-- Clases de color para asegurar texto claro en modo oscuro -->
                         <input type="text" id="search-input" placeholder="Buscar por Nombre, Cédula, Cargo..." 
-                               class="w-full pl-10 pr-10 py-2 rounded-xl shadow-inner 
+                               class="w-full pl-10 pr-4 py-2 rounded-xl shadow-inner 
                                      light:bg-white dark:bg-gray-700 
                                      text-gray-900 dark:text-gray-100 
                                      placeholder-gray-400 border light:border-gray-300 dark:border-gray-600 
@@ -259,14 +271,9 @@
                         <i data-lucide="search" class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 light:text-gray-500 dark:text-gray-300"></i>
                     </div>
 
-                    <!-- Botón Limpiar - Mantiene rounded-full porque es un círculo de control -->
+                    <!-- Botón Limpiar -->
                     <button id="clear-search-btn" class="p-2.5 rounded-full light:bg-white dark:bg-gray-700 shadow-md transition-colors duration-200 text-red-500 dark:text-red-400 font-bold" title="Reiniciar Filtros">
                         <i data-lucide="x-circle" class="w-7 h-7"></i>
-                    </button>
-
-                    <!-- Botón Ordenación - Mantiene rounded-full porque es un círculo de control -->
-                    <button id="sort-toggle-btn" class="p-2.5 rounded-full light:bg-white dark:bg-gray-700 shadow-md transition-colors duration-200 text-blue-500 font-bold" title="Ordenar por NOMBRES">
-                        <i data-lucide="arrow-up-down" class="w-7 h-7"></i>
                     </button>
                 </div>
 
@@ -320,6 +327,67 @@
             `
         };
 
+        // --- FUNCIONES DE FORMATO ESPECÍFICAS ---
+
+        /**
+         * Formatea un número de Cédula (o cualquier número grande) para incluir separadores de miles (puntos).
+         * @param {string | number} value - El valor de la cédula.
+         * @returns {string} La cédula formateada con separadores (ej: '1.234.567').
+         */
+        function formatCedula(value) {
+            const num = Number(value);
+            if (isNaN(num)) return value || 'N/A';
+            return num.toLocaleString('es-ES'); // Usa el punto como separador de miles
+        }
+
+        /**
+         * Formatea un valor de fecha al formato 'dd/mm/yyyy'.
+         * Asume que la entrada es una cadena de fecha que JavaScript puede parsear (ej: 'YYYY-MM-DD' o un timestamp).
+         * @param {string | number} value - El valor de la fecha.
+         * @returns {string} La fecha formateada (ej: '01/05/2023').
+         */
+        function formatDate(value) {
+            if (!value) return 'N/A';
+            
+            // Intentar crear un objeto Date.
+            // Si la entrada es "dd/mm/yyyy", el constructor de Date puede fallar,
+            // por eso es mejor estandarizar el formato antes de pasar a la salida.
+            let date;
+            
+            // Si es un string 'dd/mm/yyyy' (common issue from sheet data), convertir a 'yyyy-mm-dd'
+            if (typeof value === 'string' && value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)) {
+                const parts = value.split('/');
+                // Nota: Date constructor en JS toma meses de 0-11, pero si la hoja
+                // ya lo devuelve como cadena, a menudo es mejor usar new Date(string).
+                // Para evitar errores de zona horaria con formato dd/mm/yyyy, se prefiere
+                // usar los componentes directamente o un formato 'YYYY/MM/DD'.
+                // Aquí usamos el formato que más probablemente funciona si viene de GAS como 'dd/mm/yyyy'
+                date = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+
+                // Validación simple por si el parseo falla (puede ocurrir si es inválido)
+                if (isNaN(date.getTime())) {
+                    date = new Date(value); // Intenta parsear directamente
+                }
+            } else {
+                date = new Date(value);
+            }
+            
+            // Comprobar si la fecha es válida
+            if (isNaN(date.getTime())) {
+                return value; // Devolver el valor original si no se puede parsear
+            }
+
+            // Formatear a dd/mm/yyyy manualmente para consistencia
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0'); // Meses son 0-indexados
+            const year = date.getFullYear();
+
+            return `${day}/${month}/${year}`;
+        }
+        
+        // --- FIN FUNCIONES DE FORMATO ESPECÍFICAS ---
+
+
         /**
          * Aplica la ordenación al array de datos completo.
          * @param {Array<Object>} data - Array de objetos a ordenar.
@@ -337,15 +405,53 @@
                 const valA = String(a[key] || '').toLowerCase();
                 const valB = String(b[key] || '').toLowerCase();
 
-                if (valA < valB) {
-                    return order === 'asc' ? -1 : 1;
+                // Intentar convertir a número para ordenar numéricamente si es posible
+                const numA = parseFloat(valA);
+                const numB = parseFloat(valB);
+                
+                let comparison = 0;
+                
+                // Si ambos son números válidos, ordenar numéricamente
+                if (!isNaN(numA) && !isNaN(numB) && isFinite(numA) && isFinite(numB)) {
+                    comparison = numA - numB;
+                } else {
+                    // Si no son números, ordenar alfabéticamente
+                    if (valA < valB) comparison = -1;
+                    if (valA > valB) comparison = 1;
                 }
-                if (valA > valB) {
-                    return order === 'asc' ? 1 : -1;
-                }
-                return 0;
+
+                return order === 'asc' ? comparison : -comparison;
             });
             return sortedData;
+        }
+
+        /**
+         * Determina la clase de alineación del contenido para una columna específica.
+         * @param {string} key - La clave de la columna (e.g., 'CEDULA').
+         * @returns {string} La clase Tailwind para la alineación del texto.
+         */
+        function getContentAlignmentClass(key) {
+            // Reglas de justificación para el CONTENIDO (filas de datos)
+            switch (key.toUpperCase()) {
+                case 'CEDULA':
+                case 'CTRL2':
+                    return 'text-right'; // Solicitado: Justificado a la derecha
+                case 'INGRESO':
+                    return 'text-center'; // Solicitado: Centrado
+                default:
+                    return 'text-left'; // Solicitado: Contenido justificado a la izquierda por defecto
+            }
+        }
+        
+        /**
+         * Determina la clase de alineación del encabezado para una columna específica.
+         * @param {string} key - La clave de la columna.
+         * @returns {string} La clase Tailwind para la alineación del texto.
+         */
+        function getHeaderAlignmentClass(key) {
+            // Reglas de justificación para el ENCABEZADO (th)
+            // Solicitado: TODOS los encabezados deben estar centrados (excepto ID que es sticky/especial)
+            return 'text-center';
         }
 
 
@@ -378,11 +484,12 @@
             const totalRecordsSpan = document.querySelector('#metric-total-records span[data-count="total"]');
             if (totalRecordsSpan) totalRecordsSpan.textContent = data.length;
             
-            // Aplicar la ordenación al conjunto de datos que se va a renderizar
+            // Aplicar la ordenación SÓLO si hay una columna activa de ordenación
             let dataToRender = [...data];
-            if (sortOrder) {
-                dataToRender = sortData(dataToRender, SORT_COLUMN_KEY, sortOrder);
+            if (sortOrder && currentSortColumn) {
+                dataToRender = sortData(dataToRender, currentSortColumn, sortOrder);
             }
+            // Si currentSortColumn es null, se utiliza el orden original de la data.
 
             // --- DEFINICIÓN DE COLUMNAS ---
             const columnDefinitions = [
@@ -390,45 +497,53 @@
                     key: 'ID', 
                     display: 'ID', 
                     isVirtual: true, 
+                    isSortable: false, 
                     width: 'w-12', 
-                    align: 'text-center', 
+                    alignHeader: 'text-center', 
+                    alignContent: 'text-center', 
                     stickyHeaderClass: 'sticky left-0 z-20', 
                     stickyCellClass: 'sticky left-0 z-10 sticky-id-cell' 
                 },
-                { key: 'EMPRESA', display: 'EMPRESA', align: 'text-left' },
-                { key: 'NOMINA', display: 'NÓMINA', align: 'text-left' },
-                { key: 'APELLIDOS', display: 'APELLIDOS', align: 'text-left' },
-                { key: 'NOMBRES', display: 'NOMBRES', align: 'text-left' },
-                { key: 'CEDULA', display: 'CÉDULA', align: 'text-left' },
-                { key: 'CARGO', display: 'CARGO', align: 'text-left' },
-                { key: 'INGRESO', display: 'INGRESO', align: 'text-center' },
-                { key: 'SECTOR', display: 'SECTOR', align: 'text-left' },
-                { key: 'PERFIL', display: 'PERFIL', align: 'text-left' },
-                { key: 'CTRL2', display: 'CTRL-2', align: 'text-center' },
-                { key: 'CTRL1', display: 'CTRL-1', align: 'text-center' },
-                { key: 'NACIMIENTO', display: 'NACIMIENTO', align: 'text-center' },
+                { key: 'EMPRESA', display: 'EMPRESA', isSortable: true, width: 'w-24' },
+                { key: 'NOMINA', display: 'NÓMINA', isSortable: true, width: 'w-20' },
+                { key: 'APELLIDOS', display: 'APELLIDOS', isSortable: true, width: 'w-32' },
+                { key: 'NOMBRES', display: 'NOMBRES', isSortable: true, width: 'w-32' },
+                { key: 'CEDULA', display: 'CÉDULA', isSortable: true, width: 'w-24', format: formatCedula }, // <-- APLICAR FORMATO CÉDULA
+                { key: 'CARGO', display: 'CARGO', isSortable: true, width: 'w-32' },
+                { key: 'INGRESO', display: 'INGRESO', isSortable: true, width: 'w-24', format: formatDate }, // <-- APLICAR FORMATO FECHA
+                { key: 'SECTOR', display: 'SECTOR', isSortable: true, width: 'w-24' },
+                { key: 'PERFIL', display: 'PERFIL', isSortable: true, width: 'w-24' },
+                { key: 'CTRL2', display: 'CTRL-2', isSortable: true, width: 'w-16' },
+                { key: 'CTRL1', display: 'CTRL-1', isSortable: true, width: 'w-16' },
+                { key: 'NACIMIENTO', display: 'NACIMIENTO', isSortable: true, width: 'w-24', format: formatDate }, // <-- APLICAR FORMATO FECHA
             ];
 
             // 1. Generar la cabecera de la tabla
             const tableHeadersHtml = columnDefinitions.map(col => {
                 const headerBgStyle = col.isVirtual ? 'style="background-color: var(--color-header);"' : '';
                 
-                // Si la columna es la de ordenación, se agrega un indicador visual
-                const sortIndicator = col.key === SORT_COLUMN_KEY && sortOrder 
-                    ? `<i data-lucide="${sortOrder === 'asc' ? 'chevron-up' : 'chevron-down'}" class="w-4 h-4 inline-block ml-1"></i>`
-                    : '';
+                // Obtener clase de alineación para el encabezado
+                const headerAlignClass = col.isVirtual ? col.alignHeader : getHeaderAlignmentClass(col.key);
 
-                // Ajuste: El header mantiene py-2 para una altura estándar
+                // Indicador de ordenación visible solo si la columna es la que está activa
+                let sortIndicatorHtml = '';
+                if (col.isSortable && col.key === currentSortColumn) {
+                    const iconName = sortOrder === 'asc' ? 'chevron-up' : 'chevron-down';
+                    sortIndicatorHtml = `<i data-lucide="${iconName}" class="w-4 h-4 inline-block ml-1"></i>`;
+                }
+
+                // Clases de Tailwind para el header:
+                const headerClasses = `px-4 py-2 ${headerAlignClass} text-sm font-bold uppercase tracking-wider text-white ${col.width || ''} whitespace-nowrap ${col.stickyHeaderClass || ''} ${col.isSortable ? 'sortable-header' : ''}`;
+                
                 return `
-                    <th ${headerBgStyle} class="px-4 py-2 ${col.align} text-xs font-bold uppercase tracking-wider text-white ${col.width || ''} whitespace-nowrap ${col.stickyHeaderClass || ''}">
-                        ${col.display} ${sortIndicator}
+                    <th ${headerBgStyle} class="${headerClasses}" data-column-key="${col.key}">
+                        ${col.display} ${sortIndicatorHtml}
                     </th>
                 `;
             }).join('');
 
             // 2. Generar las filas de la tabla con el ID correlativo
             const tableRowsHtml = dataToRender.map((item, index) => {
-                // El ID correlativo se basa en la posición filtrada (index + 1)
                 const rowId = index + 1;
                 
                 // Generar celdas para la fila actual
@@ -437,16 +552,24 @@
                     // AJUSTE SOLICITADO: Compactación máxima con py-0 (se mantiene)
                     let cellClasses = 'px-4 py-0 text-sm whitespace-nowrap '; 
                     let stickyClasses = col.stickyCellClass || '';
+                    let alignmentClass = '';
 
                     if (col.isVirtual) {
                         content = rowId;
                         cellClasses += 'font-semibold'; 
+                        alignmentClass = col.alignContent;
                     } else {
-                        content = item[col.key] || 'N/A';
+                        // OBTENER VALOR Y APLICAR FORMATO SI EXISTE
+                        let rawValue = item[col.key] || 'N/A';
+                        content = col.format ? col.format(rawValue) : rawValue;
+                        
                         cellClasses += 'dark:bg-gray-700 light:bg-white';
+                        // Determinar la alineación del contenido
+                        alignmentClass = getContentAlignmentClass(col.key);
                     }
                     
-                    return `<td class="${cellClasses} ${col.align} ${stickyClasses}" style="color: var(--color-data-text) !important;">${content}</td>`;
+                    // Nota: Se usa 'important' en el estilo para anular cualquier CSS de Tailwind que pueda interferir con el color de texto en las celdas sticky.
+                    return `<td class="${cellClasses} ${alignmentClass} ${stickyClasses}" style="color: var(--color-data-text) !important;">${content}</td>`;
                 }).join('');
 
                 return `
@@ -462,16 +585,16 @@
                 <div class="shadow-xl border light:border-gray-200 dark:border-gray-700">
                     
                     <!-- Contenedor con altura máxima y scroll vertical y horizontal -->
-                    <div class="max-h-[100vh] md:max-h-110 overflow-y-auto overflow-x-auto">
+                    <div class="max-h-[100vh] md:max-h-110 overflow-y-auto overflow-x-auto" id="table-scroll-container">
                         
-                        <!-- AJUSTE CLAVE: table-auto permite al navegador ajustar el ancho según el contenido. 
-                             min-w-full asegura que ocupe todo el ancho disponible para forzar el scroll horizontal si es necesario. -->
+                        <!-- min-w-full asegura que ocupe todo el ancho disponible para forzar el scroll horizontal si es necesario. -->
                         <table class="min-w-full table-auto divide-y light:divide-gray-200 dark:divide-gray-700">
                             
                             <!-- Cabecera de la tabla (sticky top-0) con color #2D59A1 (Fijo) -->
-                            <thead style="background-color: var(--color-header);" class="sticky top-0 z-10 shadow-md">
+                            <thead style="background-color: var(--color-header);" class="sticky top-0 z-10 shadow-md" id="employee-table-header">
                                 <tr>
                                     ${tableHeadersHtml}
+                                
                                 </tr>
                             </thead>
                             
@@ -484,32 +607,51 @@
                 </div>
             `;
 
-
             container.innerHTML = activityHtml;
             lucide.createIcons();
             
-            // Llamar a la función para configurar los listeners de control
+            // Configurar listeners de búsqueda y headers
             setupSearchControls();
+            setupHeaderSortListeners();
         }
-
+        
         /**
-         * Maneja la alternancia del estado de ordenación (Ascendente/Descendente/Ninguno)
-         * y llama a la función para re-renderizar los datos.
+         * Maneja la lógica de ordenación al hacer clic en un encabezado de columna.
+         * @param {string} columnKey - La clave de la columna clicada (e.g., 'NOMBRES').
          */
-        function toggleSortOrder() {
-            // 1. Alternar el estado de ordenación
-            if (sortOrder === 'asc') {
-                sortOrder = 'desc';
-            } else if (sortOrder === 'desc') {
-                sortOrder = null; // Desactivar ordenación
-            } else {
-                sortOrder = 'asc';
+        function handleHeaderClick(columnKey) {
+            if (columnKey === 'ID') {
+                return; // La columna ID no es ordenable
             }
 
-            // 2. Re-renderizar los datos (el render usa el estado global sortOrder)
+            // 1. Si se hace clic en una NUEVA columna, se ordena ASCENDENTE por defecto.
+            if (columnKey !== currentSortColumn) {
+                currentSortColumn = columnKey;
+                sortOrder = 'asc';
+            } else {
+                // 2. Si se hace clic en la COLUMNA ACTUAL, se alterna entre ASC y DESC.
+                sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+            }
+
+            // 3. Re-renderizar los datos (filtrados y ordenados)
             filterAndRenderData();
         }
 
+        /**
+         * Configura el listener de click para los encabezados de la tabla.
+         */
+        function setupHeaderSortListeners() {
+            const tableHeaderRow = document.querySelector('#employee-table-header tr');
+            if (!tableHeaderRow) return;
+
+            // Delegación de eventos en el contenedor de la cabecera
+            tableHeaderRow.querySelectorAll('th').forEach(header => {
+                const columnKey = header.getAttribute('data-column-key');
+                if (columnKey && columnKey !== 'ID') {
+                    header.addEventListener('click', () => handleHeaderClick(columnKey));
+                }
+            });
+        }
 
         /**
          * Filtra la variable global employeeData basada en el texto de búsqueda y renderiza el resultado.
@@ -543,7 +685,7 @@
                     });
                 }
 
-                // Renderizar los datos (filtrados o completos, y ordenados si aplica)
+                // Renderizar los datos (filtrados y ordenados por currentSortColumn/sortOrder)
                 renderActivityFeed(dataToRender);
             }, 300); // Retraso de 300ms
         }
@@ -554,28 +696,20 @@
         function setupSearchControls() {
             const searchInput = document.getElementById('search-input');
             const clearBtn = document.getElementById('clear-search-btn');
-            const sortBtn = document.getElementById('sort-toggle-btn');
-
-            if (!searchInput || !clearBtn || !sortBtn) return;
+            
+            if (!searchInput || !clearBtn) return;
             
             // 1. Listener de entrada para el filtrado
             searchInput.addEventListener('input', filterAndRenderData);
             
-            // 2. Evento de click para limpiar búsqueda (Siempre visible)
+            // 2. Evento de click para limpiar búsqueda 
             clearBtn.onclick = () => {
-                // Solo si el campo de búsqueda tiene texto o si hay ordenación aplicada, 
-                // se ejecuta la acción de "limpiar todo".
-                if (searchInput.value || sortOrder !== null) {
-                    searchInput.value = ''; // Limpiar campo de búsqueda
-                    sortOrder = null; // Reiniciar ordenación
-                    filterAndRenderData(); // Re-renderizar con filtros y ordenación vacíos (muestra todo)
-                }
+                // Reiniciar solo el valor del input, manteniendo el estado de ordenación
+                searchInput.value = ''; 
+                // Esto permite que al limpiar la búsqueda, la tabla mantenga el orden manual 
+                // o el orden original si no se ha ordenado manualmente.
+                filterAndRenderData(); 
             };
-
-            // 3. Evento de click para ordenar
-            sortBtn.onclick = toggleSortOrder;
-            
-            // No se requiere lógica de visibilidad inicial, el botón es siempre visible.
         }
 
         /**
@@ -601,8 +735,11 @@
                 searchInput.value = ''; 
                 searchInput.disabled = true; 
             }
-            // Resetear el estado de ordenación al cargar nuevos datos
+            
+            // Al cargar nuevos datos, se asegura que no haya ordenación activa.
+            currentSortColumn = null; 
             sortOrder = null; 
+            
             lucide.createIcons(); 
 
             try {
@@ -800,8 +937,6 @@
             // Cargar el contenido inicial (Inicio)
             loadContent('inicio.html');
         };
-        
-        // La función handleFooterNavigation fue eliminada ya que no es necesaria para este tipo de aplicación SPA simulada.
     </script>
 </body>
 </html>
