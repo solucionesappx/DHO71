@@ -287,16 +287,17 @@
             'NOMBRES', 'APELLIDOS', 'CEDULA', 'NACIMIENTO', 'EMPRESA', 'INGRESO', 
             'CARGO', 'NOMINA', 'SECTOR', 'PERFIL', 'CTRL2', 'CTRL1' // CTRL2 se excluye en populateModal
         ];
-
+        
+        // CAMBIO CLAVE: Se usan los nombres de campos originales del backend para la busqueda en la data
+        // Los valores se formatearán justo antes de crear el objeto JSON de filtrado.
         const JSON_FIELD_MAP = [
-            'CEDULA', 'EMPRESA', 'INGRESO', 'NOMBRES', 'APELLIDOS'
+            'CEDULA', 'EMPRESA', 'INGRESO', 'NOMBRES', 'APELLIDOS' // 'NOMBRES' y 'APELLIDOS' se usarán para generar 'NOMBRE_FORMATEADO'
         ];
         
         // --- NUEVO: Mapeo para el display (Traducción de columnas) ---
         const COLUMN_DISPLAY_MAP = {
-            'CTRL2': 'DÍAS VACACIONES', // Requisito 5: Nueva etiqueta (Se mantiene en la tabla)
+            'CTRL2': 'DÍAS VACACIONES', 
             'CTRL1': 'NOTA'
-            // Añadir otros mapeos si es necesario
         };
 
 
@@ -441,6 +442,7 @@
             let date;
             
             if (typeof value === 'string' && value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)) {
+                // Si ya viene en formato dd/mm/yyyy, intenta parsear como tal (esto puede ser inestable)
                 const parts = value.split('/');
                 date = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
 
@@ -462,6 +464,33 @@
             return `${day}/${month}/${year}`;
         }
         
+        /**
+         * Aplica el formato solicitado a los nombres y apellidos.
+         * Formato: PrimerNombre InicialSegundoNombre. PrimerApellido InicialSegundoApellido.
+         * @param {Object} record El registro de datos original.
+         * @returns {string} El nombre completo formateado.
+         */
+        function formatFullNameForFiltering(record) {
+            // Asumiendo que la data tiene las columnas NOMBRES y APELLIDOS con los nombres/apellidos completos
+            // Si la data viniera separada (e.g., PRIMER_NOMBRE, SEGUNDO_NOMBRE, etc.), la lógica sería más directa.
+            
+            const rawNombres = String(record.NOMBRES || '').trim().split(/\s+/);
+            const rawApellidos = String(record.APELLIDOS || '').trim().split(/\s+/);
+
+            // 1. Nombres: Primer nombre + Inicial del segundo
+            let firstName = rawNombres[0] || '';
+            let secondNameInitial = (rawNombres.length > 1 && rawNombres[1]) ? rawNombres[1].charAt(0) + '.' : '';
+
+            // 2. Apellidos: Primer apellido + Inicial del segundo
+            let firstSurname = rawApellidos[0] || '';
+            let secondSurnameInitial = (rawApellidos.length > 1 && rawApellidos[1]) ? rawApellidos[1].charAt(0) + '.' : '';
+
+            // Construir el resultado final, limpiando espacios dobles
+            const formattedName = `${firstName} ${secondNameInitial} ${firstSurname} ${secondSurnameInitial}`.trim().replace(/\s+/g, ' ');
+
+            return formattedName;
+        }
+
         // --- FIN FUNCIONES DE FORMATO ESPECÍFICAS ---
 
 
@@ -639,7 +668,8 @@
                             }
                         }
                         
-                        content = col.format ? col.format(rawValue) : rawValue;
+                        // Aplicar formato si existe, de lo contrario, usar el valor crudo/limpio
+                        content = col.format ? col.format(rawValue) : String(rawValue);
                         
                         cellClasses += 'dark:bg-gray-700 light:bg-white';
                         alignmentClass = getContentAlignmentClass(col.key);
@@ -844,8 +874,6 @@
                     throw new Error(`Error HTTP: ${response.status}`);
                 }
                 
-                // console.log("Respuesta JSON completa de la API (con ?sheet=BD_Personal2):", data); 
-
                 let loadedData = [];
                 
                 if (data && Array.isArray(data.data)) {
@@ -858,6 +886,7 @@
                     throw new Error(`Error reportado por la API de GAS: ${data.error}`);
                 }
                 
+                // Limpieza inicial de valores nulos
                 employeeData = loadedData.map(item => {
                     const newItem = {};
                     for (const key in item) {
@@ -895,16 +924,36 @@
         // ------------------------------------------------------------------
         
         /**
+         * Aplica los formatos especiales al registro para generar el JSON de filtrado.
+         * ESTE ES EL CAMBIO CLAVE para aplicar la lógica solicitada sin tocar el GAS.
+         * @param {Object} record El objeto de datos original (tal como viene de GAS).
+         * @returns {Object} El objeto de datos formateado para el JSON de filtrado.
+         */
+        function formatWorkerForFiltering(record) {
+            const formattedRecord = {};
+            
+            // 1. CEDULA, EMPRESA (Valores directos)
+            formattedRecord.CEDULA = record.CEDULA || '';
+            formattedRecord.EMPRESA = record.EMPRESA || '';
+            
+            // 2. INGRESO (Formato dd/mm/yyyy)
+            formattedRecord.INGRESO = formatDate(record.INGRESO);
+
+            // 3. NOMBRE_FORMATEADO (PrimerNombre InicialSegundo. PrimerApellido InicialSegundo.)
+            // Usando los campos NOMBRES y APELLIDOS (asumiendo que vienen completos)
+            formattedRecord.NOMBRE_FORMATEADO = formatFullNameForFiltering(record);
+
+            return formattedRecord;
+        }
+
+        /**
          * Maneja el evento dblclick en una fila, genera el JSON y abre el modal de detalle.
          * @param {Object} record - Objeto de datos del trabajador de la fila seleccionada.
          */
         function handleRowDoubleClick(record) {
-            // 1. Crear el JSON de filtrado (5 campos solicitados)
-            const filteringJson = {};
-            JSON_FIELD_MAP.forEach(key => {
-                filteringJson[key] = record[key] || '';
-            });
-
+            // 1. Crear el JSON de filtrado (usando la nueva función de formato)
+            const filteringJson = formatWorkerForFiltering(record);
+            
             // 2. Guardar el JSON globalmente para uso futuro
             _globalSelectedWorkerData = filteringJson;
             
@@ -930,7 +979,7 @@
          */
         function createDetailField(modalBody, labelText, valueText, customClasses = '') {
             const itemDiv = document.createElement('div');
-            // CAMBIO CLAVE: Reducido de p-2 a p-1.5
+            // Reducido de p-2 a p-1.5 para menor padding vertical
             itemDiv.className = 'p-1.5 rounded-lg light:bg-gray-100 dark:bg-gray-800 border-l-4 border-blue-500 shadow-md';
             itemDiv.innerHTML = `
                 <!-- Etiqueta (más pequeña) -->
@@ -951,21 +1000,19 @@
             const nombres = record.NOMBRES ? String(record.NOMBRES).trim() : 'N/A';
             const apellidos = record.APELLIDOS ? String(record.APELLIDOS).trim() : 'N/A';
             
-            // AJUSTE: Concatenación directa con <br> forzando la estructura NOMBRES (arriba) y APELLIDOS (abajo).
-            // Se usa un div envolvente para que el <br> sea interpretado correctamente.
+            // Campo Compuesto (NOMBRES + APELLIDOS)
             const fullNameHtml = `<div>${nombres}<br>${apellidos}</div>`;
-
 
             // REQUISITO 3 & 4: Campo Compuesto (NOMBRES + APELLIDOS)
             createDetailField(modalBody, 'Nombre Completo', fullNameHtml, 'text-lg font-extrabold text-blue-400');
 
             // Campos a excluir NOMBRES y APELLIDOS (ya están en Nombre Completo)
-            // IMPORTANTE: Se añade CTRL2 (DÍAS VACACIONES) a la lista de exclusión para no mostrarlo en el modal.
+            // IMPORTANTE: Se excluyen NOMBRES, APELLIDOS, y DÍAS VACACIONES (CTRL2).
             const excludedKeys = ['NOMBRES', 'APELLIDOS', 'CTRL2']; 
 
             MODAL_FIELD_MAP.forEach(key => {
                 if (excludedKeys.includes(key)) {
-                    return; // Saltar NOMBRES, APELLIDOS, y DÍAS VACACIONES (CTRL2)
+                    return; // Saltar campos excluidos
                 }
 
                 let value = record[key];
@@ -977,6 +1024,7 @@
                     value = formatCedula(value);
                     customClasses = 'text-green-400';
                 } else if (key === 'INGRESO' || key === 'NACIMIENTO') {
+                    // Usar la función de formato de fecha
                     value = formatDate(value);
                 } else if (key === 'CTRL1') { // REQUISITO 6: NOTA (no mostrar si N/A o vacío)
                     if (!value || String(value).trim().toUpperCase() === 'N/A') {
