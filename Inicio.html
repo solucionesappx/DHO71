@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplicación Móvil - Inicio</title>
+    <!-- Carga de Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Carga de Lucide Icons CDN para iconos limpios -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Configuración de Tailwind para usar el color de acento y la fuente Inter */
+        html {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent; /* Mejor experiencia táctil */
+        }
+
+        /* Definición de colores base para modo claro y oscuro */
+        :root {
+            --color-bg-light: #f9fafb;
+            --color-text-light: #1f2937;
+            --color-primary-light: #3b82f6;
+            --color-bg-dark: #1f2937;
+            --color-text-dark: #f3f4f6;
+            --color-primary-dark: #60a5fa;
+            --color-surface-light: #ffffff;
+            --color-surface-dark: #374151;
+        }
+
+        /* Estilos del cuerpo en modo claro */
+        .light {
+            background-color: var(--color-bg-light);
+            color: var(--color-text-light);
+        }
+
+        /* Estilos del cuerpo en modo oscuro (por defecto en el HTML) */
+        .dark {
+            background-color: var(--color-bg-dark);
+            color: var(--color-text-dark);
+        }
+        
+        /* Contenedor principal: Fija el ancho máximo a 500px y lo centra */
+        #app-container {
+            max-width: 500px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            position: relative; 
+            overflow: hidden; 
+        }
+
+        /* Estilos específicos para Header y Footer */
+        header, footer {
+            width: 100%;
+            max-width: 500px; 
+            z-index: 10;
+            transition: background-color 0.3s, color 0.3s;
+            
+            /* Corrección de alineación: Centra el elemento 'fixed' en pantallas grandes */
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* Colores específicos para modo claro y oscuro para Header/Footer */
+        .light header, .light footer {
+            background-color: var(--color-surface-light);
+            border-color: #e5e7eb;
+        }
+        .dark header, .dark footer {
+            background-color: var(--color-surface-dark);
+            border-color: #4b5563;
+        }
+
+        /* Ajuste del contenido principal: Solo se mantiene el offset inferior */
+        main {
+            padding-bottom: 72px; /* Altura del footer (h-18) para offset fijo */
+            flex-grow: 1;
+            overflow-y: auto; /* Habilitar scroll solo en el cuerpo */
+        }
+        
+        /* Estilo para los botones del footer (interacción táctil) */
+        .footer-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 4px;
+            font-size: 0.75rem; /* texto pequeño */
+            line-height: 1;
+            transition: color 0.2s, background-color 0.2s;
+            border-radius: 0.5rem;
+            color: inherit; /* Color de texto por defecto */
+        }
+
+        /* Estilo para el botón activo en el footer */
+        .footer-btn.active {
+            color: var(--color-primary-dark);
+        }
+        .light .footer-btn.active {
+             color: var(--color-primary-light);
+        }
+        
+        /* Oculta la barra de desplazamiento en navegadores basados en WebKit */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        /* La funcionalidad de sticky/scroll ahora se gestiona con clases Tailwind en el JS generado */
+    </style>
+</head>
+<body class="dark transition-colors duration-300">
+
+    <!-- Contenedor principal con ancho máximo de 500px, centrado -->
+    <div id="app-container" class="shadow-xl">
+        
+        <!-- CINTILLO SUPERIOR FIJO (HEADER) -->
+        <header class="fixed top-0 w-full h-14 border-b border-gray-700 dark:border-gray-500 flex items-center justify-between px-4">
+            <h1 class="text-xl font-bold">Mi Aplicación Móvil</h1>
+            
+            <div class="flex space-x-3">
+                
+                <!-- Botón de Modo Oscuro/Claro (Toggle) -->
+                <button id="theme-toggle" class="p-2 rounded-full hover:opacity-80 transition-opacity">
+                    <!-- Icono inicial: Sol (para indicar que al tocar se irá a modo claro) -->
+                    <i data-lucide="sun" class="w-6 h-6 text-yellow-300"></i>
+                </button>
+                
+                <!-- Icono de Cerrar Sesión -->
+                <button class="p-2 rounded-full hover:opacity-80 transition-opacity" onclick="showCustomAlert('Funcionalidad de Cerrar Sesión (simulada)')">
+                    <i data-lucide="log-out" class="w-6 h-6 text-red-400 dark:text-red-300"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- CUERPO PRINCIPAL (BODY) -->
+        <!-- AJUSTE: pt-[76px] asegura 56px de offset del header + 20px de padding interno. -->
+        <main id="main-content" class="px-4 pb-4 flex flex-col space-y-4 pt-[76px]">
+            <!-- Contenido simulado de la página de Inicio (se carga dinámicamente) -->
+        </main>
+
+        <!-- BARRA DE NAVEGACIÓN FIJA (FOOTER) -->
+        <footer class="fixed bottom-0 w-full h-18 border-t border-gray-700 dark:border-gray-500 flex items-center justify-around py-2">
+            
+            <!-- Iconos de Navegación (data-file contiene el nombre del archivo para la simulación) -->
+            <button class="footer-btn" data-section="Inicio" data-file="inicio.html">
+                <i data-lucide="home" class="w-6 h-6"></i>
+                <span>Inicio</span>
+            </button>
+            
+            <button class="footer-btn" data-section="Nuevo Registro" data-file="NuevoReg.html">
+                <i data-lucide="plus-square" class="w-6 h-6"></i>
+                <span>Registro</span>
+            </button>
+            
+            <button class="footer-btn" data-section="Editar" data-file="EditarReg.html">
+                <i data-lucide="edit" class="w-6 h-6"></i>
+                <span>Editar</span>
+            </button>
+            
+            <button class="footer-btn" data-section="Perfil" data-file="PerfilUsuario.html">
+                <i data-lucide="user" class="w-6 h-6"></i>
+                <span>Perfil</span>
+            </button>
+            
+            <button class="footer-btn" data-section="Configuración" data-file="ConfigApp.html">
+                <i data-lucide="settings" class="w-6 h-6"></i>
+                <span>Config</span>
+            </button>
+        </footer>
+
+    </div>
+
+    <script>
+        // Inicializa los iconos de Lucide (los convierte de tags <i> a SVG)
+        lucide.createIcons();
+
+        // --- CONSTANTES ---
+        // URL de la API de Google Apps Script para obtener datos
+        // IMPORTANTE: Se añade el parámetro 'sheet=BD_Personal' para cumplir con doGet(e)
+        const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbx87WvxA9ca1KyGMA1wsw1npZw5vPtjoItomhF823BICXScNrWGFh5m0Dj6Veb24CtHXQ/exec?sheet=BD_Personal';
+        const ACTIVITY_FEED_ID = 'activity-feed-container';
+        
+        // --- VARIABLES DOM ---
+        const themeToggle = document.getElementById('theme-toggle');
+        const htmlElement = document.documentElement;
+        const mainContent = document.getElementById('main-content');
+        const footerButtons = document.querySelectorAll('.footer-btn');
+
+        // Función para obtener la fecha de hoy en español para el dashboard
+        const todayDate = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+
+        // Mapa de contenido simulado por archivo (es clave para la simulación SPA)
+        const mockContentMap = {
+            'inicio.html': `
+                <!-- Tarjeta de Bienvenida y Resumen -->
+                <div class="bg-blue-600 dark:bg-blue-700 p-6 rounded-2xl text-white shadow-xl mb-6">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-2xl font-bold">¡Hola, Usuario!</h2>
+                        <span class="text-sm opacity-90">${todayDate}</span>
+                    </div>
+                    <p class="mt-1 text-blue-100 dark:text-blue-200">Tu resumen de actividad de hoy.</p>
+                </div>
+
+                <!-- Métricas Clave (Grid Responsive) -->
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <!-- Métrica 1: Total Registros (Se actualizará dinámicamente) -->
+                    <div id="metric-total-records" class="p-4 rounded-xl shadow-md transition-colors duration-300 light:bg-white dark:bg-gray-700 flex flex-col items-start">
+                        <i data-lucide="users" class="w-6 h-6 text-green-500 mb-1"></i>
+                        <span class="text-3xl font-extrabold text-green-500" data-count="total">...</span>
+                        <span class="text-sm light:text-gray-500 dark:text-gray-300">Total Empleados</span>
+                    </div>
+
+                    <!-- Métrica 2: Pendientes/Acción Requerida (Simulada) -->
+                    <div class="p-4 rounded-xl shadow-md transition-colors duration-300 light:bg-white dark:bg-gray-700 flex flex-col items-start">
+                        <i data-lucide="alert-triangle" class="w-6 h-6 text-red-500 mb-1"></i>
+                        <span class="text-3xl font-extrabold text-red-500">0</span>
+                        <span class="text-sm light:text-gray-500 dark:text-gray-300">Nuevos Hoy</span>
+                    </div>
+                </div>
+
+                <!-- Feed de Actividad Reciente -->
+                <h3 class="text-xl font-semibold mb-3 border-b light:border-gray-200 dark:border-gray-600 pb-1">Tabla de Empleados (Datos GAS)</h3>
+
+                <div id="${ACTIVITY_FEED_ID}" class="space-y-3">
+                    <!-- Contenido dinámico (Loading Spinner inicial) -->
+                    <div id="loading-spinner" class="text-center py-8">
+                        <i data-lucide="loader-circle" class="w-8 h-8 mx-auto animate-spin text-blue-500"></i>
+                        <p class="mt-2 text-sm text-gray-400">Cargando datos de empleados...</p>
+                    </div>
+                </div>
+            `,
+            'NuevoReg.html': `
+                <h2 class="text-2xl font-semibold mb-4 text-center">Nuevo Registro ($$ \\text{NuevoReg.html} $$)</h2>
+                <div class="p-6 rounded-xl shadow-lg light:bg-gray-100 dark:bg-gray-600">
+                    <p>Aquí irá el formulario para crear un registro.</p>
+                    <button class="mt-4 w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors">Crear</button>
+                </div>
+            `,
+            'EditarReg.html': `
+                <h2 class="text-2xl font-semibold mb-4 text-center">Editar Registros ($$ \\text{EditarReg.html} $$)</h2>
+                <div class="p-6 rounded-xl shadow-lg light:bg-gray-100 dark:bg-gray-600">
+                    <p>Listado de elementos para edición.</p>
+                    <ul class="mt-4 space-y-2">
+                        <li class="p-4 light:bg-white dark:bg-gray-700 rounded-lg shadow-md">Elemento a Editar 1</li>
+                        <li class="p-4 light:bg-white dark:bg-gray-700 rounded-lg shadow-md">Elemento a Editar 2</li>
+                    </ul>
+                </div>
+            `,
+            'PerfilUsuario.html': `
+                <h2 class="text-2xl font-semibold mb-4 text-center">Mi Perfil ($$ \\text{PerfilUsuario.html} $$)</h2>
+                <div class="flex flex-col items-center p-6 rounded-xl shadow-lg light:bg-gray-100 dark:bg-gray-600">
+                    <div class="w-24 h-24 rounded-full light:bg-gray-300 dark:bg-gray-500 flex items-center justify-center text-4xl mb-4">
+                        <i data-lucide="user" class="w-12 h-12"></i>
+                    </div>
+                    <p class="text-xl font-bold">Datos del Usuario</p>
+                </div>
+            `,
+            'ConfigApp.html': `
+                <h2 class="text-2xl font-semibold mb-4 text-center">Configuración ($$ \\text{ConfigApp.html} $$)</h2>
+                <div class="p-6 rounded-xl shadow-lg light:bg-gray-100 dark:bg-gray-600 space-y-4">
+                    <p>Opciones y ajustes de la aplicación.</p>
+                    <div class="flex justify-between items-center py-2 border-t light:border-gray-300 dark:border-gray-500">
+                        <span>Versión de la App:</span>
+                        <span class="font-mono">1.0.0</span>
+                    </div>
+                </div>
+            `
+        };
+
+        /**
+         * Renderiza el feed de actividad con los datos obtenidos de la API de GAS en formato de tabla.
+         * @param {Array<Object>} data - Array de objetos de empleados.
+         */
+        function renderActivityFeed(data) {
+            const container = document.getElementById(ACTIVITY_FEED_ID);
+            if (!container) return;
+            
+            // Limpiar el contenedor (remover spinner)
+            container.innerHTML = ''; 
+
+            if (!data || data.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-2"></i>
+                        <p>No se encontraron registros de empleados.</p>
+                    </div>
+                `;
+                // Actualizar métrica a 0
+                const totalRecordsSpan = document.querySelector('#metric-total-records span[data-count="total"]');
+                if (totalRecordsSpan) totalRecordsSpan.textContent = '0';
+                lucide.createIcons();
+                return;
+            }
+
+            // Actualizar métrica total de registros
+            const totalRecordsSpan = document.querySelector('#metric-total-records span[data-count="total"]');
+            if (totalRecordsSpan) totalRecordsSpan.textContent = data.length;
+
+            // Generar las filas de la tabla con el ID correlativo
+            const tableRowsHtml = data.map((item, index) => {
+                const rowId = index + 1;
+                return `
+                    <tr class="light:hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-150 border-b light:border-gray-200 dark:border-gray-700">
+                        <!-- Columna ID (Virtual Correlativo) -->
+                        <td class="px-4 py-3 text-sm font-semibold light:text-blue-600 dark:text-blue-300 w-12">${rowId}</td>
+                        <!-- Nombre Completo -->
+                        <td class="px-4 py-3 text-sm font-medium whitespace-nowrap">${item.NOMBRES || ''} ${item.APELLIDOS || ''}</td>
+                        <!-- Cargo (Ocultar en mobile para ahorrar espacio) -->
+                        <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap hidden sm:table-cell">${item.CARGO || 'N/A'}</td>
+                        <!-- Ingreso (Mostrar solo en pantallas medianas/grandes) -->
+                        <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap hidden md:table-cell">${item.INGRESO || 'N/A'}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Estructura completa de la tabla con estilos responsivos
+            const activityHtml = `
+                <!-- Contenedor principal con borde y sombra -->
+                <div class="rounded-xl shadow-xl border light:border-gray-200 dark:border-gray-700">
+                    
+                    <!-- Contenedor con altura máxima y scroll vertical y horizontal -->
+                    <div class="max-h-[70vh] md:max-h-96 overflow-y-auto overflow-x-auto">
+                        <table class="min-w-full divide-y light:divide-gray-200 dark:divide-gray-700">
+                            <!-- Cabecera de la tabla (sticky) -->
+                            <thead class="light:bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 shadow-sm">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider light:text-gray-500 dark:text-gray-400 w-12">ID</th>
+                                    <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider light:text-gray-500 dark:text-gray-400">Nombre</th>
+                                    <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider light:text-gray-500 dark:text-gray-400 hidden sm:table-cell">Cargo</th>
+                                    <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider light:text-gray-500 dark:text-gray-400 hidden md:table-cell">Ingreso</th>
+                                </tr>
+                            </thead>
+                            <!-- Cuerpo de la tabla con color de fondo para filas -->
+                            <tbody class="divide-y light:divide-gray-200 dark:divide-gray-700 light:bg-white dark:bg-gray-700">
+                                ${tableRowsHtml}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+
+            container.innerHTML = activityHtml;
+            // Re-renderizar iconos (solo si se usaron, aunque no se usa ninguno en la tabla)
+            lucide.createIcons();
+        }
+
+        /**
+         * Obtiene los datos de empleados de la API de Google Apps Script.
+         */
+        async function fetchActivityFeed() {
+            const container = document.getElementById(ACTIVITY_FEED_ID);
+            const totalRecordsSpan = document.querySelector('#metric-total-records span[data-count="total"]');
+
+            if (!container || !totalRecordsSpan) return;
+
+            // Resetear y mostrar spinner
+            container.innerHTML = `
+                <div id="loading-spinner" class="text-center py-8">
+                    <i data-lucide="loader-circle" class="w-8 h-8 mx-auto animate-spin text-blue-500"></i>
+                    <p class="mt-2 text-sm text-gray-400">Cargando datos de empleados...</p>
+                </div>
+            `;
+            totalRecordsSpan.textContent = '...';
+            lucide.createIcons(); 
+
+            try {
+                const maxRetries = 3;
+                let response = null;
+                let data = null;
+                
+                for (let i = 0; i < maxRetries; i++) {
+                    try {
+                        response = await fetch(GAS_API_URL, { method: 'GET' });
+                        if (response.ok) {
+                            data = await response.json();
+                            break;
+                        }
+                    } catch (e) {
+                        // Esperar antes de reintentar
+                        if (i < maxRetries - 1) {
+                            await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+                        } else {
+                            throw e; // Lanzar error si es el último intento
+                        }
+                    }
+                }
+                
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+                
+                // Se registra la respuesta completa para verificar la estructura
+                console.log("Respuesta JSON completa de la API (con ?sheet=BD_Personal):", data); 
+
+                let employeeData = [];
+                
+                // Mantiene la lógica de extracción, asumiendo que la respuesta anidada es la más probable
+                if (data && Array.isArray(data.data)) {
+                    employeeData = data.data;
+                } else if (Array.isArray(data)) {
+                    employeeData = data;
+                } else if (data && Array.isArray(data.records)) {
+                    employeeData = data.records;
+                } else if (data && data.error) {
+                    throw new Error(`Error reportado por la API de GAS: ${data.error}`);
+                }
+                
+                if (employeeData.length === 0) {
+                    console.warn("Los datos recibidos no contenían un array de empleados válido en las claves esperadas ('data', 'records' o raíz).");
+                }
+
+                renderActivityFeed(employeeData);
+
+            } catch (error) {
+                console.error("Error al obtener datos de GAS:", error);
+                
+                // Mostrar mensaje de error
+                container.innerHTML = `
+                    <div class="text-center py-8 text-red-500 dark:text-red-400">
+                        <i data-lucide="plug-zap" class="w-10 h-10 mx-auto mb-2"></i>
+                        <p class="font-bold">Error de Carga</p>
+                        <p class="text-sm mt-1">${error.message || 'No se pudieron cargar los datos de la API.'}</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                totalRecordsSpan.textContent = '0';
+            }
+        }
+
+
+        /**
+         * Simula la función alert() con un mensaje en la interfaz.
+         * @param {string} message - El mensaje a mostrar.
+         */
+        function showCustomAlert(message) {
+            const tempAlert = document.createElement('div');
+            tempAlert.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 bg-blue-600 text-white px-6 py-3 rounded-lg shadow-2xl transition-opacity duration-300 opacity-0 font-bold';
+            tempAlert.textContent = message;
+            
+            const appContainer = document.getElementById('app-container');
+            if (appContainer) {
+                // Posicionar relativo al contenedor de la app
+                tempAlert.style.position = 'absolute';
+                appContainer.appendChild(tempAlert);
+
+                // Mostrar
+                setTimeout(() => tempAlert.classList.remove('opacity-0'), 10);
+                
+                // Ocultar y remover después de 3 segundos
+                setTimeout(() => {
+                    tempAlert.classList.add('opacity-0');
+                    setTimeout(() => appContainer.removeChild(tempAlert), 300);
+                }, 3000);
+            }
+        }
+
+        /**
+         * Inicializa el modo de color.
+         */
+        function initializeTheme() {
+            const storedTheme = localStorage.getItem('theme');
+            const isDarkMode = storedTheme === 'dark' || !storedTheme;
+            
+            if (isDarkMode) {
+                htmlElement.classList.add('dark');
+            } else {
+                htmlElement.classList.remove('dark');
+            }
+            updateToggleIcon(isDarkMode);
+        }
+
+        /**
+         * Cambia el icono del botón de toggle según el modo actual.
+         * @param {boolean} isDark - true si es modo oscuro, false si es modo claro.
+         */
+        function updateToggleIcon(isDark) {
+            // Se busca tanto el tag <i> inicial como el <svg> generado por Lucide.
+            const iconElement = themeToggle.querySelector('i, svg');
+            
+            // Verificación de seguridad: si no se encuentra el elemento, se detiene la ejecución.
+            if (!iconElement) {
+                return;
+            }
+
+            // Reemplazamos completamente el elemento del icono para forzar la actualización de Lucide
+            const iconName = isDark ? 'sun' : 'moon';
+            const iconColor = isDark ? 'text-yellow-300 dark:text-yellow-400' : 'text-yellow-600 dark:text-yellow-400';
+            
+            // Creamos un nuevo <i>, que Lucide convertirá a SVG
+            const newIconHtml = `<i data-lucide="${iconName}" class="w-6 h-6 ${iconColor}"></i>`;
+            iconElement.outerHTML = newIconHtml;
+            
+            // Re-renderizar los iconos para que Lucide convierta el nuevo <i> a SVG
+            lucide.createIcons();
+        }
+
+        /**
+         * Maneja la lógica de cambio de tema (Dark/Light).
+         */
+        function toggleTheme() {
+            const isDarkMode = htmlElement.classList.toggle('dark');
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+            updateToggleIcon(isDarkMode);
+        }
+
+        /**
+         * Simula la carga de contenido basada en el archivo de destino.
+         * En un entorno de múltiples archivos, esto simularía un cambio de ruta o recarga.
+         * @param {string} fileName - El nombre del archivo de destino (ej: inicio.html).
+         */
+        function loadContent(fileName) {
+            // Desactiva el botón previamente activo
+            footerButtons.forEach(btn => btn.classList.remove('active'));
+
+            // Activa el botón actual
+            const currentBtn = document.querySelector(`.footer-btn[data-file="${fileName}"]`);
+            if (currentBtn) {
+                currentBtn.classList.add('active');
+            }
+            
+            // Carga el contenido simulado basado en el nombre del archivo
+            const contentHtml = mockContentMap[fileName] || `<h2 class="text-2xl font-semibold mb-4 text-center">404 - Archivo ${fileName} No Encontrado</h2>`;
+
+            // Reemplaza el contenido
+            mainContent.innerHTML = contentHtml;
+            // Asegúrate de que los iconos de la nueva sección se muestren correctamente
+            lucide.createIcons();
+            
+            // Si estamos en la página de inicio, cargar el feed de actividad
+            if (fileName === 'inicio.html') {
+                fetchActivityFeed();
+            }
+
+            // Desplázate al inicio
+            mainContent.scrollTop = 0;
+        }
+
+        /**
+         * Maneja la navegación del footer. En una aplicación de un solo archivo (SPA),
+         * llama a loadContent. En un entorno de múltiples archivos, usa la redirección.
+         * @param {string} fileName - El nombre del archivo de destino.
+         */
+        function handleFooterNavigation(fileName) {
+            // Comprueba si estamos en un entorno de archivo único o si necesitamos redireccionar
+            if (window.location.pathname.endsWith(fileName) || window.location.pathname.indexOf(fileName) !== -1) {
+                // Si ya estamos en el archivo de destino, simplemente recargamos su contenido simulado (para SPA)
+                loadContent(fileName);
+            } else {
+                // Si son archivos separados (como lo indica la petición), redirigimos.
+                window.location.href = fileName;
+            }
+        }
+
+
+        // --- Event Listeners y Inicialización ---
+
+        // 1. Evento para el Toggle de Tema
+        themeToggle.addEventListener('click', toggleTheme);
+        
+        // 2. Eventos para los botones del Footer
+        footerButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const fileName = button.getAttribute('data-file');
+                if (fileName) {
+                    handleFooterNavigation(fileName);
+                }
+            });
+        });
+
+        // 3. Inicialización al cargar la página
+        window.onload = function() {
+            const savedTheme = localStorage.getItem('theme');
+            
+            if (!savedTheme) {
+                localStorage.setItem('theme', 'dark');
+            }
+            initializeTheme();
+            
+            // Cargar el contenido inicial (Inicio)
+            loadContent('inicio.html');
+        };
+    </script>
+</body>
+</html>
