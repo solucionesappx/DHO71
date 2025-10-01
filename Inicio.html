@@ -32,7 +32,7 @@
             /* Color de texto puro para datos de la tabla */
             --color-data-text: #ffffff;
         }
-
+        
         /* Estilos del cuerpo en modo claro */
         .light {
             background-color: var(--color-bg-light);
@@ -49,7 +49,7 @@
         #app-container {
             max-width: 500px;
             margin: 0 auto;
-            min-height: 100vh;
+            min-height: 10vh;
             display: flex;
             flex-direction: column;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
@@ -156,8 +156,8 @@
         <!-- BARRA DE NAVEGACIÓN FIJA (FOOTER) -->
         <footer class="fixed bottom-0 w-full h-18 border-t border-gray-700 dark:border-gray-500 flex items-center justify-around py-2">
             
-            <!-- Iconos de Navegación (data-file contiene el nombre del archivo para la simulación) -->
-            <button class="footer-btn" data-section="Inicio" data-file="inicio.html">
+            <!-- AJUSTE CLAVE: Se añade la clase 'active' al botón de Inicio para la carga inicial -->
+            <button class="footer-btn active" data-section="Inicio" data-file="inicio.html">
                 <i data-lucide="home" class="w-6 h-6"></i>
                 <span>Inicio</span>
             </button>
@@ -213,7 +213,7 @@
         // Mapa de contenido simulado por archivo (es clave para la simulación SPA)
         const mockContentMap = {
             'inicio.html': `
-                <!-- Tarjeta de Bienvenida y Resumen (ALTURA MÍNIMA APLICADA) -->
+                <!-- Tarjeta de Bienvenida y Resumen -->
                 <div class="bg-blue-600 dark:bg-blue-700 p-3 rounded-2xl text-white shadow-xl mb-4">
                     <div class="flex items-center justify-between">
                         <h2 class="text-xl font-bold">¡Hola, Usuario!</h2>
@@ -221,15 +221,35 @@
                     </div>
                 </div>
                 
-                <!-- MOTOR DE BÚSQUEDA Y CONTROLES (Corregido: Botón Limpiar visible por defecto) -->
+                <!-- AJUSTE: Métricas Clave (Distribución horizontal compacta) -->
+                <div class="flex justify-between space-x-2 mb-4">
+                    <!-- Métrica 1: Total Registros -->
+                    <div id="metric-total-records" 
+                         class="w-1/2 p-1.5 rounded-xl shadow-2xl transition-all duration-300 light:bg-white dark:bg-gray-700 flex items-center space-x-2">
+                        <i data-lucide="users" class="w-6 h-6 text-green-500 flex-shrink-0"></i>
+                        <div class="flex flex-col leading-tight">
+                            <span class="text-xl font-extrabold text-green-500" data-count="total">...</span>
+                            <span class="text-xs light:text-gray-500 dark:text-gray-300 whitespace-nowrap">Total Empleados</span>
+                        </div>
+                    </div>
+
+                    <!-- Métrica 2: Pendientes/Acción Requerida (Simulada) -->
+                    <div class="w-1/2 p-1.5 rounded-xl shadow-2xl transition-all duration-300 light:bg-white dark:bg-gray-700 flex items-center space-x-2">
+                        <i data-lucide="alert-triangle" class="w-6 h-6 text-red-500 flex-shrink-0"></i>
+                        <div class="flex flex-col leading-tight">
+                            <span class="text-xl font-extrabold text-red-500">0</span>
+                            <span class="text-xs light:text-gray-500 dark:text-gray-300 whitespace-nowrap">Nuevos Hoy</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MOTOR DE BÚSQUEDA Y CONTROLES (RADIO REDUCIDO: rounded-xl) -->
                 <div class="flex items-center space-x-2 mb-4">
                     <!-- Contenedor del Input y el Icono de Búsqueda -->
-                    <div class="relative flex-grow">
-                        <!-- AJUSTE CRÍTICO: Se usan clases universales y específicas para el color de la fuente:
-                             text-gray-900 (Claro) y dark:text-gray-100 (Oscuro)
-                        -->
+                    <div class="relative flex-grow rounded-xl"> 
+                        <!-- Clases de color para asegurar texto claro en modo oscuro -->
                         <input type="text" id="search-input" placeholder="Buscar por Nombre, Cédula, Cargo..." 
-                               class="w-full pl-10 pr-10 py-2 rounded-full shadow-inner 
+                               class="w-full pl-10 pr-10 py-2 rounded-xl shadow-inner 
                                      light:bg-white dark:bg-gray-700 
                                      text-gray-900 dark:text-gray-100 
                                      placeholder-gray-400 border light:border-gray-300 dark:border-gray-600 
@@ -239,34 +259,17 @@
                         <i data-lucide="search" class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 light:text-gray-500 dark:text-gray-300"></i>
                     </div>
 
-                    <!-- Icono de Cancelar/Limpiar (Siempre visible) -->
-                    <button id="clear-search-btn" class="p-2 rounded-full light:bg-white dark:bg-gray-700 shadow-md transition-colors duration-200 text-red-500 dark:text-red-400" title="Reiniciar Filtros">
-                        <i data-lucide="x-circle" class="w-6 h-6"></i>
+                    <!-- Botón Limpiar - Mantiene rounded-full porque es un círculo de control -->
+                    <button id="clear-search-btn" class="p-2.5 rounded-full light:bg-white dark:bg-gray-700 shadow-md transition-colors duration-200 text-red-500 dark:text-red-400 font-bold" title="Reiniciar Filtros">
+                        <i data-lucide="x-circle" class="w-7 h-7"></i>
                     </button>
 
-                    <!-- Icono de Ordenación (Alternar Asc/Desc) -->
-                    <button id="sort-toggle-btn" class="p-2 rounded-full light:bg-white dark:bg-gray-700 shadow-md transition-colors duration-200 text-blue-500" title="Ordenar por NOMBRES">
-                        <i data-lucide="arrow-up-down" class="w-6 h-6"></i>
+                    <!-- Botón Ordenación - Mantiene rounded-full porque es un círculo de control -->
+                    <button id="sort-toggle-btn" class="p-2.5 rounded-full light:bg-white dark:bg-gray-700 shadow-md transition-colors duration-200 text-blue-500 font-bold" title="Ordenar por NOMBRES">
+                        <i data-lucide="arrow-up-down" class="w-7 h-7"></i>
                     </button>
                 </div>
 
-
-                <!-- Métricas Clave (Grid Responsive) -->
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <!-- Métrica 1: Total Registros (Se actualizará dinámicamente) -->
-                    <div id="metric-total-records" class="p-4 rounded-xl shadow-md transition-colors duration-300 light:bg-white dark:bg-gray-700 flex flex-col items-start">
-                        <i data-lucide="users" class="w-6 h-6 text-green-500 mb-1"></i>
-                        <span class="text-3xl font-extrabold text-green-500" data-count="total">...</span>
-                        <span class="text-sm light:text-gray-500 dark:text-gray-300">Total Empleados</span>
-                    </div>
-
-                    <!-- Métrica 2: Pendientes/Acción Requerida (Simulada) -->
-                    <div class="p-4 rounded-xl shadow-md transition-colors duration-300 light:bg-white dark:bg-gray-700 flex flex-col items-start">
-                        <i data-lucide="alert-triangle" class="w-6 h-6 text-red-500 mb-1"></i>
-                        <span class="text-3xl font-extrabold text-red-500">0</span>
-                        <span class="text-sm light:text-gray-500 dark:text-gray-300">Nuevos Hoy</span>
-                    </div>
-                </div>
 
                 <!-- Feed de Actividad Reciente -->
                 <h3 class="text-xl font-semibold mb-3 border-b light:border-gray-200 dark:border-gray-600 pb-1">Tabla de Empleados (Datos GAS)</h3>
@@ -415,8 +418,9 @@
                     ? `<i data-lucide="${sortOrder === 'asc' ? 'chevron-up' : 'chevron-down'}" class="w-4 h-4 inline-block ml-1"></i>`
                     : '';
 
+                // Ajuste: El header mantiene py-2 para una altura estándar
                 return `
-                    <th ${headerBgStyle} class="px-4 py-3 ${col.align} text-xs font-bold uppercase tracking-wider text-white ${col.width || ''} whitespace-nowrap ${col.stickyHeaderClass || ''}">
+                    <th ${headerBgStyle} class="px-4 py-2 ${col.align} text-xs font-bold uppercase tracking-wider text-white ${col.width || ''} whitespace-nowrap ${col.stickyHeaderClass || ''}">
                         ${col.display} ${sortIndicator}
                     </th>
                 `;
@@ -430,7 +434,8 @@
                 // Generar celdas para la fila actual
                 const cellsHtml = columnDefinitions.map(col => {
                     let content;
-                    let cellClasses = 'px-4 py-3 text-sm whitespace-nowrap '; 
+                    // AJUSTE SOLICITADO: Compactación máxima con py-0 (se mantiene)
+                    let cellClasses = 'px-4 py-0 text-sm whitespace-nowrap '; 
                     let stickyClasses = col.stickyCellClass || '';
 
                     if (col.isVirtual) {
@@ -459,8 +464,9 @@
                     <!-- Contenedor con altura máxima y scroll vertical y horizontal -->
                     <div class="max-h-[100vh] md:max-h-110 overflow-y-auto overflow-x-auto">
                         
-                        <!-- La tabla necesita un ancho mínimo para forzar el scroll horizontal de las 13 columnas -->
-                        <table class="min-w-[1500px] divide-y light:divide-gray-200 dark:divide-gray-700">
+                        <!-- AJUSTE CLAVE: table-auto permite al navegador ajustar el ancho según el contenido. 
+                             min-w-full asegura que ocupe todo el ancho disponible para forzar el scroll horizontal si es necesario. -->
+                        <table class="min-w-full table-auto divide-y light:divide-gray-200 dark:divide-gray-700">
                             
                             <!-- Cabecera de la tabla (sticky top-0) con color #2D59A1 (Fijo) -->
                             <thead style="background-color: var(--color-header);" class="sticky top-0 z-10 shadow-md">
@@ -743,36 +749,28 @@
          * Simula la carga de contenido basada en el archivo de destino.
          */
         function loadContent(fileName) {
+            // 1. Remover 'active' de todos los botones
             footerButtons.forEach(btn => btn.classList.remove('active'));
 
+            // 2. Marcar el botón actual como 'active'
             const currentBtn = document.querySelector(`.footer-btn[data-file="${fileName}"]`);
             if (currentBtn) {
                 currentBtn.classList.add('active');
             }
             
+            // 3. Cargar el contenido
             const contentHtml = mockContentMap[fileName] || `<h2 class="text-2xl font-semibold mb-4 text-center">404 - Archivo ${fileName} No Encontrado</h2>`;
 
             mainContent.innerHTML = contentHtml;
             lucide.createIcons();
             
+            // 4. Si es la página de inicio, cargar los datos
             if (fileName === 'inicio.html') {
                 fetchActivityFeed();
             }
 
             mainContent.scrollTop = 0;
         }
-
-        /**
-         * Maneja la navegación del footer.
-         */
-        function handleFooterNavigation(fileName) {
-            if (window.location.pathname.endsWith(fileName) || window.location.pathname.indexOf(fileName) !== -1) {
-                loadContent(fileName);
-            } else {
-                window.location.href = fileName;
-            }
-        }
-
 
         // --- Event Listeners y Inicialización ---
 
@@ -784,7 +782,8 @@
             button.addEventListener('click', () => {
                 const fileName = button.getAttribute('data-file');
                 if (fileName) {
-                    handleFooterNavigation(fileName);
+                    // AJUSTE CLAVE: Se llama a loadContent directamente para navegación SPA
+                    loadContent(fileName);
                 }
             });
         });
@@ -801,6 +800,8 @@
             // Cargar el contenido inicial (Inicio)
             loadContent('inicio.html');
         };
+        
+        // La función handleFooterNavigation fue eliminada ya que no es necesaria para este tipo de aplicación SPA simulada.
     </script>
 </body>
 </html>
