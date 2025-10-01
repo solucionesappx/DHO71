@@ -210,6 +210,7 @@
 
         // --- CONSTANTES ---
         // URL de la API de Google Apps Script para obtener datos
+        // NOTA: Esta URL debe ser reemplazada por la URL de implementación de GAS real.
         const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbx87WvxA9ca1KyGMA1wsw1npZw5vPtjoItomhF823BICXScNrWGFh5m0Dj6Veb24CtHXQ/exec?sheet=BD_Personal2';
         const ACTIVITY_FEED_ID = 'activity-feed-container';
         
@@ -347,21 +348,15 @@
          * @returns {string} La fecha formateada (ej: '01/05/2023').
          */
         function formatDate(value) {
-            if (!value) return 'N/A';
+            // Manejar valores vacíos o nulos ANTES de intentar parsear
+            if (value === null || value === undefined || value === '') return '';
             
             // Intentar crear un objeto Date.
-            // Si la entrada es "dd/mm/yyyy", el constructor de Date puede fallar,
-            // por eso es mejor estandarizar el formato antes de pasar a la salida.
             let date;
             
             // Si es un string 'dd/mm/yyyy' (common issue from sheet data), convertir a 'yyyy-mm-dd'
             if (typeof value === 'string' && value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)) {
                 const parts = value.split('/');
-                // Nota: Date constructor en JS toma meses de 0-11, pero si la hoja
-                // ya lo devuelve como cadena, a menudo es mejor usar new Date(string).
-                // Para evitar errores de zona horaria con formato dd/mm/yyyy, se prefiere
-                // usar los componentes directamente o un formato 'YYYY/MM/DD'.
-                // Aquí usamos el formato que más probablemente funciona si viene de GAS como 'dd/mm/yyyy'
                 date = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
 
                 // Validación simple por si el parseo falla (puede ocurrir si es inválido)
@@ -374,7 +369,7 @@
             
             // Comprobar si la fecha es válida
             if (isNaN(date.getTime())) {
-                return value; // Devolver el valor original si no se puede parsear
+                return String(value); // Devolver el valor original si no se puede parsear
             }
 
             // Formatear a dd/mm/yyyy manualmente para consistencia
@@ -546,6 +541,15 @@
             const tableRowsHtml = dataToRender.map((item, index) => {
                 const rowId = index + 1;
                 
+                // *** 1. Lógica para aplicar estilo a TODA LA FILA ***
+                const originalCtrl1Value = item['CTRL1'];
+                const isCtrl1NonEmpty = originalCtrl1Value !== null && originalCtrl1Value !== undefined && originalCtrl1Value !== '';
+                
+                // Clase de la fila: aplica text-red-400 si la condición se cumple
+                const rowClass = isCtrl1NonEmpty 
+                    ? 'text-red-400 dark:text-red-300' 
+                    : 'light:text-gray-900 dark:text-gray-100'; // Color de texto por defecto (claro u oscuro)
+
                 // Generar celdas para la fila actual
                 const cellsHtml = columnDefinitions.map(col => {
                     let content;
@@ -554,26 +558,59 @@
                     let stickyClasses = col.stickyCellClass || '';
                     let alignmentClass = '';
 
+                    // 1. OBTENER Y PROCESAR VALOR
+                    let rawValue = item[col.key];
+                    
                     if (col.isVirtual) {
                         content = rowId;
                         cellClasses += 'font-semibold'; 
                         alignmentClass = col.alignContent;
                     } else {
-                        // OBTENER VALOR Y APLICAR FORMATO SI EXISTE
-                        let rawValue = item[col.key] || 'N/A';
+                        const originalValue = rawValue; // Guardamos el valor original ('' o data)
+                        const key = col.key.toUpperCase();
+
+                        // --- LÓGICA DE VISUALIZACIÓN DE VALORES NULOS/VACÍOS ---
+                        if (rawValue === null || rawValue === undefined || rawValue === '') {
+                            if (key === 'CTRL2') {
+                                // REGLA: Si está vacío, forzar 0
+                                rawValue = 0;
+                            } else if (key === 'CTRL1' || key === 'NACIMIENTO') {
+                                // REGLA: Si está vacío, forzar cadena vacía (para que la celda quede en blanco)
+                                rawValue = '';
+                            } else {
+                                // REGLA GENERAL: Forzar 'N/A' si está vacío
+                                rawValue = 'N/A';
+                            }
+                        }
+                        
+                        // 2. APLICAR FORMATO
                         content = col.format ? col.format(rawValue) : rawValue;
                         
+                        // 3. ESTABLECER CLASES DE ALINEACIÓN Y BASE
                         cellClasses += 'dark:bg-gray-700 light:bg-white';
-                        // Determinar la alineación del contenido
                         alignmentClass = getContentAlignmentClass(col.key);
+
+                        // 4. APLICAR ESTILOS EXCEPCIONALES (N/A, 0)
+                        let textStyleClass = '';
+                        if (content === 'N/A') {
+                            textStyleClass = 'text-gray-400 italic';
+                        } else if (content === '') {
+                            textStyleClass = 'text-gray-400 italic'; 
+                            content = ''; 
+                        } else if (col.key === 'CTRL2' && content === 0) {
+                            textStyleClass = 'font-medium text-sm text-center'; 
+                        }
+                        
+                        // 5. Dejar que la celda herede el color de la fila (ROW_CLASS)
+                        return `<td class="${cellClasses} ${alignmentClass} ${stickyClasses} ${textStyleClass}">${content}</td>`;
                     }
                     
-                    // Nota: Se usa 'important' en el estilo para anular cualquier CSS de Tailwind que pueda interferir con el color de texto en las celdas sticky.
-                    return `<td class="${cellClasses} ${alignmentClass} ${stickyClasses}" style="color: var(--color-data-text) !important;">${content}</td>`;
+                    // 6. Caso ID (sticky)
+                    return `<td class="${cellClasses} ${alignmentClass} ${stickyClasses}">${content}</td>`;
                 }).join('');
 
                 return `
-                    <tr class="light:hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-150 border-b light:border-gray-200 dark:border-gray-700">
+                    <tr class="light:hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-150 border-b light:border-gray-200 dark:border-gray-700 ${rowClass}">
                         ${cellsHtml}
                     </tr>
                 `;
@@ -782,7 +819,15 @@
                     throw new Error(`Error reportado por la API de GAS: ${data.error}`);
                 }
                 
-                employeeData = loadedData;
+                // Mapear los datos para garantizar que cualquier null o undefined se convierta a '' (cadena vacía)
+                // Esto facilita la lógica de visualización en renderActivityFeed.
+                employeeData = loadedData.map(item => {
+                    const newItem = {};
+                    for (const key in item) {
+                        newItem[key] = item[key] === null || item[key] === undefined ? '' : item[key];
+                    }
+                    return newItem;
+                });
 
                 // Renderizar los datos iniciales
                 renderActivityFeed(employeeData);
