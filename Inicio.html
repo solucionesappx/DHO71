@@ -25,6 +25,12 @@
             --color-primary-dark: #60a5fa;
             --color-surface-light: #ffffff;
             --color-surface-dark: #374151;
+            
+            /* Color de fondo para encabezado y columna ID: #2D59A1 */
+            --color-header: #2D59A1; 
+            
+            /* Color de texto puro para datos de la tabla */
+            --color-data-text: #ffffff;
         }
 
         /* Estilos del cuerpo en modo claro */
@@ -106,7 +112,15 @@
         ::-webkit-scrollbar {
             display: none;
         }
-        /* La funcionalidad de sticky/scroll ahora se gestiona con clases Tailwind en el JS generado */
+        
+        /* * ESTILO ESPECÍFICO PARA LA COLUMNA STICKY (ID)
+         * Usamos una variable CSS para el color de fondo para la consistencia
+         */
+        .sticky-id-cell {
+            background-color: var(--color-header) !important; /* Mismo color que el encabezado (#2D59A1) */
+            color: var(--color-data-text) !important; /* Texto blanco puro */
+            border-right: 1px solid rgba(255, 255, 255, 0.2); /* Separador suave */
+        }
     </style>
 </head>
 <body class="dark transition-colors duration-300">
@@ -175,10 +189,16 @@
         // Inicializa los iconos de Lucide (los convierte de tags <i> a SVG)
         lucide.createIcons();
 
+        // --- ESTADO GLOBAL ---
+        let employeeData = []; // Almacena el dataset completo sin filtrar
+        let debounceTimer; // Para controlar la frecuencia de búsqueda
+        // Estado de ordenación: 'asc' (ascendente), 'desc' (descendente), null (sin ordenar)
+        let sortOrder = null; 
+        const SORT_COLUMN_KEY = 'NOMBRES'; // Columna por defecto para ordenar
+
         // --- CONSTANTES ---
         // URL de la API de Google Apps Script para obtener datos
-        // IMPORTANTE: Se añade el parámetro 'sheet=BD_Personal' para cumplir con doGet(e)
-        const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbx87WvxA9ca1KyGMA1wsw1npZw5vPtjoItomhF823BICXScNrWGFh5m0Dj6Veb24CtHXQ/exec?sheet=BD_Personal';
+        const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbx87WvxA9ca1KyGMA1wsw1npZw5vPtjoItomhF823BICXScNrWGFh5m0Dj6Veb24CtHXQ/exec?sheet=BD_Personal2';
         const ACTIVITY_FEED_ID = 'activity-feed-container';
         
         // --- VARIABLES DOM ---
@@ -193,14 +213,43 @@
         // Mapa de contenido simulado por archivo (es clave para la simulación SPA)
         const mockContentMap = {
             'inicio.html': `
-                <!-- Tarjeta de Bienvenida y Resumen -->
-                <div class="bg-blue-600 dark:bg-blue-700 p-6 rounded-2xl text-white shadow-xl mb-6">
+                <!-- Tarjeta de Bienvenida y Resumen (ALTURA MÍNIMA APLICADA) -->
+                <div class="bg-blue-600 dark:bg-blue-700 p-3 rounded-2xl text-white shadow-xl mb-4">
                     <div class="flex items-center justify-between">
-                        <h2 class="text-2xl font-bold">¡Hola, Usuario!</h2>
+                        <h2 class="text-xl font-bold">¡Hola, Usuario!</h2>
                         <span class="text-sm opacity-90">${todayDate}</span>
                     </div>
-                    <p class="mt-1 text-blue-100 dark:text-blue-200">Tu resumen de actividad de hoy.</p>
                 </div>
+                
+                <!-- MOTOR DE BÚSQUEDA Y CONTROLES (Corregido: Botón Limpiar visible por defecto) -->
+                <div class="flex items-center space-x-2 mb-4">
+                    <!-- Contenedor del Input y el Icono de Búsqueda -->
+                    <div class="relative flex-grow">
+                        <!-- AJUSTE CRÍTICO: Se usan clases universales y específicas para el color de la fuente:
+                             text-gray-900 (Claro) y dark:text-gray-100 (Oscuro)
+                        -->
+                        <input type="text" id="search-input" placeholder="Buscar por Nombre, Cédula, Cargo..." 
+                               class="w-full pl-10 pr-10 py-2 rounded-full shadow-inner 
+                                     light:bg-white dark:bg-gray-700 
+                                     text-gray-900 dark:text-gray-100 
+                                     placeholder-gray-400 border light:border-gray-300 dark:border-gray-600 
+                                     focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        
+                        <!-- Icono de Búsqueda -->
+                        <i data-lucide="search" class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 light:text-gray-500 dark:text-gray-300"></i>
+                    </div>
+
+                    <!-- Icono de Cancelar/Limpiar (Siempre visible) -->
+                    <button id="clear-search-btn" class="p-2 rounded-full light:bg-white dark:bg-gray-700 shadow-md transition-colors duration-200 text-red-500 dark:text-red-400" title="Reiniciar Filtros">
+                        <i data-lucide="x-circle" class="w-6 h-6"></i>
+                    </button>
+
+                    <!-- Icono de Ordenación (Alternar Asc/Desc) -->
+                    <button id="sort-toggle-btn" class="p-2 rounded-full light:bg-white dark:bg-gray-700 shadow-md transition-colors duration-200 text-blue-500" title="Ordenar por NOMBRES">
+                        <i data-lucide="arrow-up-down" class="w-6 h-6"></i>
+                    </button>
+                </div>
+
 
                 <!-- Métricas Clave (Grid Responsive) -->
                 <div class="grid grid-cols-2 gap-4 mb-6">
@@ -269,6 +318,35 @@
         };
 
         /**
+         * Aplica la ordenación al array de datos completo.
+         * @param {Array<Object>} data - Array de objetos a ordenar.
+         * @param {string} key - Clave del objeto por la que ordenar.
+         * @param {string} order - 'asc' o 'desc'.
+         * @returns {Array<Object>} El array ordenado.
+         */
+        function sortData(data, key, order) {
+            if (!data || !key || !order) return data;
+
+            // Se crea una copia para no modificar el array original in-place
+            const sortedData = [...data]; 
+
+            sortedData.sort((a, b) => {
+                const valA = String(a[key] || '').toLowerCase();
+                const valB = String(b[key] || '').toLowerCase();
+
+                if (valA < valB) {
+                    return order === 'asc' ? -1 : 1;
+                }
+                if (valA > valB) {
+                    return order === 'asc' ? 1 : -1;
+                }
+                return 0;
+            });
+            return sortedData;
+        }
+
+
+        /**
          * Renderiza el feed de actividad con los datos obtenidos de la API de GAS en formato de tabla.
          * @param {Array<Object>} data - Array de objetos de empleados.
          */
@@ -276,7 +354,7 @@
             const container = document.getElementById(ACTIVITY_FEED_ID);
             if (!container) return;
             
-            // Limpiar el contenedor (remover spinner)
+            // Limpiar el contenedor (remover spinner/error)
             container.innerHTML = ''; 
 
             if (!data || data.length === 0) {
@@ -296,41 +374,101 @@
             // Actualizar métrica total de registros
             const totalRecordsSpan = document.querySelector('#metric-total-records span[data-count="total"]');
             if (totalRecordsSpan) totalRecordsSpan.textContent = data.length;
+            
+            // Aplicar la ordenación al conjunto de datos que se va a renderizar
+            let dataToRender = [...data];
+            if (sortOrder) {
+                dataToRender = sortData(dataToRender, SORT_COLUMN_KEY, sortOrder);
+            }
 
-            // Generar las filas de la tabla con el ID correlativo
-            const tableRowsHtml = data.map((item, index) => {
+            // --- DEFINICIÓN DE COLUMNAS ---
+            const columnDefinitions = [
+                { 
+                    key: 'ID', 
+                    display: 'ID', 
+                    isVirtual: true, 
+                    width: 'w-12', 
+                    align: 'text-center', 
+                    stickyHeaderClass: 'sticky left-0 z-20', 
+                    stickyCellClass: 'sticky left-0 z-10 sticky-id-cell' 
+                },
+                { key: 'EMPRESA', display: 'EMPRESA', align: 'text-left' },
+                { key: 'NOMINA', display: 'NÓMINA', align: 'text-left' },
+                { key: 'APELLIDOS', display: 'APELLIDOS', align: 'text-left' },
+                { key: 'NOMBRES', display: 'NOMBRES', align: 'text-left' },
+                { key: 'CEDULA', display: 'CÉDULA', align: 'text-left' },
+                { key: 'CARGO', display: 'CARGO', align: 'text-left' },
+                { key: 'INGRESO', display: 'INGRESO', align: 'text-center' },
+                { key: 'SECTOR', display: 'SECTOR', align: 'text-left' },
+                { key: 'PERFIL', display: 'PERFIL', align: 'text-left' },
+                { key: 'CTRL2', display: 'CTRL-2', align: 'text-center' },
+                { key: 'CTRL1', display: 'CTRL-1', align: 'text-center' },
+                { key: 'NACIMIENTO', display: 'NACIMIENTO', align: 'text-center' },
+            ];
+
+            // 1. Generar la cabecera de la tabla
+            const tableHeadersHtml = columnDefinitions.map(col => {
+                const headerBgStyle = col.isVirtual ? 'style="background-color: var(--color-header);"' : '';
+                
+                // Si la columna es la de ordenación, se agrega un indicador visual
+                const sortIndicator = col.key === SORT_COLUMN_KEY && sortOrder 
+                    ? `<i data-lucide="${sortOrder === 'asc' ? 'chevron-up' : 'chevron-down'}" class="w-4 h-4 inline-block ml-1"></i>`
+                    : '';
+
+                return `
+                    <th ${headerBgStyle} class="px-4 py-3 ${col.align} text-xs font-bold uppercase tracking-wider text-white ${col.width || ''} whitespace-nowrap ${col.stickyHeaderClass || ''}">
+                        ${col.display} ${sortIndicator}
+                    </th>
+                `;
+            }).join('');
+
+            // 2. Generar las filas de la tabla con el ID correlativo
+            const tableRowsHtml = dataToRender.map((item, index) => {
+                // El ID correlativo se basa en la posición filtrada (index + 1)
                 const rowId = index + 1;
+                
+                // Generar celdas para la fila actual
+                const cellsHtml = columnDefinitions.map(col => {
+                    let content;
+                    let cellClasses = 'px-4 py-3 text-sm whitespace-nowrap '; 
+                    let stickyClasses = col.stickyCellClass || '';
+
+                    if (col.isVirtual) {
+                        content = rowId;
+                        cellClasses += 'font-semibold'; 
+                    } else {
+                        content = item[col.key] || 'N/A';
+                        cellClasses += 'dark:bg-gray-700 light:bg-white';
+                    }
+                    
+                    return `<td class="${cellClasses} ${col.align} ${stickyClasses}" style="color: var(--color-data-text) !important;">${content}</td>`;
+                }).join('');
+
                 return `
                     <tr class="light:hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-150 border-b light:border-gray-200 dark:border-gray-700">
-                        <!-- Columna ID (Virtual Correlativo) -->
-                        <td class="px-4 py-3 text-sm font-semibold light:text-blue-600 dark:text-blue-300 w-12">${rowId}</td>
-                        <!-- Nombre Completo -->
-                        <td class="px-4 py-3 text-sm font-medium whitespace-nowrap">${item.NOMBRES || ''} ${item.APELLIDOS || ''}</td>
-                        <!-- Cargo (Ocultar en mobile para ahorrar espacio) -->
-                        <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap hidden sm:table-cell">${item.CARGO || 'N/A'}</td>
-                        <!-- Ingreso (Mostrar solo en pantallas medianas/grandes) -->
-                        <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap hidden md:table-cell">${item.INGRESO || 'N/A'}</td>
+                        ${cellsHtml}
                     </tr>
                 `;
             }).join('');
 
-            // Estructura completa de la tabla con estilos responsivos
+            // 3. Estructura completa de la tabla con estilos responsivos
             const activityHtml = `
-                <!-- Contenedor principal con borde y sombra -->
-                <div class="rounded-xl shadow-xl border light:border-gray-200 dark:border-gray-700">
+                <!-- Contenedor principal con sombra y borde. Se mantiene sin redondeo (90 grados). -->
+                <div class="shadow-xl border light:border-gray-200 dark:border-gray-700">
                     
                     <!-- Contenedor con altura máxima y scroll vertical y horizontal -->
-                    <div class="max-h-[70vh] md:max-h-96 overflow-y-auto overflow-x-auto">
-                        <table class="min-w-full divide-y light:divide-gray-200 dark:divide-gray-700">
-                            <!-- Cabecera de la tabla (sticky) -->
-                            <thead class="light:bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 shadow-sm">
+                    <div class="max-h-[100vh] md:max-h-110 overflow-y-auto overflow-x-auto">
+                        
+                        <!-- La tabla necesita un ancho mínimo para forzar el scroll horizontal de las 13 columnas -->
+                        <table class="min-w-[1500px] divide-y light:divide-gray-200 dark:divide-gray-700">
+                            
+                            <!-- Cabecera de la tabla (sticky top-0) con color #2D59A1 (Fijo) -->
+                            <thead style="background-color: var(--color-header);" class="sticky top-0 z-10 shadow-md">
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider light:text-gray-500 dark:text-gray-400 w-12">ID</th>
-                                    <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider light:text-gray-500 dark:text-gray-400">Nombre</th>
-                                    <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider light:text-gray-500 dark:text-gray-400 hidden sm:table-cell">Cargo</th>
-                                    <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider light:text-gray-500 dark:text-gray-400 hidden md:table-cell">Ingreso</th>
+                                    ${tableHeadersHtml}
                                 </tr>
                             </thead>
+                            
                             <!-- Cuerpo de la tabla con color de fondo para filas -->
                             <tbody class="divide-y light:divide-gray-200 dark:divide-gray-700 light:bg-white dark:bg-gray-700">
                                 ${tableRowsHtml}
@@ -342,8 +480,96 @@
 
 
             container.innerHTML = activityHtml;
-            // Re-renderizar iconos (solo si se usaron, aunque no se usa ninguno en la tabla)
             lucide.createIcons();
+            
+            // Llamar a la función para configurar los listeners de control
+            setupSearchControls();
+        }
+
+        /**
+         * Maneja la alternancia del estado de ordenación (Ascendente/Descendente/Ninguno)
+         * y llama a la función para re-renderizar los datos.
+         */
+        function toggleSortOrder() {
+            // 1. Alternar el estado de ordenación
+            if (sortOrder === 'asc') {
+                sortOrder = 'desc';
+            } else if (sortOrder === 'desc') {
+                sortOrder = null; // Desactivar ordenación
+            } else {
+                sortOrder = 'asc';
+            }
+
+            // 2. Re-renderizar los datos (el render usa el estado global sortOrder)
+            filterAndRenderData();
+        }
+
+
+        /**
+         * Filtra la variable global employeeData basada en el texto de búsqueda y renderiza el resultado.
+         * La búsqueda se realiza en todas las columnas excepto 'ID'.
+         */
+        function filterAndRenderData() {
+            clearTimeout(debounceTimer);
+            
+            const searchInput = document.getElementById('search-input');
+            const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+            // Aplicar debounce para el filtrado
+            debounceTimer = setTimeout(() => {
+                let dataToRender = employeeData;
+
+                if (query) {
+                    // Filtrar los datos si hay una consulta
+                    dataToRender = employeeData.filter(record => {
+                        return Object.keys(record).some(key => {
+                            // Excluir la columna 'ID'
+                            if (key.toUpperCase() === 'ID') {
+                                return false;
+                            }
+                            
+                            const value = record[key];
+                            if (value !== null && value !== undefined) {
+                                return String(value).toLowerCase().includes(query);
+                            }
+                            return false;
+                        });
+                    });
+                }
+
+                // Renderizar los datos (filtrados o completos, y ordenados si aplica)
+                renderActivityFeed(dataToRender);
+            }, 300); // Retraso de 300ms
+        }
+        
+        /**
+         * Configura el listener para el campo de búsqueda y el botón de limpiar.
+         */
+        function setupSearchControls() {
+            const searchInput = document.getElementById('search-input');
+            const clearBtn = document.getElementById('clear-search-btn');
+            const sortBtn = document.getElementById('sort-toggle-btn');
+
+            if (!searchInput || !clearBtn || !sortBtn) return;
+            
+            // 1. Listener de entrada para el filtrado
+            searchInput.addEventListener('input', filterAndRenderData);
+            
+            // 2. Evento de click para limpiar búsqueda (Siempre visible)
+            clearBtn.onclick = () => {
+                // Solo si el campo de búsqueda tiene texto o si hay ordenación aplicada, 
+                // se ejecuta la acción de "limpiar todo".
+                if (searchInput.value || sortOrder !== null) {
+                    searchInput.value = ''; // Limpiar campo de búsqueda
+                    sortOrder = null; // Reiniciar ordenación
+                    filterAndRenderData(); // Re-renderizar con filtros y ordenación vacíos (muestra todo)
+                }
+            };
+
+            // 3. Evento de click para ordenar
+            sortBtn.onclick = toggleSortOrder;
+            
+            // No se requiere lógica de visibilidad inicial, el botón es siempre visible.
         }
 
         /**
@@ -352,6 +578,7 @@
         async function fetchActivityFeed() {
             const container = document.getElementById(ACTIVITY_FEED_ID);
             const totalRecordsSpan = document.querySelector('#metric-total-records span[data-count="total"]');
+            const searchInput = document.getElementById('search-input');
 
             if (!container || !totalRecordsSpan) return;
 
@@ -363,6 +590,13 @@
                 </div>
             `;
             totalRecordsSpan.textContent = '...';
+            if (searchInput) {
+                // Deshabilitar el input de búsqueda durante la carga
+                searchInput.value = ''; 
+                searchInput.disabled = true; 
+            }
+            // Resetear el estado de ordenación al cargar nuevos datos
+            sortOrder = null; 
             lucide.createIcons(); 
 
             try {
@@ -378,11 +612,11 @@
                             break;
                         }
                     } catch (e) {
-                        // Esperar antes de reintentar
                         if (i < maxRetries - 1) {
+                            // Backoff exponencial
                             await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
                         } else {
-                            throw e; // Lanzar error si es el último intento
+                            throw e; 
                         }
                     }
                 }
@@ -391,27 +625,29 @@
                     throw new Error(`Error HTTP: ${response.status}`);
                 }
                 
-                // Se registra la respuesta completa para verificar la estructura
-                console.log("Respuesta JSON completa de la API (con ?sheet=BD_Personal):", data); 
+                console.log("Respuesta JSON completa de la API (con ?sheet=BD_Personal2):", data); 
 
-                let employeeData = [];
+                let loadedData = [];
                 
-                // Mantiene la lógica de extracción, asumiendo que la respuesta anidada es la más probable
                 if (data && Array.isArray(data.data)) {
-                    employeeData = data.data;
+                    loadedData = data.data;
                 } else if (Array.isArray(data)) {
-                    employeeData = data;
+                    loadedData = data;
                 } else if (data && Array.isArray(data.records)) {
-                    employeeData = data.records;
+                    loadedData = data.records;
                 } else if (data && data.error) {
                     throw new Error(`Error reportado por la API de GAS: ${data.error}`);
                 }
                 
-                if (employeeData.length === 0) {
-                    console.warn("Los datos recibidos no contenían un array de empleados válido en las claves esperadas ('data', 'records' o raíz).");
-                }
+                employeeData = loadedData;
 
+                // Renderizar los datos iniciales
                 renderActivityFeed(employeeData);
+                
+                // Habilitar el input de búsqueda si la carga fue exitosa
+                if (searchInput) {
+                    searchInput.disabled = false;
+                }
 
             } catch (error) {
                 console.error("Error al obtener datos de GAS:", error);
@@ -426,6 +662,9 @@
                 `;
                 lucide.createIcons();
                 totalRecordsSpan.textContent = '0';
+                if (searchInput) {
+                    searchInput.disabled = true;
+                }
             }
         }
 
@@ -476,23 +715,18 @@
          * @param {boolean} isDark - true si es modo oscuro, false si es modo claro.
          */
         function updateToggleIcon(isDark) {
-            // Se busca tanto el tag <i> inicial como el <svg> generado por Lucide.
             const iconElement = themeToggle.querySelector('i, svg');
             
-            // Verificación de seguridad: si no se encuentra el elemento, se detiene la ejecución.
             if (!iconElement) {
                 return;
             }
 
-            // Reemplazamos completamente el elemento del icono para forzar la actualización de Lucide
             const iconName = isDark ? 'sun' : 'moon';
             const iconColor = isDark ? 'text-yellow-300 dark:text-yellow-400' : 'text-yellow-600 dark:text-yellow-400';
             
-            // Creamos un nuevo <i>, que Lucide convertirá a SVG
             const newIconHtml = `<i data-lucide="${iconName}" class="w-6 h-6 ${iconColor}"></i>`;
             iconElement.outerHTML = newIconHtml;
             
-            // Re-renderizar los iconos para que Lucide convierta el nuevo <i> a SVG
             lucide.createIcons();
         }
 
@@ -507,48 +741,34 @@
 
         /**
          * Simula la carga de contenido basada en el archivo de destino.
-         * En un entorno de múltiples archivos, esto simularía un cambio de ruta o recarga.
-         * @param {string} fileName - El nombre del archivo de destino (ej: inicio.html).
          */
         function loadContent(fileName) {
-            // Desactiva el botón previamente activo
             footerButtons.forEach(btn => btn.classList.remove('active'));
 
-            // Activa el botón actual
             const currentBtn = document.querySelector(`.footer-btn[data-file="${fileName}"]`);
             if (currentBtn) {
                 currentBtn.classList.add('active');
             }
             
-            // Carga el contenido simulado basado en el nombre del archivo
             const contentHtml = mockContentMap[fileName] || `<h2 class="text-2xl font-semibold mb-4 text-center">404 - Archivo ${fileName} No Encontrado</h2>`;
 
-            // Reemplaza el contenido
             mainContent.innerHTML = contentHtml;
-            // Asegúrate de que los iconos de la nueva sección se muestren correctamente
             lucide.createIcons();
             
-            // Si estamos en la página de inicio, cargar el feed de actividad
             if (fileName === 'inicio.html') {
                 fetchActivityFeed();
             }
 
-            // Desplázate al inicio
             mainContent.scrollTop = 0;
         }
 
         /**
-         * Maneja la navegación del footer. En una aplicación de un solo archivo (SPA),
-         * llama a loadContent. En un entorno de múltiples archivos, usa la redirección.
-         * @param {string} fileName - El nombre del archivo de destino.
+         * Maneja la navegación del footer.
          */
         function handleFooterNavigation(fileName) {
-            // Comprueba si estamos en un entorno de archivo único o si necesitamos redireccionar
             if (window.location.pathname.endsWith(fileName) || window.location.pathname.indexOf(fileName) !== -1) {
-                // Si ya estamos en el archivo de destino, simplemente recargamos su contenido simulado (para SPA)
                 loadContent(fileName);
             } else {
-                // Si son archivos separados (como lo indica la petición), redirigimos.
                 window.location.href = fileName;
             }
         }
