@@ -437,7 +437,8 @@
         let _globalSelectedRowElement = null; // Almacena la fila HTML seleccionada
         
         // Estado de ordenación:
-        let currentSortColumn = 'APELLIDOS'; // Columna inicial para ordenar
+        // CORRECCIÓN: Se inicializa a null para que no haya indicador visual de ordenación al cargar.
+        let currentSortColumn = null; 
         let sortOrder = 'asc'; // 'asc' (ascendente), 'desc' (descendente)
         
         // --- CONSTANTES ---
@@ -932,6 +933,11 @@
         function clearSearchAndTable() {
             document.getElementById('search-input').value = '';
             document.getElementById('json-display-container')?.classList.add('hidden'); // Oculta JSON
+            
+            // Al limpiar, también debemos resetear el estado de ordenación para que no aparezca el icono
+            currentSortColumn = null;
+            sortOrder = 'asc';
+            
             handleSearch(); // Llama a la búsqueda para mostrar todos los datos (sin ordenar)
         }
 
@@ -1108,8 +1114,8 @@
                 th.textContent = col.label;
                 th.className = 'sortable-header text-xs uppercase tracking-wider shadow-sm text-center';
                 
-                // Indicador de ordenación (SOLO si se ha aplicado una ordenación manual)
-                if (currentSortColumn === col.key) {
+                // Indicador de ordenación (SOLO si currentSortColumn no es null y coincide con la columna)
+                if (currentSortColumn && currentSortColumn === col.key) {
                     const icon = document.createElement('i');
                     icon.setAttribute('data-lucide', sortOrder === 'asc' ? 'chevron-up' : 'chevron-down');
                     icon.classList.add('w-4', 'h-4', 'inline-block', 'ml-1');
