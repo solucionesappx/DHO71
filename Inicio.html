@@ -306,7 +306,8 @@
         const htmlElement = document.documentElement;
         const mainContent = document.getElementById('main-content');
         const footerButtons = document.querySelectorAll('.footer-btn');
-
+        const usuarioprimerNombre = localStorage.getItem('Usuario_Primer_Nombre');
+        
         // Función para obtener la fecha de hoy en español para el dashboard
         const todayDate = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
 
@@ -316,7 +317,7 @@
                 <!-- Tarjeta de Bienvenida y Resumen (Punto de Alineación del Modal) -->
                 <div class="bg-blue-600 dark:bg-blue-700 p-3 rounded-2xl text-white shadow-xl mb-4" id="welcome-card-ref">
                     <div class="flex items-center justify-between">
-                        <h2 class="text-xl font-bold">¡Hola, ${todayDate}!</h2>
+                        <h2 class="text-xl font-bold">¡Hola, ${usuarioprimerNombre}!</h2>
                         <span class="text-sm opacity-90">${todayDate}</span>
                     </div>
                 </div>
