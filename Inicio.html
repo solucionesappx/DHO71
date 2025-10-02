@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<!-- CLAVE: El modo inicial 'dark' se aplica aquí y es el que se alterna. -->
-<html lang="es" class="dark"> 
+<html lang="es" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +9,7 @@
     <!-- Carga de Lucide Icons CDN para iconos limpios -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        /* Configuración de Tailwind para usar el color de acento y la fuente Inter */
+        /* Configuración de Tailwind para usar el color de acento y la fuente Inter  */
         html {
             font-family: 'Inter', sans-serif;
             -webkit-tap-highlight-color: transparent; /* Mejor experiencia táctil */
@@ -18,196 +17,191 @@
 
         /* Definición de colores base para modo claro y oscuro */
         :root {
-            /* --- COLORES PARA MODO CLARO --- */
-            --color-bg-light: #f9fafb; /* Fondo principal (blanco muy claro) */
-            --color-text-light: #1f2937; /* Texto principal (gris oscuro) */
-            --color-primary-light: #1d4ed8; /* Azul primario (más oscuro en claro) */
-            --color-surface-light: #ffffff; /* Superficies (botones, footer) */
-            --color-surface-card-light: #f3f4f6; /* Tarjetas de contenido (gris muy claro) */
+            --color-bg-light: #f9fafb;
+            --color-text-light: #1f2937;
+            --color-primary-light: #3b82f6;
+            --color-bg-dark: #1f2937;
+            --color-text-dark: #f3f4f6;
+            --color-primary-dark: #60a5fa;
+            --color-surface-light: #ffffff;
+            --color-surface-dark: #374151;
             
-            /* --- COLORES PARA MODO OSCURO --- */
-            --color-bg-dark: #1f2937; /* Fondo principal (gris oscuro) */
-            --color-text-dark: #f3f4f6; /* Texto principal (gris muy claro) */
-            --color-primary-dark: #60a5fa; /* Azul primario (más claro en oscuro) */
-            --color-surface-dark: #374151; /* Superficies (botones, footer) */
-            --color-surface-card-dark: #374151; /* Tarjetas de contenido (gris medio) */
-
-            /* --- COLORES FIJOS (Solo para la tabla/ID) --- */
-            --color-header-fixed: #2D59A1; /* Color de la columna de ID / Encabezado de la tabla */
+            /* Color de fondo para encabezado y columna ID: #2D59A1 */
+            --color-header: #2D59A1; 
+            
+            /* Color de texto puro para datos de la tabla */
             --color-data-text: #ffffff;
             
-            /* Altura de referencia */
+            /* Altura de referencia para alinear el modal y la tarjeta de bienvenida (Header + Padding) */
             --header-offset: 76px; 
         }
         
-        /* Estilos del cuerpo en modo claro y oscuro (Aplicados al body por herencia de html) */
+        /* Estilos del cuerpo en modo claro */
         .light {
             background-color: var(--color-bg-light);
             color: var(--color-text-light);
         }
 
+        /* Estilos del cuerpo en modo oscuro (por defecto en el HTML) */
         .dark {
             background-color: var(--color-bg-dark);
             color: var(--color-text-dark);
         }
         
-        /* Contenedor principal: Fija el ancho máximo a 500px, lo centra y oculta scroll horizontal */
+        /* Contenedor principal: Fija el ancho máximo a 500px y lo centra */
         #app-container {
             max-width: 500px;
             margin: 0 auto;
-            min-height: 100vh; /* Asegura que ocupe toda la altura */
+            min-height: 10vh;
             display: flex;
             flex-direction: column;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
             position: relative; 
-            overflow-x: hidden; /* Oculta el scroll horizontal */
+            overflow: hidden; 
         }
 
-        /* Estilos específicos para Header y Footer (Barras de Navegación Fijas) */
+        /* Estilos específicos para Header y Footer */
         header, footer {
-            position: fixed; /* Asegura que se mantengan fijos */
             width: 100%;
             max-width: 500px; 
-            z-index: 50; 
-            /* Transición de color de fondo ahora es manejada por Tailwind, pero la mantenemos */
-            transition: background-color 0.3s, color 0.3s, border-color 0.3s; 
+            z-index: 50; /* Aumentado para estar sobre el modal */
+            transition: background-color 0.3s, color 0.3s;
             
+            /* Corrección de alineación: Centra el elemento 'fixed' en pantallas grandes */
             left: 50%;
             transform: translateX(-50%);
-            
-            /* Solo aplicamos borde y posicionamiento, el color va en el HTML */
-            border-color: rgba(255, 255, 255, 0.1); 
-        }
-        
-        /* Asegurar color de texto blanco para Header/Footer */
-        header *, footer * {
-            color: white !important; /* Forzar blanco para todos los elementos internos */
         }
 
-        /* Ajuste del contenido principal */
+        /* Colores específicos para modo claro y oscuro para Header/Footer */
+        .light header, .light footer {
+            background-color: var(--color-surface-light);
+            border-color: #e5e7eb;
+        }
+        .dark header, .dark footer {
+            background-color: var(--color-surface-dark);
+            border-color: #4b5563;
+        }
+
+        /* Ajuste del contenido principal: Solo se mantiene el offset inferior */
         main {
-            padding-bottom: 72px; 
+            padding-bottom: 72px; /* Altura del footer (h-18) para offset fijo */
             flex-grow: 1;
-            overflow-y: auto; 
-            transition: background-color 0.3s, color 0.3s;
+            overflow-y: auto; /* Habilitar scroll solo en el cuerpo */
         }
         
-        /* Estilo para los botones del footer */
+        /* Estilo para los botones del footer (interacción táctil) */
         .footer-btn {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 8px 4px;
-            font-size: 0.75rem; 
+            font-size: 0.75rem; /* texto pequeño */
             line-height: 1;
             transition: color 0.2s, background-color 0.2s;
             border-radius: 0.5rem;
-            color: inherit; 
+            color: inherit; /* Color de texto por defecto */
         }
 
         /* Estilo para el botón activo en el footer */
         .footer-btn.active {
-            /* Se usan los colores primarios de la app para el estado activo */
-            color: var(--color-primary-dark) !important;
+            color: var(--color-primary-dark);
         }
         .light .footer-btn.active {
-             color: var(--color-primary-light) !important;
+             color: var(--color-primary-light);
         }
         
-        /* Excepción para el ícono de Theme Toggle (Sol/Luna) - JS lo maneja */
-        #theme-toggle i {
-            color: inherit !important; 
+        /* Oculta la barra de desplazamiento en navegadores basados en WebKit */
+        ::-webkit-scrollbar {
+            display: none;
         }
-
+        
         /* * ESTILO ESPECÍFICO PARA LA COLUMNA STICKY (ID) */
         .sticky-id-cell {
-            background-color: var(--color-header-fixed) !important; 
-            color: var(--color-data-text) !important; 
-            border-right: 1px solid rgba(255, 255, 255, 0.2); 
-            transition: none; /* No animar el fondo fijo */
+            background-color: var(--color-header) !important; /* Mismo color que el encabezado (#2D59A1) */
+            color: var(--color-data-text) !important; /* Texto blanco puro */
+            border-right: 1px solid rgba(255, 255, 255, 0.2); /* Separador suave */
+        }
+        
+        /* Estilo para los encabezados de la tabla interactivos */
+        .sortable-header {
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.1s;
         }
 
-        /* Estilo para el encabezado fijo de la tabla */
-        #employee-table-header {
-            background-color: var(--color-header-fixed) !important;
-            transition: none; /* No animar el fondo fijo */
+        .sortable-header:hover {
+            background-color: rgba(255, 255, 255, 0.1); /* Ligero hover para feedback */
         }
         
         /* Estilo para la selección de fila con hover (Mouse/Cursor) */
         .worker-row:hover {
-            background-color: #e5e7eb !important; 
+            background-color: #3a3a45 !important; /* Color de selección solicitado */
             cursor: pointer;
         }
-        .dark .worker-row:hover {
-            background-color: #3a3a45 !important; 
-        }
-
 
         /* --- ESTILOS DEL MODAL FIJO Y ALINEADO --- */
         .modal-overlay {
+            /* Fija el modal sobre todo el viewport */
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.6); 
-            display: none; 
+            background-color: rgba(0, 0, 0, 0.6); /* Fondo semi-transparente */
+            display: none; /* Oculto por defecto */
             justify-content: center;
             align-items: center;
-            z-index: 40; 
-            /* Transición para el fondo del overlay */
-            transition: background-color 0.3s;
+            z-index: 40; /* Por debajo del header/footer */
         }
 
+        /* Contenedor del modal */
         #modal-content-wrapper {
+            /* Fija la posición relativa al contenido principal (simulando fixed dentro del max-width: 500px) */
             position: absolute; 
-            top: var(--header-offset); 
+            top: var(--header-offset); /* Alineado con el inicio del contenido principal (tarjeta de bienvenida) */
+            
+            /* Ajuste para que ocupe todo el ancho en móvil, o una posición fija en desktop */
             width: 90%; 
-            max-width: 380px; 
+            max-width: 380px; /* Ancho máximo para que no sea demasiado grande */
         }
         
-        /* Asegura que los elementos internos del modal también tienen transición de color */
-        #modal-content-wrapper > div {
-             transition: background-color 0.3s, color 0.3s, border-color 0.3s;
-        }
     </style>
 </head>
-<!-- Aplicamos la transición al body para que el color del texto y fondo base cambie suavemente -->
-<body class="transition-colors duration-300"> 
+<body class="dark transition-colors duration-300">
 
     <!-- Contenedor principal con ancho máximo de 500px, centrado -->
     <div id="app-container" class="shadow-xl">
         
         <!-- CINTILLO SUPERIOR FIJO (HEADER) -->
-        <!-- CONFIRMACIÓN: Color azul en modo claro y gris en modo oscuro -->
-        <header class="top-0 w-full h-14 border-b border-white/10 flex items-center justify-between px-4 bg-[#4b5563] dark:bg-gray-800">
-            <h1 class="text-xl font-bold text-white">Mi Aplicación Móvil</h1>
+        <header class="fixed top-0 w-full h-14 border-b border-gray-700 dark:border-gray-500 flex items-center justify-between px-4">
+            <h1 class="text-xl font-bold">Mi Aplicación Móvil</h1>
             
             <div class="flex space-x-3">
                 
                 <!-- Botón de Modo Oscuro/Claro (Toggle) -->
                 <button id="theme-toggle" class="p-2 rounded-full hover:opacity-80 transition-opacity">
-                    <!-- El ícono se define en JS al cargar la página -->
+                    <!-- Icono inicial: Sol (para indicar que al tocar se irá a modo claro) -->
                     <i data-lucide="sun" class="w-6 h-6 text-yellow-300"></i>
                 </button>
                 
                 <!-- Icono de Cerrar Sesión -->
                 <button class="p-2 rounded-full hover:opacity-80 transition-opacity" onclick="showCustomAlert('Funcionalidad de Cerrar Sesión (simulada)')">
-                    <i data-lucide="log-out" class="w-6 h-6 text-white"></i>
+                    <i data-lucide="log-out" class="w-6 h-6 text-red-400 dark:text-red-300"></i>
                 </button>
             </div>
         </header>
 
         <!-- CUERPO PRINCIPAL (BODY) -->
+        <!-- pt-[76px] asegura 56px de offset del header + 20px de padding interno. -->
         <main id="main-content" class="px-4 pb-4 flex flex-col space-y-4 pt-[76px]">
             <!-- Contenido simulado de la página de Inicio (se carga dinámicamente) -->
         </main>
 
         <!-- BARRA DE NAVEGACIÓN FIJA (FOOTER) -->
-        <!-- CONFIRMACIÓN: Color azul en modo claro y gris en modo oscuro -->
-        <footer class="bottom-0 w-full h-18 border-t border-white/10 flex items-center justify-around py-2 bg-[#4b5563] dark:bg-gray-800">
+        <footer class="fixed bottom-0 w-full h-18 border-t border-gray-700 dark:border-gray-500 flex items-center justify-around py-2">
             
+            <!-- AJUSTE CLAVE: Se añade la clase 'active' al botón de Inicio para la carga inicial -->
             <button class="footer-btn active" data-section="Inicio" data-file="inicio.html">
                 <i data-lucide="home" class="w-6 h-6"></i>
                 <span>Inicio</span>
@@ -234,52 +228,89 @@
             </button>
         </footer>
 
-        <!-- Modal de Detalle Trabajador (Overlay) -->
+        <!-- NUEVO: Modal de Detalle Trabajador (Overlay) -->
+        <!-- Posicionado como 'absolute' dentro del #app-container que es 'relative' -->
         <div id="DetalleTrabajadorModal" class="modal-overlay">
             
+            <!-- Contenedor interno que simula la alineación fija -->
             <div id="modal-content-wrapper" class="mx-auto">
-                <!-- CLAVE: Aquí es donde Tailwind aplica el fondo del modal basado en la clase 'dark' en el <html> -->
-                <div class="p-6 rounded-xl shadow-2xl w-full transition-all duration-300 transform scale-100 light:bg-white dark:bg-gray-700">
+                <div class="bg-gray-800 p-6 rounded-xl shadow-2xl w-full transition-all duration-300 transform scale-100 dark:bg-gray-700">
                     
-                    <div class="flex justify-between items-center pb-3 border-b light:border-gray-200 dark:border-gray-600 mb-4">
-                        <h3 class="text-xl font-bold light:text-blue-600 dark:text-blue-400">Detalle Trabajador</h3>
-                        <button onclick="closeModal()" class="light:text-gray-400 dark:text-gray-400 hover:text-red-500 transition duration-150 p-2 -mr-3">
+                    <!-- Encabezado del Modal con Botón de Cancelar -->
+                    <div class="flex justify-between items-center pb-3 border-b border-gray-600 mb-4">
+                        <h3 class="text-xl font-bold text-blue-400">Detalle Trabajador</h3>
+                        <!-- Botón de Cancelar (esquina superior derecha) -->
+                        <button onclick="closeModal()" class="text-gray-400 hover:text-red-400 transition duration-150 p-2 -mr-3">
                             <i data-lucide="x" class="w-6 h-6"></i>
                         </button>
                     </div>
                     
+                    <!-- Contenido del Detalle del Trabajador (Grid responsivo) -->
+                    <!-- CAMBIO CLAVE: Reducido de gap-4 a gap-2 -->
                     <div id="modalBodyContent" class="grid grid-cols-1 gap-2 text-left">
+                        <!-- El contenido se inyecta con JavaScript -->
                         <p class="text-gray-400">Cargando...</p>
                     </div>
                 </div>
             </div>
             
         </div>
+        <!-- FIN NUEVO: Modal de Detalle Trabajador -->
+
     </div>
 
     <script>
         // Inicializa los iconos de Lucide (los convierte de tags <i> a SVG)
         lucide.createIcons();
 
-        // --- ESTADO GLOBAL Y CONSTANTES ---
-        let employeeData = []; 
-        let debounceTimer; 
+        // --- ESTADO GLOBAL ---
+        let employeeData = []; // Almacena el dataset completo sin filtrar
+        let debounceTimer; // Para controlar la frecuencia de búsqueda
+        
+        // Estado de ordenación:
         let currentSortColumn = null; 
+        // 'asc' (ascendente), 'desc' (descendente), null (sin ordenar)
         let sortOrder = null; 
+
+        // --- NUEVO: Variable Global para el JSON de Filtrado ---
         let _globalSelectedWorkerData = null; 
 
+        // --- CONSTANTES ---
+        // URL de la API de Google Apps Script para obtener datos
+        // NOTA: Esta URL debe ser reemplazada por la URL de implementación de GAS real.
         const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbx87WvxA9ca1KyGMA1wsw1npZw5vPtjoItomhF823BICXScNrWGFh5m0Dj6Veb24CtHXQ/exec?sheet=BD_Personal2';
         const ACTIVITY_FEED_ID = 'activity-feed-container';
         
+        // --- NUEVO: Mapeos para Modal y JSON (Usando nombres de campo ORIGINALES de la fuente de datos) ---
+        // Se usa el nombre de campo ORIGINAL (key) para referirse a la propiedad en el objeto.
+        const MODAL_FIELD_MAP = [
+            'NOMBRES', 'APELLIDOS', 'CEDULA', 'NACIMIENTO', 'EMPRESA', 'INGRESO', 
+            'CARGO', 'NOMINA', 'SECTOR', 'PERFIL', 'CTRL2', 'CTRL1' // CTRL2 se excluye en populateModal
+        ];
+        
+        // CAMBIO CLAVE: Se usan los nombres de campos originales del backend para la busqueda en la data
+        // Los valores se formatearán justo antes de crear el objeto JSON de filtrado.
+        const JSON_FIELD_MAP = [
+            'CEDULA', 'EMPRESA', 'INGRESO', 'NOMBRES', 'APELLIDOS' // 'NOMBRES' y 'APELLIDOS' se usarán para generar 'NOMBRE_FORMATEADO'
+        ];
+        
+        // --- NUEVO: Mapeo para el display (Traducción de columnas) ---
+        const COLUMN_DISPLAY_MAP = {
+            'CTRL2': 'DÍAS VACACIONES', 
+            'CTRL1': 'NOTA'
+        };
+
+
         // --- VARIABLES DOM ---
         const themeToggle = document.getElementById('theme-toggle');
-        const htmlElement = document.documentElement; // CLAVE: Apunta al tag <html>
+        const htmlElement = document.documentElement;
         const mainContent = document.getElementById('main-content');
         const footerButtons = document.querySelectorAll('.footer-btn');
 
+        // Función para obtener la fecha de hoy en español para el dashboard
         const todayDate = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
 
-        // Mapeo de contenido simulado por archivo
+        // Mapa de contenido simulado por archivo (es clave para la simulación SPA)
         const mockContentMap = {
             'inicio.html': `
                 <!-- Tarjeta de Bienvenida y Resumen (Punto de Alineación del Modal) -->
@@ -290,8 +321,9 @@
                     </div>
                 </div>
                 
-                <!-- Métricas Clave -->
+                <!-- AJUSTE: Métricas Clave (Distribución horizontal compacta) -->
                 <div class="flex justify-between space-x-2 mb-4">
+                    <!-- Métrica 1: Total Registros -->
                     <div id="metric-total-records" 
                          class="w-1/2 p-1.5 rounded-xl shadow-2xl transition-all duration-300 light:bg-white dark:bg-gray-700 flex items-center space-x-2">
                         <i data-lucide="users" class="w-6 h-6 text-green-500 flex-shrink-0"></i>
@@ -301,6 +333,7 @@
                         </div>
                     </div>
 
+                    <!-- Métrica 2: Pendientes/Acción Requerida (Simulada) -->
                     <div class="w-1/2 p-1.5 rounded-xl shadow-2xl transition-all duration-300 light:bg-white dark:bg-gray-700 flex items-center space-x-2">
                         <i data-lucide="alert-triangle" class="w-6 h-6 text-red-500 flex-shrink-0"></i>
                         <div class="flex flex-col leading-tight">
@@ -310,63 +343,109 @@
                     </div>
                 </div>
 
-                <!-- MOTOR DE BÚSQUEDA Y CONTROLES -->
+                <!-- MOTOR DE BÚSQUEDA Y CONTROLES (RADIO REDUCIDO: rounded-xl) -->
                 <div class="flex items-center space-x-2 mb-4">
+                    <!-- Contenedor del Input y el Icono de Búsqueda -->
                     <div class="relative flex-grow rounded-xl"> 
+                        <!-- Clases de color para asegurar texto claro en modo oscuro -->
                         <input type="text" id="search-input" placeholder="Buscar por Nombre, Cédula, Cargo..." 
                                class="w-full pl-10 pr-4 py-2 rounded-xl shadow-inner 
                                      light:bg-white dark:bg-gray-700 
-                                     light:text-gray-900 dark:text-gray-100 
+                                     text-gray-900 dark:text-gray-100 
                                      placeholder-gray-400 border light:border-gray-300 dark:border-gray-600 
                                      focus:outline-none focus:ring-2 focus:ring-blue-500">
                         
+                        <!-- Icono de Búsqueda -->
                         <i data-lucide="search" class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 light:text-gray-500 dark:text-gray-300"></i>
                     </div>
 
+                    <!-- Botón Limpiar -->
                     <button id="clear-search-btn" class="p-2.5 rounded-full light:bg-white dark:bg-gray-700 shadow-md transition-colors duration-200 text-red-500 dark:text-red-400 font-bold" title="Reiniciar Filtros">
                         <i data-lucide="x-circle" class="w-7 h-7"></i>
                     </button>
                 </div>
 
-                <!-- Contenedor para mostrar el JSON de la fila seleccionada -->
+                <!-- NUEVO: Contenedor para mostrar el JSON de la fila seleccionada -->
                 <div id="json-display-container" class="mb-4 p-3 rounded-lg light:bg-gray-100 dark:bg-gray-700 text-xs shadow-inner hidden">
-                    <h4 class="font-semibold light:text-blue-700 dark:text-blue-400 mb-1">JSON para Filtrado:</h4>
-                    <pre id="selected-json-display" class="whitespace-pre-wrap font-mono light:text-gray-700 dark:text-gray-300"></pre>
+                    <h4 class="font-semibold text-blue-400 mb-1">JSON para Filtrado:</h4>
+                    <pre id="selected-json-display" class="whitespace-pre-wrap font-mono text-gray-300"></pre>
                 </div>
+                <!-- FIN NUEVO: Contenedor JSON -->
+
 
                 <!-- Feed de Actividad Reciente -->
-                <h3 class="text-xl font-semibold mb-3 border-b light:border-gray-300 dark:border-gray-600 pb-1">Tabla de Empleados (Datos GAS)</h3>
+                <h3 class="text-xl font-semibold mb-3 border-b light:border-gray-200 dark:border-gray-600 pb-1">Tabla de Empleados (Datos GAS)</h3>
 
                 <div id="${ACTIVITY_FEED_ID}" class="space-y-3">
                     <!-- Contenido dinámico (Loading Spinner inicial) -->
                     <div id="loading-spinner" class="text-center py-8">
                         <i data-lucide="loader-circle" class="w-8 h-8 mx-auto animate-spin text-blue-500"></i>
-                        <p class="mt-2 text-sm light:text-gray-500 dark:text-gray-400">Cargando datos de empleados...</p>
+                        <p class="mt-2 text-sm text-gray-400">Cargando datos de empleados...</p>
                     </div>
                 </div>
             `,
-            'NuevoReg.html': `<h2 class="text-2xl font-semibold mb-4 text-center">Nuevo Registro ($$ \\text{NuevoReg.html} $$)</h2><div class="p-6 rounded-xl shadow-lg light:bg-gray-100 dark:bg-gray-600"><p>Aquí irá el formulario para crear un registro.</p><button class="mt-4 w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors">Crear</button></div>`,
-            'EditarReg.html': `<h2 class="text-2xl font-semibold mb-4 text-center">Editar Registros ($$ \\text{EditarReg.html} $$)</h2><div class="p-6 rounded-xl shadow-lg light:bg-gray-100 dark:bg-gray-600"><p>Listado de elementos para edición.</p><ul class="mt-4 space-y-2"><li class="p-4 light:bg-white dark:bg-gray-700 rounded-lg shadow-md">Elemento a Editar 1</li><li class="p-4 light:bg-white dark:bg-gray-700 rounded-lg shadow-md">Elemento a Editar 2</li></ul></div>`,
-            'PerfilUsuario.html': `<h2 class="text-2xl font-semibold mb-4 text-center">Mi Perfil ($$ \\text{PerfilUsuario.html} $$)</h2><div class="flex flex-col items-center p-6 rounded-xl shadow-lg light:bg-gray-100 dark:bg-gray-600"><div class="w-24 h-24 rounded-full light:bg-gray-300 dark:bg-gray-500 flex items-center justify-center text-4xl mb-4"><i data-lucide="user" class="w-12 h-12"></i></div><p class="text-xl font-bold">Datos del Usuario</p></div>`,
-            'ConfigApp.html': `<h2 class="text-2xl font-semibold mb-4 text-center">Configuración ($$ \\text{ConfigApp.html} $$)</h2><div class="p-6 rounded-xl shadow-lg light:bg-gray-100 dark:bg-gray-600 space-y-4"><p>Opciones y ajustes de la aplicación.</p><div class="flex justify-between items-center py-2 border-t light:border-gray-300 dark:border-gray-500"><span>Versión de la App:</span><span class="font-mono">1.0.0</span></div></div>`
+            'NuevoReg.html': `
+                <h2 class="text-2xl font-semibold mb-4 text-center">Nuevo Registro ($$ \\text{NuevoReg.html} $$)</h2>
+                <div class="p-6 rounded-xl shadow-lg light:bg-gray-100 dark:bg-gray-600">
+                    <p>Aquí irá el formulario para crear un registro.</p>
+                    <button class="mt-4 w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors">Crear</button>
+                </div>
+            `,
+            'EditarReg.html': `
+                <h2 class="text-2xl font-semibold mb-4 text-center">Editar Registros ($$ \\text{EditarReg.html} $$)</h2>
+                <div class="p-6 rounded-xl shadow-lg light:bg-gray-100 dark:bg-gray-600">
+                    <p>Listado de elementos para edición.</p>
+                    <ul class="mt-4 space-y-2">
+                        <li class="p-4 light:bg-white dark:bg-gray-700 rounded-lg shadow-md">Elemento a Editar 1</li>
+                        <li class="p-4 light:bg-white dark:bg-gray-700 rounded-lg shadow-md">Elemento a Editar 2</li>
+                    </ul>
+                </div>
+            `,
+            'PerfilUsuario.html': `
+                <h2 class="text-2xl font-semibold mb-4 text-center">Mi Perfil ($$ \\text{PerfilUsuario.html} $$)</h2>
+                <div class="flex flex-col items-center p-6 rounded-xl shadow-lg light:bg-gray-100 dark:bg-gray-600">
+                    <div class="w-24 h-24 rounded-full light:bg-gray-300 dark:bg-gray-500 flex items-center justify-center text-4xl mb-4">
+                        <i data-lucide="user" class="w-12 h-12"></i>
+                    </div>
+                    <p class="text-xl font-bold">Datos del Usuario</p>
+                </div>
+            `,
+            'ConfigApp.html': `
+                <h2 class="text-2xl font-semibold mb-4 text-center">Configuración ($$ \\text{ConfigApp.html} $$)</h2>
+                <div class="p-6 rounded-xl shadow-lg light:bg-gray-100 dark:bg-gray-600 space-y-4">
+                    <p>Opciones y ajustes de la aplicación.</p>
+                    <div class="flex justify-between items-center py-2 border-t light:border-gray-300 dark:border-gray-500">
+                        <span>Versión de la App:</span>
+                        <span class="font-mono">1.0.0</span>
+                    </div>
+                </div>
+            `
         };
 
-        const MODAL_FIELD_MAP = ['NOMBRES', 'APELLIDOS', 'CEDULA', 'NACIMIENTO', 'EMPRESA', 'INGRESO', 'CARGO', 'NOMINA', 'SECTOR', 'PERFIL', 'CTRL2', 'CTRL1'];
-        const COLUMN_DISPLAY_MAP = {'CTRL2': 'DÍAS VACACIONES', 'CTRL1': 'NOTA'};
-        
-        // --- FUNCIONES DE FORMATO ---
+        // --- FUNCIONES DE FORMATO ESPECÍFICAS ---
+
+        /**
+         * Formatea un número de Cédula (o cualquier número grande) para incluir separadores de miles (puntos).
+         */
         function formatCedula(value) {
             const num = Number(value);
             if (isNaN(num)) return value || 'N/A';
-            return num.toLocaleString('es-ES');
+            return num.toLocaleString('es-ES'); // Usa el punto como separador de miles
         }
 
+        /**
+         * Formatea un valor de fecha al formato 'dd/mm/yyyy'.
+         */
         function formatDate(value) {
             if (value === null || value === undefined || value === '') return '';
+            
             let date;
+            
             if (typeof value === 'string' && value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)) {
+                // Si ya viene en formato dd/mm/yyyy, intenta parsear como tal (esto puede ser inestable)
                 const parts = value.split('/');
                 date = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+
                 if (isNaN(date.getTime())) {
                     date = new Date(value);
                 }
@@ -385,43 +464,72 @@
             return `${day}/${month}/${year}`;
         }
         
+        /**
+         * Aplica el formato solicitado a los nombres y apellidos.
+         * Formato: PrimerNombre InicialSegundoNombre. PrimerApellido InicialSegundoApellido.
+         * @param {Object} record El registro de datos original.
+         * @returns {string} El nombre completo formateado.
+         */
         function formatFullNameForFiltering(record) {
+            // Asumiendo que la data tiene las columnas NOMBRES y APELLIDOS con los nombres/apellidos completos
+            // Si la data viniera separada (e.g., PRIMER_NOMBRE, SEGUNDO_NOMBRE, etc.), la lógica sería más directa.
+            
             const rawNombres = String(record.NOMBRES || '').trim().split(/\s+/);
             const rawApellidos = String(record.APELLIDOS || '').trim().split(/\s+/);
 
+            // 1. Nombres: Primer nombre + Inicial del segundo
             let firstName = rawNombres[0] || '';
             let secondNameInitial = (rawNombres.length > 1 && rawNombres[1]) ? rawNombres[1].charAt(0) + '.' : '';
+
+            // 2. Apellidos: Primer apellido + Inicial del segundo
             let firstSurname = rawApellidos[0] || '';
             let secondSurnameInitial = (rawApellidos.length > 1 && rawApellidos[1]) ? rawApellidos[1].charAt(0) + '.' : '';
 
+            // Construir el resultado final, limpiando espacios dobles
             const formattedName = `${firstName} ${secondNameInitial} ${firstSurname} ${secondSurnameInitial}`.trim().replace(/\s+/g, ' ');
+
             return formattedName;
         }
 
+        // --- FIN FUNCIONES DE FORMATO ESPECÍFICAS ---
+
+
+        /**
+         * Aplica la ordenación al array de datos completo.
+         */
         function sortData(data, key, order) {
             if (!data || !key || !order) return data;
+
             const sortedData = [...data]; 
+
             sortedData.sort((a, b) => {
                 const valA = String(a[key] || '').toLowerCase();
                 const valB = String(b[key] || '').toLowerCase();
+
                 const numA = parseFloat(valA);
                 const numB = parseFloat(valB);
+                
                 let comparison = 0;
+                
                 if (!isNaN(numA) && !isNaN(numB) && isFinite(numA) && isFinite(numB)) {
                     comparison = numA - numB;
                 } else {
                     if (valA < valB) comparison = -1;
                     if (valA > valB) comparison = 1;
                 }
+
                 return order === 'asc' ? comparison : -comparison;
             });
             return sortedData;
         }
 
+        /**
+         * Determina la clase de alineación del contenido para una columna específica.
+         */
         function getContentAlignmentClass(key) {
             switch (key.toUpperCase()) {
                 case 'CEDULA':
-                case 'CTRL2': 
+                case 'CTRL2': // DÍAS
                     return 'text-right';
                 case 'INGRESO':
                     return 'text-center';
@@ -430,20 +538,31 @@
             }
         }
         
+        /**
+         * Determina la clase de alineación del encabezado para una columna específica.
+         */
         function getHeaderAlignmentClass(key) {
             return 'text-center';
         }
 
-        // --- FUNCIONES DE RENDERIZADO Y LÓGICA DE DATOS ---
 
+        /**
+         * Renderiza el feed de actividad con los datos obtenidos de la API de GAS en formato de tabla.
+         */
         function renderActivityFeed(data) {
             const container = document.getElementById(ACTIVITY_FEED_ID);
             if (!container) return;
             
+            // Limpiar el contenedor (remover spinner/error)
             container.innerHTML = ''; 
 
             if (!data || data.length === 0) {
-                container.innerHTML = `<div class="text-center py-8 light:text-gray-500 dark:text-gray-400"><i data-lucide="inbox" class="w-10 h-10 mx-auto mb-2"></i><p>No se encontraron registros de empleados.</p></div>`;
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-2"></i>
+                        <p>No se encontraron registros de empleados.</p>
+                    </div>
+                `;
                 const totalRecordsSpan = document.querySelector('#metric-total-records span[data-count="total"]');
                 if (totalRecordsSpan) totalRecordsSpan.textContent = '0';
                 lucide.createIcons();
@@ -458,8 +577,20 @@
                 dataToRender = sortData(dataToRender, currentSortColumn, sortOrder);
             }
 
+            // --- DEFINICIÓN DE COLUMNAS ---
+            // Se usa el nombre de campo ORIGINAL (key) para referirse a la propiedad en el objeto.
             const columnDefinitions = [
-                { key: 'ID', display: 'ID', isVirtual: true, isSortable: false, width: 'w-12', alignHeader: 'text-center', alignContent: 'text-center', stickyHeaderClass: 'sticky left-0 z-20', stickyCellClass: 'sticky left-0 z-10 sticky-id-cell' },
+                { 
+                    key: 'ID', 
+                    display: 'ID', 
+                    isVirtual: true, 
+                    isSortable: false, 
+                    width: 'w-12', 
+                    alignHeader: 'text-center', 
+                    alignContent: 'text-center', 
+                    stickyHeaderClass: 'sticky left-0 z-20', 
+                    stickyCellClass: 'sticky left-0 z-10 sticky-id-cell' 
+                },
                 { key: 'EMPRESA', display: 'EMPRESA', isSortable: true, width: 'w-24' },
                 { key: 'NOMINA', display: 'NÓMINA', isSortable: true, width: 'w-20' },
                 { key: 'APELLIDOS', display: 'APELLIDOS', isSortable: true, width: 'w-32' },
@@ -469,14 +600,18 @@
                 { key: 'INGRESO', display: 'INGRESO', isSortable: true, width: 'w-24', format: formatDate },
                 { key: 'SECTOR', display: 'SECTOR', isSortable: true, width: 'w-24' },
                 { key: 'PERFIL', display: 'PERFIL', isSortable: true, width: 'w-24' },
-                { key: 'CTRL2', display: COLUMN_DISPLAY_MAP['CTRL2'], isSortable: true, width: 'w-16' }, 
-                { key: 'CTRL1', display: COLUMN_DISPLAY_MAP['CTRL1'], isSortable: true, width: 'w-16' }, 
+                // *** Mapeo de nombres de campo ***
+                { key: 'CTRL2', display: COLUMN_DISPLAY_MAP['CTRL2'], isSortable: true, width: 'w-16' }, // DÍAS VACACIONES (Se mantiene en la tabla)
+                { key: 'CTRL1', display: COLUMN_DISPLAY_MAP['CTRL1'], isSortable: true, width: 'w-16' }, // NOTA
+                // *******************************
                 { key: 'NACIMIENTO', display: 'NACIMIENTO', isSortable: true, width: 'w-24', format: formatDate },
             ];
 
+            // 1. Generar la cabecera de la tabla
             const tableHeadersHtml = columnDefinitions.map(col => {
-                const headerBgStyle = col.isVirtual ? 'style="background-color: var(--color-header-fixed);"' : '';
+                const headerBgStyle = col.isVirtual ? 'style="background-color: var(--color-header);"' : '';
                 const headerAlignClass = col.isVirtual ? col.alignHeader : getHeaderAlignmentClass(col.key);
+
                 let sortIndicatorHtml = '';
                 if (col.isSortable && col.key === currentSortColumn) {
                     const iconName = sortOrder === 'asc' ? 'chevron-up' : 'chevron-down';
@@ -485,22 +620,33 @@
 
                 const headerClasses = `px-4 py-2 ${headerAlignClass} text-sm font-bold uppercase tracking-wider text-white ${col.width || ''} whitespace-nowrap ${col.stickyHeaderClass || ''} ${col.isSortable ? 'sortable-header' : ''}`;
                 
-                return `<th ${headerBgStyle} class="${headerClasses}" data-column-key="${col.key}">${col.display} ${sortIndicatorHtml}</th>`;
+                return `
+                    <th ${headerBgStyle} class="${headerClasses}" data-column-key="${col.key}">
+                        ${col.display} ${sortIndicatorHtml}
+                    </th>
+                `;
             }).join('');
 
+            // 2. Generar las filas de la tabla con el ID correlativo
             const tableRowsHtml = dataToRender.map((item, index) => {
                 const rowId = index + 1;
+                
+                // Serializar el objeto de datos completo para adjuntarlo al evento dblclick
                 const recordJsonString = JSON.stringify(item);
-                const originalCtrl1Value = item['CTRL1']; 
+
+                // Lógica para aplicar estilo a toda la fila
+                const originalCtrl1Value = item['CTRL1']; // Usar nombre de campo original
                 const isCtrl1NonEmpty = originalCtrl1Value !== null && originalCtrl1Value !== undefined && String(originalCtrl1Value).trim().toUpperCase() !== 'N/A' && String(originalCtrl1Value).trim().length > 0;
                 
+                // Clase de la fila: aplica color si CTRL1 no está vacío/N/A Y la clase 'worker-row' para el hover.
                 const rowClass = (isCtrl1NonEmpty 
-                    ? 'text-red-600 dark:text-red-300' 
+                    ? 'text-red-400 dark:text-red-300' 
                     : 'light:text-gray-900 dark:text-gray-100') + ' worker-row';
 
+                // Generar celdas para la fila actual
                 const cellsHtml = columnDefinitions.map(col => {
                     let content;
-                    let cellClasses = 'px-4 py-0 text-sm whitespace-nowrap border-b light:border-gray-200 dark:border-gray-700 '; 
+                    let cellClasses = 'px-4 py-0 text-sm whitespace-nowrap '; 
                     let stickyClasses = col.stickyCellClass || '';
                     let alignmentClass = '';
 
@@ -513,18 +659,19 @@
                     } else {
                         const key = col.key;
                         if (rawValue === null || rawValue === undefined || rawValue === '') {
-                            if (key === 'CTRL2') { 
+                            if (key === 'CTRL2') { // DÍAS
                                 rawValue = 0;
-                            } else if (key === 'CTRL1' || key === 'NACIMIENTO') { 
+                            } else if (key === 'CTRL1' || key === 'NACIMIENTO') { // NOTA
                                 rawValue = '';
                             } else {
                                 rawValue = 'N/A';
                             }
                         }
                         
+                        // Aplicar formato si existe, de lo contrario, usar el valor crudo/limpio
                         content = col.format ? col.format(rawValue) : String(rawValue);
                         
-                        cellClasses += 'light:bg-white dark:bg-gray-700'; 
+                        cellClasses += 'dark:bg-gray-700 light:bg-white';
                         alignmentClass = getContentAlignmentClass(col.key);
 
                         let textStyleClass = '';
@@ -532,18 +679,21 @@
                             textStyleClass = 'text-gray-400 italic';
                             if (content === 'N/A') content = 'N/A';
                             if (content === '') content = '';
-                        } else if (col.key === 'CTRL2' && content === 0) { 
+                        } else if (col.key === 'CTRL2' && content === 0) { // DÍAS
                             textStyleClass = 'font-medium text-sm text-center'; 
                         }
                         
+                        // Retorna la celda con el valor y las clases de estilo
                         return `<td class="${cellClasses} ${alignmentClass} ${stickyClasses} ${textStyleClass}">${content}</td>`;
                     }
                     
+                    // Caso ID (sticky)
                     return `<td class="${cellClasses} ${alignmentClass} ${stickyClasses}">${content}</td>`;
                 }).join('');
 
+                // Añadir el listener dblclick y el atributo data-record al <tr>
                 return `
-                    <tr class="${rowClass} transition-colors duration-150" 
+                    <tr class="${rowClass} light:hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-150 border-b light:border-gray-200 dark:border-gray-700" 
                         ondblclick="handleRowDoubleClick(JSON.parse(this.getAttribute('data-record')))"
                         data-record='${recordJsonString.replace(/'/g, "&apos;")}' >
                         ${cellsHtml}
@@ -551,39 +701,48 @@
                 `;
             }).join('');
 
+            // 3. Estructura completa de la tabla con estilos responsivos
             const activityHtml = `
-    ${document.getElementById('json-display-container').outerHTML}
-    
-    <div class="shadow-xl border light:border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden">
-        <div class="max-h-[38vh] md:max-h-80 overflow-y-auto overflow-x-auto" id="table-scroll-container">
-            <table class="min-w-full table-auto divide-y light:divide-gray-200 dark:divide-gray-700">
+                <!-- Contenedor JSON (Visible por defecto, pero oculto en el HTML) -->
+                ${document.getElementById('json-display-container').outerHTML}
                 
-                <thead class="sticky top-0 z-10 shadow-md" id="employee-table-header">
-                    <tr>
-                        <th class="sticky left-0 z-20 p-2 text-left font-semibold 
-                                   light:text-gray-900 dark:text-gray-100 
-                                   bg-white dark:bg-gray-700 whitespace-nowrap">
-                            ID
-                        </th>
-                        ${tableHeadersHtml}
-                    </tr>
-                </thead>
-                
-                <tbody class="divide-y light:divide-gray-200 dark:divide-gray-700" id="employee-table-body">
-                    ${tableRowsHtml}
-                </tbody>
-            </table>
-        </div>
-    </div>
-`;
+                <!-- Contenedor principal con sombra y borde. Se mantiene sin redondeo (90 grados). -->
+                <div class="shadow-xl border light:border-gray-200 dark:border-gray-700">
+                    
+                    <!-- Contenedor con altura máxima y scroll vertical y horizontal -->
+                    <div class="max-h-[38vh] md:max-h-80 overflow-y-auto overflow-x-auto" id="table-scroll-container">
+                        
+                        <!-- min-w-full asegura que ocupe todo el ancho disponible para forzar el scroll horizontal si es necesario. -->
+                        <table class="min-w-full table-auto divide-y light:divide-gray-200 dark:divide-gray-700">
+                            
+                            <!-- Cabecera de la tabla (sticky top-0) con color #2D59A1 (Fijo) -->
+                            <thead style="background-color: var(--color-header);" class="sticky top-0 z-10 shadow-md" id="employee-table-header">
+                                <tr>
+                                    ${tableHeadersHtml}
+                                
+                                </tr>
+                            </thead>
+                            
+                            <!-- Cuerpo de la tabla con color de fondo para filas -->
+                            <tbody class="divide-y light:divide-gray-200 dark:divide-gray-700 light:bg-white dark:bg-gray-700" id="employee-table-body">
+                                ${tableRowsHtml}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
 
             container.innerHTML = activityHtml;
             lucide.createIcons();
             
+            // Re-configurar listeners después de actualizar el DOM
             setupSearchControls();
             setupHeaderSortListeners();
         }
         
+        /**
+         * Maneja la lógica de ordenación al hacer clic en un encabezado de columna.
+         */
         function handleHeaderClick(columnKey) {
             if (columnKey === 'ID') {
                 return;
@@ -599,6 +758,9 @@
             filterAndRenderData();
         }
 
+        /**
+         * Configura el listener de click para los encabezados de la tabla.
+         */
         function setupHeaderSortListeners() {
             const tableHeaderRow = document.querySelector('#employee-table-header tr');
             if (!tableHeaderRow) return;
@@ -611,6 +773,9 @@
             });
         }
 
+        /**
+         * Filtra la variable global employeeData basada en el texto de búsqueda y renderiza el resultado.
+         */
         function filterAndRenderData() {
             clearTimeout(debounceTimer);
             
@@ -640,6 +805,9 @@
             }, 300);
         }
         
+        /**
+         * Configura el listener para el campo de búsqueda y el botón de limpiar.
+         */
         function setupSearchControls() {
             const searchInput = document.getElementById('search-input');
             const clearBtn = document.getElementById('clear-search-btn');
@@ -654,6 +822,9 @@
             };
         }
 
+        /**
+         * Obtiene los datos de empleados de la API de Google Apps Script.
+         */
         async function fetchActivityFeed() {
             const container = document.getElementById(ACTIVITY_FEED_ID);
             const totalRecordsSpan = document.querySelector('#metric-total-records span[data-count="total"]');
@@ -661,12 +832,21 @@
 
             if (!container || !totalRecordsSpan) return;
 
-            container.innerHTML = `<div id="loading-spinner" class="text-center py-8"><i data-lucide="loader-circle" class="w-8 h-8 mx-auto animate-spin text-blue-500"></i><p class="mt-2 text-sm light:text-gray-500 dark:text-gray-400">Cargando datos de empleados...</p></div>`;
+            container.innerHTML = `
+                <div id="loading-spinner" class="text-center py-8">
+                    <i data-lucide="loader-circle" class="w-8 h-8 mx-auto animate-spin text-blue-500"></i>
+                    <p class="mt-2 text-sm text-gray-400">Cargando datos de empleados...</p>
+                </div>
+            `;
             totalRecordsSpan.textContent = '...';
-            if (searchInput) { searchInput.value = ''; searchInput.disabled = true; }
+            if (searchInput) {
+                searchInput.value = ''; 
+                searchInput.disabled = true; 
+            }
             
             currentSortColumn = null; 
             sortOrder = null; 
+            
             lucide.createIcons(); 
 
             try {
@@ -676,11 +856,6 @@
                 
                 for (let i = 0; i < maxRetries; i++) {
                     try {
-                        const delay = Math.pow(2, i) * 1000;
-                        if (i > 0) {
-                            await new Promise(resolve => setTimeout(resolve, delay));
-                        }
-
                         response = await fetch(GAS_API_URL, { method: 'GET' });
                         if (response.ok) {
                             data = await response.json();
@@ -688,23 +863,30 @@
                         }
                     } catch (e) {
                         if (i < maxRetries - 1) {
-                            console.error(`Intento ${i + 1} fallido. Reintentando...`);
+                            await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
                         } else {
                             throw e; 
                         }
                     }
                 }
                 
-                if (!response || !response.ok) {
-                    throw new Error(`Error HTTP: ${response ? response.status : 'Desconocido'}`);
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
                 }
                 
                 let loadedData = [];
-                if (data && Array.isArray(data.data)) { loadedData = data.data; } 
-                else if (Array.isArray(data)) { loadedData = data; } 
-                else if (data && Array.isArray(data.records)) { loadedData = data.records; } 
-                else if (data && data.error) { throw new Error(`Error reportado por la API de GAS: ${data.error}`); }
                 
+                if (data && Array.isArray(data.data)) {
+                    loadedData = data.data;
+                } else if (Array.isArray(data)) {
+                    loadedData = data;
+                } else if (data && Array.isArray(data.records)) {
+                    loadedData = data.records;
+                } else if (data && data.error) {
+                    throw new Error(`Error reportado por la API de GAS: ${data.error}`);
+                }
+                
+                // Limpieza inicial de valores nulos
                 employeeData = loadedData.map(item => {
                     const newItem = {};
                     for (const key in item) {
@@ -715,91 +897,152 @@
 
                 renderActivityFeed(employeeData);
                 
-                if (searchInput) { searchInput.disabled = false; }
+                if (searchInput) {
+                    searchInput.disabled = false;
+                }
 
             } catch (error) {
                 console.error("Error al obtener datos de GAS:", error);
-                container.innerHTML = `<div class="text-center py-8 text-red-500 dark:text-red-400"><i data-lucide="plug-zap" class="w-10 h-10 mx-auto mb-2"></i><p class="font-bold">Error de Carga</p><p class="text-sm mt-1">${error.message || 'No se pudieron cargar los datos de la API.'}</p></div>`;
+                
+                container.innerHTML = `
+                    <div class="text-center py-8 text-red-500 dark:text-red-400">
+                        <i data-lucide="plug-zap" class="w-10 h-10 mx-auto mb-2"></i>
+                        <p class="font-bold">Error de Carga</p>
+                        <p class="text-sm mt-1">${error.message || 'No se pudieron cargar los datos de la API.'}</p>
+                    </div>
+                `;
                 lucide.createIcons();
                 totalRecordsSpan.textContent = '0';
-                if (searchInput) { searchInput.disabled = true; }
+                if (searchInput) {
+                    searchInput.disabled = true;
+                }
             }
         }
 
+        // ------------------------------------------------------------------
         // --- FUNCIONES PARA MODAL Y JSON DE FILTRADO ---
+        // ------------------------------------------------------------------
+        
+        /**
+         * Aplica los formatos especiales al registro para generar el JSON de filtrado.
+         * ESTE ES EL CAMBIO CLAVE para aplicar la lógica solicitada sin tocar el GAS.
+         * @param {Object} record El objeto de datos original (tal como viene de GAS).
+         * @returns {Object} El objeto de datos formateado para el JSON de filtrado.
+         */
         function formatWorkerForFiltering(record) {
             const formattedRecord = {};
+            
+            // 1. CEDULA, EMPRESA (Valores directos)
             formattedRecord.CEDULA = record.CEDULA || '';
             formattedRecord.EMPRESA = record.EMPRESA || '';
+            
+            // 2. INGRESO (Formato dd/mm/yyyy)
             formattedRecord.INGRESO = formatDate(record.INGRESO);
+
+            // 3. NOMBRE_FORMATEADO (PrimerNombre InicialSegundo. PrimerApellido InicialSegundo.)
+            // Usando los campos NOMBRES y APELLIDOS (asumiendo que vienen completos)
             formattedRecord.NOMBRE_FORMATEADO = formatFullNameForFiltering(record);
+
             return formattedRecord;
         }
 
+        /**
+         * Maneja el evento dblclick en una fila, genera el JSON y abre el modal de detalle.
+         * @param {Object} record - Objeto de datos del trabajador de la fila seleccionada.
+         */
         function handleRowDoubleClick(record) {
+            // 1. Crear el JSON de filtrado (usando la nueva función de formato)
             const filteringJson = formatWorkerForFiltering(record);
+            
+            // 2. Guardar el JSON globalmente para uso futuro
             _globalSelectedWorkerData = filteringJson;
             
+            // 3. Mostrar el JSON en el panel de verificación
             const jsonDisplay = document.getElementById('selected-json-display');
             const jsonContainer = document.getElementById('json-display-container');
             if (jsonDisplay && jsonContainer) {
                 jsonDisplay.textContent = JSON.stringify(_globalSelectedWorkerData, null, 2);
-                jsonContainer.classList.remove('hidden'); 
+                jsonContainer.classList.remove('hidden'); // Hacer visible el contenedor del JSON
             }
 
+            // 4. Preparar y abrir el modal
             populateModal(record);
             openModal();
         }
 
+        /**
+         * Función auxiliar para crear y añadir un campo de detalle al contenedor.
+         * @param {HTMLElement} modalBody - El contenedor donde se añadirán los campos.
+         * @param {string} labelText - El texto de la etiqueta.
+         * @param {string} valueText - El valor del campo.
+         * @param {string} [customClasses=''] - Clases Tailwind adicionales para el valor.
+         */
         function createDetailField(modalBody, labelText, valueText, customClasses = '') {
             const itemDiv = document.createElement('div');
-            itemDiv.className = 'p-1.5 rounded-lg light:bg-gray-100 dark:bg-gray-800 border-l-4 border-blue-500 shadow-md transition-colors duration-300';
+            // Reducido de p-2 a p-1.5 para menor padding vertical
+            itemDiv.className = 'p-1.5 rounded-lg light:bg-gray-100 dark:bg-gray-800 border-l-4 border-blue-500 shadow-md';
             itemDiv.innerHTML = `
+                <!-- Etiqueta (más pequeña) -->
                 <p class="text-xs font-medium light:text-gray-500 dark:text-gray-400 uppercase tracking-wider">${labelText}</p>
+                <!-- Valor (más grande, con posibles clases personalizadas) -->
                 <p class="text-base font-semibold light:text-gray-900 dark:text-white break-words ${customClasses}">${valueText}</p>
             `;
             modalBody.appendChild(itemDiv);
         }
 
+        /**
+         * Rellena el contenido del modal con los datos del trabajador, aplicando reglas.
+         */
         function populateModal(record) {
             const modalBody = document.getElementById('modalBodyContent');
-            modalBody.innerHTML = ''; 
+            modalBody.innerHTML = ''; // Limpiar contenido anterior
             
             const nombres = record.NOMBRES ? String(record.NOMBRES).trim() : 'N/A';
             const apellidos = record.APELLIDOS ? String(record.APELLIDOS).trim() : 'N/A';
+            
+            // Campo Compuesto (NOMBRES + APELLIDOS)
             const fullNameHtml = `<div>${nombres}<br>${apellidos}</div>`;
 
-            createDetailField(modalBody, 'Nombre Completo', fullNameHtml, 'text-lg font-extrabold light:text-blue-600 dark:text-blue-400');
+            // REQUISITO 3 & 4: Campo Compuesto (NOMBRES + APELLIDOS)
+            createDetailField(modalBody, 'Nombre Completo', fullNameHtml, 'text-lg font-extrabold text-blue-400');
 
+            // Campos a excluir NOMBRES y APELLIDOS (ya están en Nombre Completo)
+            // IMPORTANTE: Se excluyen NOMBRES, APELLIDOS, y DÍAS VACACIONES (CTRL2).
             const excludedKeys = ['NOMBRES', 'APELLIDOS', 'CTRL2']; 
 
             MODAL_FIELD_MAP.forEach(key => {
                 if (excludedKeys.includes(key)) {
-                    return; 
+                    return; // Saltar campos excluidos
                 }
 
                 let value = record[key];
                 let displayKey = COLUMN_DISPLAY_MAP[key] || key;
                 let customClasses = '';
 
+                // Aplicar Formato: CÉDULA, INGRESO, NACIMIENTO
                 if (key === 'CEDULA') {
                     value = formatCedula(value);
-                    customClasses = 'light:text-green-700 dark:text-green-400';
+                    customClasses = 'text-green-400';
                 } else if (key === 'INGRESO' || key === 'NACIMIENTO') {
+                    // Usar la función de formato de fecha
                     value = formatDate(value);
-                } else if (key === 'CTRL1') { 
+                } else if (key === 'CTRL1') { // REQUISITO 6: NOTA (no mostrar si N/A o vacío)
                     if (!value || String(value).trim().toUpperCase() === 'N/A') {
-                        return; 
+                        return; // Omitir el campo completo
                     }
-                    customClasses = 'light:text-red-700 dark:text-red-400 font-bold';
                 }
                 
+                // Mostrar N/A si el valor final está vacío
                 const finalValue = value === null || value === undefined || String(value).trim() === '' ? 'N/A' : String(value);
 
+                // Crear y añadir el campo
                 createDetailField(modalBody, displayKey, finalValue, customClasses);
             });
         }
 
+        /**
+         * Muestra el modal de detalle.
+         */
         function openModal() {
             const modal = document.getElementById('DetalleTrabajadorModal');
             if (modal) {
@@ -807,22 +1050,26 @@
             }
         }
 
+        /**
+         * Oculta el modal de detalle.
+         */
         function closeModal() {
             const modal = document.getElementById('DetalleTrabajadorModal');
             if (modal) {
                 modal.style.display = 'none';
             }
         }
+        // ------------------------------------------------------------------
+        // --- FIN: FUNCIONES PARA MODAL Y JSON DE FILTRADO ---
+        // ------------------------------------------------------------------
 
-        // --- LÓGICA DEL TEMA ---
 
+        /**
+         * Simula la función alert() con un mensaje en la interfaz.
+         */
         function showCustomAlert(message) {
-            // ... (función alert() simulada)
-            const isDark = htmlElement.classList.contains('dark');
-            const bgColor = isDark ? 'bg-blue-600' : 'bg-blue-800';
-            
             const tempAlert = document.createElement('div');
-            tempAlert.className = `fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 ${bgColor} text-white px-6 py-3 rounded-lg shadow-2xl transition-opacity duration-300 opacity-0 font-bold`;
+            tempAlert.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 bg-blue-600 text-white px-6 py-3 rounded-lg shadow-2xl transition-opacity duration-300 opacity-0 font-bold';
             tempAlert.textContent = message;
             
             const appContainer = document.getElementById('app-container');
@@ -840,23 +1087,35 @@
         }
 
         /**
+         * Inicializa el modo de color.
+         */
+        function initializeTheme() {
+            const storedTheme = localStorage.getItem('theme');
+            const isDarkMode = storedTheme === 'dark' || !storedTheme;
+            
+            if (isDarkMode) {
+                htmlElement.classList.add('dark');
+            } else {
+                htmlElement.classList.remove('dark');
+            }
+            updateToggleIcon(isDarkMode);
+        }
+
+        /**
          * Cambia el icono del botón de toggle según el modo actual.
          */
         function updateToggleIcon(isDark) {
             const iconElement = themeToggle.querySelector('i, svg');
             
-            // Mostrar sol si es oscuro (para ir a claro)
-            const iconName = isDark ? 'sun' : 'moon'; 
-            // Color fijo que contrasta (amarillo para el sol, gris claro para la luna)
-            const iconColor = isDark ? 'text-yellow-300' : 'text-gray-300';
+            if (!iconElement) {
+                return;
+            }
+
+            const iconName = isDark ? 'sun' : 'moon';
+            const iconColor = isDark ? 'text-yellow-300 dark:text-yellow-400' : 'text-yellow-600 dark:text-yellow-400';
             
             const newIconHtml = `<i data-lucide="${iconName}" class="w-6 h-6 ${iconColor}"></i>`;
-
-            if (iconElement) {
-                iconElement.outerHTML = newIconHtml;
-            } else {
-                themeToggle.innerHTML = newIconHtml;
-            }
+            iconElement.outerHTML = newIconHtml;
             
             lucide.createIcons();
         }
@@ -865,35 +1124,14 @@
          * Maneja la lógica de cambio de tema (Dark/Light).
          */
         function toggleTheme() {
-            // CLAVE: Esto alterna la clase 'dark' en el <html>, lo que activa todos los estilos 'dark:' de Tailwind
-            const isDarkMode = htmlElement.classList.toggle('dark'); 
+            const isDarkMode = htmlElement.classList.toggle('dark');
             localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
             updateToggleIcon(isDarkMode);
         }
-        
+
         /**
-         * Inicializa el modo de color.
-         * Asegura que el modo oscuro es el predeterminado si no hay preferencia guardada.
+         * Simula la carga de contenido basada en el archivo de destino.
          */
-        function initializeTheme() {
-            const storedTheme = localStorage.getItem('theme');
-            
-            if (storedTheme === null) {
-                // Modo Oscuro por defecto si no hay preferencia guardada
-                htmlElement.classList.add('dark');
-                localStorage.setItem('theme', 'dark'); 
-            } else if (storedTheme === 'light') {
-                htmlElement.classList.remove('dark');
-            } else { // 'dark'
-                htmlElement.classList.add('dark');
-            }
-
-            updateToggleIcon(htmlElement.classList.contains('dark'));
-        }
-
-        // --- Event Listeners y Inicialización ---
-        themeToggle.addEventListener('click', toggleTheme);
-        
         function loadContent(fileName) {
             footerButtons.forEach(btn => btn.classList.remove('active'));
 
@@ -914,6 +1152,9 @@
             mainContent.scrollTop = 0;
         }
 
+        // --- Event Listeners y Inicialización ---
+        themeToggle.addEventListener('click', toggleTheme);
+        
         footerButtons.forEach(button => {
             button.addEventListener('click', () => {
                 const fileName = button.getAttribute('data-file');
@@ -924,7 +1165,13 @@
         });
 
         window.onload = function() {
-            initializeTheme(); 
+            const savedTheme = localStorage.getItem('theme');
+            
+            if (!savedTheme) {
+                localStorage.setItem('theme', 'dark');
+            }
+            initializeTheme();
+            
             loadContent('inicio.html');
         };
     </script>
