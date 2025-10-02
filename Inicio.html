@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplicación Móvil - Inicio</title>
+    <title>Aplicación Móvil - Datos GAS</title>
     <!-- Carga de Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Carga de Lucide Icons CDN para iconos limpios -->
@@ -34,6 +34,16 @@
             
             /* Altura de referencia para alinear el modal y la tarjeta de bienvenida (Header + Padding) */
             --header-offset: 76px; 
+            /* Altura del footer (h-18 = 72px) para el padding inferior del main */
+            --footer-height: 72px; 
+            
+            /* Color de hover verde para la fila */
+            --color-row-hover: #15803d; /* Verde oscuro (ej. Emerald 700) */
+            /* Color de selección simple (ligeramente más claro que el hover para diferenciación) */
+            --color-row-selected: #1e8749; /* Verde intermedio */
+            
+            /* Color de advertencia para filas con CTRL1 (rojo sin negritas) */
+            --color-warning: #ef4444; /* Tailwind red-500 */
         }
         
         /* Estilos del cuerpo en modo claro */
@@ -52,7 +62,7 @@
         #app-container {
             max-width: 500px;
             margin: 0 auto;
-            min-height: 10vh;
+            min-height: 100vh; /* Asegura que ocupe toda la altura */
             display: flex;
             flex-direction: column;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
@@ -64,7 +74,7 @@
         header, footer {
             width: 100%;
             max-width: 500px; 
-            z-index: 50; /* Aumentado para estar sobre el modal */
+            z-index: 50; 
             transition: background-color 0.3s, color 0.3s;
             
             /* Corrección de alineación: Centra el elemento 'fixed' en pantallas grandes */
@@ -84,7 +94,7 @@
 
         /* Ajuste del contenido principal: Solo se mantiene el offset inferior */
         main {
-            padding-bottom: 72px; /* Altura del footer (h-18) para offset fijo */
+            padding-bottom: var(--footer-height); 
             flex-grow: 1;
             overflow-y: auto; /* Habilitar scroll solo en el cuerpo */
         }
@@ -111,16 +121,77 @@
              color: var(--color-primary-light);
         }
         
-        /* Oculta la barra de desplazamiento en navegadores basados en WebKit */
-        ::-webkit-scrollbar {
-            display: none;
+        /* * ESTILO ESPECÍFICO PARA LA TABLA DE DATOS * */
+
+        /* Contenedor de la tabla con scroll horizontal, max-height y SIN scroll vertical interno */
+        .table-scroll-container {
+            max-height: 450px; 
+            overflow-x: auto; 
+            overflow-y: hidden; /* Mantiene la instrucción de NO tener barra vertical */
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            display: block; 
         }
         
-        /* * ESTILO ESPECÍFICO PARA LA COLUMNA STICKY (ID) */
+        /* Encabezados fijos: CENTRADOS */
+        .table-scroll-container th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: var(--color-header); /* #2D59A1 */
+            color: var(--color-data-text);
+            padding: 0.75rem 1rem;
+            text-align: center; /* CENTRADO */
+            white-space: nowrap;
+        }
+
+        /* REGLA ÚNICA PARA LAS CELDAS DE DATOS (td) */
+        .table-data-cell {
+            font-size: 0.875rem; /* text-sm */
+            /* Solo padding vertical, el horizontal se controla con clases Tailwind en JS para justificación */
+            padding-top: 0.25rem; 
+            padding-bottom: 0.25rem;
+            white-space: nowrap; /* whitespace-nowrap */
+            transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+        }
+
+        .light .table-data-cell {
+            color: var(--color-text-light);
+            border-bottom: 1px solid #e5e7eb; /* light:border-gray-200 */
+            background-color: var(--color-surface-light); /* light:bg-white */
+        }
+
+        .dark .table-data-cell {
+            color: var(--color-text-dark);
+            border-bottom: 1px solid var(--color-surface-dark); /* dark:border-gray-700 */
+            background-color: var(--color-bg-dark); /* dark:bg-gray-800 */
+        }
+        
+        /* NUEVO: Estilo para filas con advertencia (CTRL1 no vacío) */
+        .row-warning-text td {
+            color: var(--color-warning) !important;
+        }
+        .row-warning-text:hover td {
+            /* Asegura que el color rojo se mantenga visible sobre el hover verde, pero el hover tiene prioridad */
+            color: #ffffff !important; 
+        }
+
+        /* Columna ID fija (sticky) */
         .sticky-id-cell {
+            position: sticky;
+            left: 0;
             background-color: var(--color-header) !important; /* Mismo color que el encabezado (#2D59A1) */
             color: var(--color-data-text) !important; /* Texto blanco puro */
             border-right: 1px solid rgba(255, 255, 255, 0.2); /* Separador suave */
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* Combinación para la celda de la esquina superior izquierda (Header de ID) */
+        .sticky-id-cell.header {
+            top: 0;
+            z-index: 20; 
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1); 
         }
         
         /* Estilo para los encabezados de la tabla interactivos */
@@ -134,10 +205,27 @@
             background-color: rgba(255, 255, 255, 0.1); /* Ligero hover para feedback */
         }
         
-        /* Estilo para la selección de fila con hover (Mouse/Cursor) */
-        .worker-row:hover {
-            background-color: #3a3a45 !important; /* Color de selección solicitado */
-            cursor: pointer;
+        /* REGLA DE HOVER (APLICACIÓN A TD dentro de TR: verde oscuro) */
+        .worker-row:hover td {
+            background-color: var(--color-row-hover) !important;
+            color: #ffffff !important; 
+            cursor: pointer; 
+            border-bottom-color: var(--color-row-hover) !important; 
+        }
+
+        /* REGLA DE SELECCIÓN (CLICK): Para dar un feedback visual persistente mientras el JSON está visible */
+        .worker-row.selected-row td {
+            background-color: var(--color-row-selected) !important;
+            color: #ffffff !important; 
+            border-bottom-color: var(--color-row-selected) !important; 
+        }
+
+        /* Sobrescribir para la celda ID fija al hacer hover o selección */
+        .worker-row:hover td.sticky-id-cell,
+        .worker-row.selected-row td.sticky-id-cell {
+            background-color: var(--color-row-hover) !important;
+            /* Mantiene la separación visible con un borde blanco más fuerte */
+            border-right: 1px solid rgba(255, 255, 255, 0.4) !important; 
         }
 
         /* --- ESTILOS DEL MODAL FIJO Y ALINEADO --- */
@@ -192,7 +280,7 @@
             </div>
         </header>
 
-        <!-- CUERPO PRINCIPAL (BODY) -->
+        <!-- CUERPO PRINCIPAL (MAIN) -->
         <!-- pt-[76px] asegura 56px de offset del header + 20px de padding interno. -->
         <main id="main-content" class="px-4 pb-4 flex flex-col space-y-4 pt-[76px]">
             <!-- Contenido simulado de la página de Inicio (se carga dinámicamente) -->
@@ -202,34 +290,33 @@
         <footer class="fixed bottom-0 w-full h-18 border-t border-gray-700 dark:border-gray-500 flex items-center justify-around py-2">
             
             <!-- AJUSTE CLAVE: Se añade la clase 'active' al botón de Inicio para la carga inicial -->
-            <button class="footer-btn active" data-section="Inicio" data-file="inicio.html">
+            <button class="footer-btn active" data-section="Inicio">
                 <i data-lucide="home" class="w-6 h-6"></i>
                 <span>Inicio</span>
             </button>
             
-            <button class="footer-btn" data-section="Nuevo Registro" data-file="NuevoReg.html">
+            <button class="footer-btn" data-section="Nuevo Registro">
                 <i data-lucide="plus-square" class="w-6 h-6"></i>
                 <span>Registro</span>
             </button>
             
-            <button class="footer-btn" data-section="Editar" data-file="EditarReg.html">
+            <button class="footer-btn" data-section="Editar">
                 <i data-lucide="edit" class="w-6 h-6"></i>
                 <span>Editar</span>
             </button>
             
-            <button class="footer-btn" data-section="Perfil" data-file="PerfilUsuario.html">
+            <button class="footer-btn" data-section="Perfil">
                 <i data-lucide="user" class="w-6 h-6"></i>
                 <span>Perfil</span>
             </button>
             
-            <button class="footer-btn" data-section="Configuración" data-file="ConfigApp.html">
+            <button class="footer-btn" data-section="Configuración">
                 <i data-lucide="settings" class="w-6 h-6"></i>
                 <span>Config</span>
             </button>
         </footer>
 
         <!-- NUEVO: Modal de Detalle Trabajador (Overlay) -->
-        <!-- Posicionado como 'absolute' dentro del #app-container que es 'relative' -->
         <div id="DetalleTrabajadorModal" class="modal-overlay">
             
             <!-- Contenedor interno que simula la alineación fija -->
@@ -246,16 +333,34 @@
                     </div>
                     
                     <!-- Contenido del Detalle del Trabajador (Grid responsivo) -->
-                    <!-- CAMBIO CLAVE: Reducido de gap-4 a gap-2 -->
-                    <div id="modalBodyContent" class="grid grid-cols-1 gap-2 text-left">
+                    <div id="modalBodyContent" class="grid grid-cols-1 gap-2 text-left text-sm">
                         <!-- El contenido se inyecta con JavaScript -->
                         <p class="text-gray-400">Cargando...</p>
                     </div>
+                    
+                    <!-- Botón de acción (Editar) -->
+                    <button class="mt-6 w-full py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors shadow-md"
+                            onclick="closeModal(); loadContent('Editar');">
+                        <i data-lucide="edit-3" class="w-4 h-4 inline-block mr-2"></i>
+                        Editar Registro
+                    </button>
                 </div>
             </div>
             
         </div>
         <!-- FIN NUEVO: Modal de Detalle Trabajador -->
+
+        <!-- Modal de Alerta Personalizada (para simular alert()) -->
+        <div id="custom-alert-modal" class="modal-overlay" onclick="closeCustomAlert()">
+            <div id="alert-content-wrapper" class="mx-auto" onclick="event.stopPropagation()">
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl w-full transition-all duration-300">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Mensaje del Sistema</h3>
+                    <p id="alert-message" class="text-gray-700 dark:text-gray-300 mb-4"></p>
+                    <button onclick="closeCustomAlert()" class="w-full py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg">Aceptar</button>
+                </div>
+            </div>
+        </div>
+        <!-- Fin Modal de Alerta -->
 
     </div>
 
@@ -264,916 +369,784 @@
         lucide.createIcons();
 
         // --- ESTADO GLOBAL ---
-        let employeeData = []; // Almacena el dataset completo sin filtrar
+        let allEmployeeData = []; // Almacena el dataset completo sin filtrar
+        let filteredEmployeeData = []; // Almacena el dataset filtrado para la tabla
         let debounceTimer; // Para controlar la frecuencia de búsqueda
+        let _globalSelectedWorkerData = null; // Almacena los datos del trabajador seleccionado
+        let _globalSelectedRowElement = null; // Almacena la fila HTML seleccionada
         
         // Estado de ordenación:
-        let currentSortColumn = null; 
-        // 'asc' (ascendente), 'desc' (descendente), null (sin ordenar)
-        let sortOrder = null; 
-
-        // --- NUEVO: Variable Global para el JSON de Filtrado ---
-        let _globalSelectedWorkerData = null; 
-
+        let currentSortColumn = 'APELLIDOS'; // Columna inicial para ordenar
+        let sortOrder = 'asc'; // 'asc' (ascendente), 'desc' (descendente)
+        
         // --- CONSTANTES ---
-        // URL de la API de Google Apps Script para obtener datos
-        // NOTA: Esta URL debe ser reemplazada por la URL de implementación de GAS real.
+        // URL de la API de Google Apps Script (Debe ser reemplazada por la URL de implementación de GAS real)
         const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbx87WvxA9ca1KyGMA1wsw1npZw5vPtjoItomhF823BICXScNrWGFh5m0Dj6Veb24CtHXQ/exec?sheet=BD_Personal2';
         const ACTIVITY_FEED_ID = 'activity-feed-container';
         
-        // --- NUEVO: Mapeos para Modal y JSON (Usando nombres de campo ORIGINALES de la fuente de datos) ---
-        // Se usa el nombre de campo ORIGINAL (key) para referirse a la propiedad en el objeto.
+        // Mapeos de las columnas que se muestran en la TABLA (debe coincidir con las keys del JSON de GAS)
+        const TABLE_COLUMNS = [
+            { key: 'EMPRESA', label: 'EMPRESA' },
+            { key: 'NOMINA', label: 'NÓMINA' },
+            { key: 'APELLIDOS', label: 'APELLIDOS' },
+            { key: 'NOMBRES', label: 'NOMBRES' },
+            { key: 'CEDULA', label: 'CÉDULA' }, // Se aplicará formato aquí
+            { key: 'CARGO', label: 'CARGO' },
+            { key: 'INGRESO', label: 'INGRESO' },
+            { key: 'SECTOR', label: 'SECTOR' },
+            { key: 'PERFIL', label: 'PERFIL' },
+            // Se incluye CTRL2 (Días Vacaciones)
+            { key: 'CTRL2', label: 'Días Vacaciones' }, 
+        ];
+        
+        // Mapeos para el contenido del MODAL y el JSON de Filtrado
         const MODAL_FIELD_MAP = [
-            'NOMBRES', 'APELLIDOS', 'CEDULA', 'NACIMIENTO', 'EMPRESA', 'INGRESO', 
-            'CARGO', 'NOMINA', 'SECTOR', 'PERFIL', 'CTRL2', 'CTRL1' // CTRL2 se excluye en populateModal
+            { key: 'NOMBRES', label: 'Nombres', format: (v) => v || 'N/A' },
+            { key: 'APELLIDOS', label: 'Apellidos', format: (v) => v || 'N/A' },
+            // APLICACIÓN DE FORMATO: CEDULA debe mostrar puntos
+            { key: 'CEDULA', label: 'Cédula', format: (v) => v ? formatNumberWithDots(v) : 'N/A' },
+            { key: 'CARGO', label: 'Cargo', format: (v) => v || 'N/A' },
+            { key: 'EMPRESA', label: 'Empresa', format: (v) => v || 'N/A' },
+            { key: 'SECTOR', label: 'Sector', format: (v) => v || 'N/A' },
+            { key: 'NOMINA', label: 'Nómina', format: (v) => v || 'N/A' },
+            { key: 'PERFIL', label: 'Perfil', format: (v) => v || 'N/A' },
+            { key: 'INGRESO', label: 'Fecha Ingreso', format: (v) => v ? formatDate(v) : 'N/A' },
+            { key: 'NACIMIENTO', label: 'Fecha Nacimiento', format: (v) => v ? formatDate(v) : 'N/A' },
+            // Mapeo de CTRL2 con etiqueta Días Vacaciones
+            { key: 'CTRL2', label: 'Días Vacaciones', format: (v) => v || '0' },
+            { key: 'CTRL1', label: 'Nota/Comentario', format: (v) => v || 'Sin nota' },
         ];
         
-        // CAMBIO CLAVE: Se usan los nombres de campos originales del backend para la busqueda en la data
-        // Los valores se formatearán justo antes de crear el objeto JSON de filtrado.
+        // Campos usados para el JSON de filtrado (simulado)
+        // CEDULA será formateada en renderSelectedJson
         const JSON_FIELD_MAP = [
-            'CEDULA', 'EMPRESA', 'INGRESO', 'NOMBRES', 'APELLIDOS' // 'NOMBRES' y 'APELLIDOS' se usarán para generar 'NOMBRE_FORMATEADO'
+            'CEDULA', 
+            'EMPRESA', 
+            'INGRESO', 
+            'NOMBRE_TRABAJADOR' // Nuevo campo calculado
         ];
         
-        // --- NUEVO: Mapeo para el display (Traducción de columnas) ---
-        const COLUMN_DISPLAY_MAP = {
-            'CTRL2': 'DÍAS VACACIONES', 
-            'CTRL1': 'NOTA'
+        // Mapeo de navegación para cargar el contenido SPA (Utiliza las claves de tu mock)
+        const NAV_MAP = {
+            'Inicio': 'inicio.html',
+            'Nuevo Registro': 'NuevoReg.html',
+            'Editar': 'EditarReg.html',
+            'Perfil': 'PerfilUsuario.html',
+            'Configuración': 'ConfigApp.html'
         };
+        
+        /**
+         * Formatea un número o cadena de número para incluir separadores de miles con punto.
+         * Ej: 12345678 -> 12.345.678
+         * @param {string|number} value Número a formatear.
+         * @returns {string} Número formateado.
+         */
+        function formatNumberWithDots(value) {
+            // Convierte a string si no lo es, y elimina cualquier caracter no numérico (excepto si son separadores de miles/decimales para limpieza)
+            const numStr = String(value).replace(/[^\d]/g, ''); 
+            if (!numStr) return '';
+            
+            // Usa Intl.NumberFormat para formatear con separador de miles de punto
+            try {
+                // Se fuerza 'es-ES' que usa '.' como separador de miles
+                // Se usa 'style: decimal' por si el número es un string muy largo
+                const formatted = new Intl.NumberFormat('es-ES', { style: 'decimal', useGrouping: true }).format(parseInt(numStr, 10));
+                return formatted;
+            } catch (e) {
+                // Fallback simple: usar regex (menos robusto que Intl, pero funciona)
+                return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            }
+        }
 
+        /**
+         * Función para formatear el nombre completo del trabajador según la regla:
+         * 1er Nombre + Inicial 2do Nombre. + 1er Apellido + Inicial 2do Apellido.
+         * @param {string} nombres Cadena de nombres (ej: "JUAN ALBERTO")
+         * @param {string} apellidos Cadena de apellidos (ej: "PÉREZ GÓMEZ")
+         * @returns {string} El nombre formateado (ej: "JUAN A. PÉREZ G.")
+         */
+        function formatWorkerName(nombres, apellidos) {
+            if (!nombres || !apellidos) return 'N/A';
 
-        // --- VARIABLES DOM ---
+            // Limpia y divide las cadenas en palabras, eliminando vacíos
+            const names = nombres.trim().toUpperCase().split(/\s+/).filter(Boolean);
+            const lastNames = apellidos.trim().toUpperCase().split(/\s+/).filter(Boolean);
+
+            let formattedName = '';
+
+            // 1. Primer Nombre + Inicial del Segundo Nombre (si existe)
+            if (names.length > 0) {
+                formattedName += names[0];
+                if (names.length > 1) {
+                    formattedName += ' ' + names[1].charAt(0) + '.'; // JUAN A.
+                }
+            }
+
+            // 2. Primer Apellido
+            if (lastNames.length > 0) {
+                if (formattedName) formattedName += ' '; // Añade espacio entre nombre y apellido
+                formattedName += lastNames[0]; // JUAN A. PÉREZ
+                
+                // 3. Inicial del Segundo Apellido (si existe)
+                if (lastNames.length > 1) {
+                    formattedName += ' ' + lastNames[1].charAt(0) + '.'; // JUAN A. PÉREZ G.
+                }
+            }
+            
+            return formattedName.trim() || 'N/A';
+        }
+
+        // Función para formatear fechas a un formato legible (DD/MM/YYYY)
+        function formatDate(dateString) {
+            try {
+                // Intenta crear una fecha a partir de la cadena (funciona con formatos YYYY-MM-DD o fechas de Excel/Sheet)
+                let date = new Date(dateString);
+                
+                // Si es una fecha válida y no es NaN, formatea
+                if (!isNaN(date.getTime())) {
+                    // Si el dato es un número (serial de Excel), ajusta la base de tiempo
+                    if (!isNaN(dateString) && String(dateString).length < 10) { 
+                        const excelDate = new Date(1899, 11, 30); // Época base de Excel
+                        excelDate.setDate(excelDate.getDate() + parseInt(dateString));
+                        date = excelDate;
+                    }
+                    
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const year = date.getFullYear();
+                    return `${day}/${month}/${year}`;
+                }
+            } catch (e) {
+                // Si falla la conversión, devuelve el valor original
+                return dateString;
+            }
+            return dateString;
+        }
+
+        // --- VARIABLES DOM Y CONTENIDO MOCK ---
         const themeToggle = document.getElementById('theme-toggle');
         const htmlElement = document.documentElement;
         const mainContent = document.getElementById('main-content');
         const footerButtons = document.querySelectorAll('.footer-btn');
+        const modalOverlay = document.getElementById('DetalleTrabajadorModal');
+        const modalBodyContent = document.getElementById('modalBodyContent');
+        const alertModal = document.getElementById('custom-alert-modal');
+        const alertMessage = document.getElementById('alert-message');
         
-        // Función para obtener la fecha de hoy en español para el dashboard
-        const todayDate = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
-
-        // Mapa de contenido simulado por archivo (es clave para la simulación SPA)
-        const mockContentMap = {
-            'inicio.html': `
-                <!-- Tarjeta de Bienvenida y Resumen (Punto de Alineación del Modal) -->
-                <div class="bg-blue-600 dark:bg-blue-700 p-3 rounded-2xl text-white shadow-xl mb-4" id="welcome-card-ref">
-                    <div class="flex items-center justify-between">
-                        <h2 class="text-xl font-bold">¡Hola, Usuario!</h2>
-                        <span class="text-sm opacity-90">${todayDate}</span>
-                    </div>
-                </div>
+        // Obtiene la fecha actual en formato DD/MM/YYYY para la tarjeta de bienvenida
+        const todayDate = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        
+        // Mapa de contenido simulado por archivo (es clave para la simulación SPA) 
+        const mockContentMap = { 
+            'inicio.html': ` 
+                <!-- Tarjeta de Bienvenida y Resumen (Punto de Alineación del Modal) --> 
+                <div class="bg-blue-600 dark:bg-blue-700 p-3 rounded-2xl text-white shadow-xl mb-4" id="welcome-card-ref"> 
+                    <div class="flex items-center justify-between"> 
+                        <h2 class="text-xl font-bold">¡Hola, Usuario!</h2> 
+                        <span class="text-sm opacity-90">${todayDate}</span> 
+                    </div> 
+                </div> 
                 
-                <!-- AJUSTE: Métricas Clave (Distribución horizontal compacta) -->
-                <div class="flex justify-between space-x-2 mb-4">
-                    <!-- Métrica 1: Total Registros -->
+                <!-- AJUSTE: Métricas Clave (Distribución horizontal compacta) --> 
+                <div class="flex justify-between space-x-2 mb-4"> 
+                    <!-- Métrica 1: Total Registros (se actualiza con el conjunto FILTRADO) --> 
                     <div id="metric-total-records" 
-                         class="w-1/2 p-1.5 rounded-xl shadow-2xl transition-all duration-300 light:bg-white dark:bg-gray-700 flex items-center space-x-2">
-                        <i data-lucide="users" class="w-6 h-6 text-green-500 flex-shrink-0"></i>
-                        <div class="flex flex-col leading-tight">
-                            <span class="text-xl font-extrabold text-green-500" data-count="total">...</span>
-                            <span class="text-xs light:text-gray-500 dark:text-gray-300 whitespace-nowrap">Total Empleados</span>
-                        </div>
-                    </div>
+                          class="w-1/2 p-1.5 rounded-xl shadow-2xl transition-all duration-300 light:bg-white dark:bg-gray-700 flex items-center space-x-2"> 
+                        <i data-lucide="users" class="w-6 h-6 text-green-500 flex-shrink-0"></i> 
+                        <div class="flex flex-col leading-tight"> 
+                            <!-- Cambiado a data-metric="total" -->
+                            <span class="text-xl font-extrabold text-green-500" data-metric="total">...</span> 
+                            <span class="text-xs light:text-gray-500 dark:text-gray-300 whitespace-nowrap">Total Empleados</span> 
+                        </div> 
+                    </div> 
 
-                    <!-- Métrica 2: Pendientes/Acción Requerida (Simulada) -->
-                    <div class="w-1/2 p-1.5 rounded-xl shadow-2xl transition-all duration-300 light:bg-white dark:bg-gray-700 flex items-center space-x-2">
-                        <i data-lucide="alert-triangle" class="w-6 h-6 text-red-500 flex-shrink-0"></i>
-                        <div class="flex flex-col leading-tight">
-                            <span class="text-xl font-extrabold text-red-500">0</span>
-                            <span class="text-xs light:text-gray-500 dark:text-gray-300 whitespace-nowrap">Nuevos Hoy</span>
-                        </div>
-                    </div>
-                </div>
+                    <!-- Métrica 2: Sin Datos Vacaciones (Registros filtrados con CTRL1 con valor) --> 
+                    <div class="w-1/2 p-1.5 rounded-xl shadow-2xl transition-all duration-300 light:bg-white dark:bg-gray-700 flex items-center space-x-2"> 
+                        <i data-lucide="alert-triangle" class="w-6 h-6 text-red-500 flex-shrink-0"></i> 
+                        <div class="flex flex-col leading-tight"> 
+                            <!-- Cambiado a data-metric="ctrl1_warning" -->
+                            <span class="text-xl font-extrabold text-red-500" data-metric="ctrl1_warning">...</span> 
+                            <span class="text-xs light:text-gray-500 dark:text-gray-300 whitespace-nowrap">Sin Datos Vacaciones</span> 
+                        </div> 
+                    </div> 
+                </div> 
 
-                <!-- MOTOR DE BÚSQUEDA Y CONTROLES (RADIO REDUCIDO: rounded-xl) -->
-                <div class="flex items-center space-x-2 mb-4 text-red-900">
-                    <!-- Contenedor del Input y el Icono de Búsqueda -->
+                <!-- MOTOR DE BÚSQUEDA Y CONTROLES (RADIO REDUCIDO: rounded-xl) --> 
+                <div class="flex items-center space-x-2 mb-4 text-red-900"> 
+                    <!-- Contenedor del Input y el Icono de Búsqueda --> 
                     <div class="relative flex-grow rounded-xl"> 
-                        <!-- Clases de color para asegurar texto claro en modo oscuro -->
+                        <!-- Clases de color para asegurar texto claro en modo oscuro --> 
                         <input type="text" id="search-input" placeholder="Buscar por Nombre, Cédula, Cargo..." 
                                class="w-full pl-10 pr-4 py-2 rounded-xl shadow-inner 
-                                     light:bg-white dark:bg-gray-700 
-                                     text-gray-900 dark:text-gray-100 
-                                     placeholder-gray-400 border light:border-gray-300 dark:border-gray-600 
-                                     focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                           light:bg-white dark:bg-gray-700 
+                                           text-gray-900 dark:text-gray-100 
+                                           placeholder-gray-400 border light:border-gray-300 dark:border-gray-600 
+                                           focus:outline-none focus:ring-2 focus:ring-blue-500"> 
                         
-                        <!-- Icono de Búsqueda -->
-                        <i data-lucide="search" class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 light:text-gray-500 dark:text-gray-300"></i>
-                    </div>
+                        <!-- Icono de Búsqueda --> 
+                        <i data-lucide="search" class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 light:text-gray-500 dark:text-gray-300"></i> 
+                    </div> 
 
-                    <!-- Botón Limpiar -->
-                    <button id="clear-search-btn" class="p-2.5 rounded-full light:bg-white dark:bg-gray-700 shadow-md transition-colors duration-200 text-red-500 dark:text-red-400 font-bold" title="Reiniciar Filtros">
-                        <i data-lucide="x-circle" class="w-7 h-7"></i>
-                    </button>
-                </div>
+                    <!-- Botón Limpiar --> 
+                    <button id="clear-search-btn" class="p-2.5 rounded-full light:bg-white dark:bg-gray-700 shadow-md transition-colors duration-200 text-red-500 dark:text-red-400 font-bold" title="Reiniciar Filtros"> 
+                        <i data-lucide="x-circle" class="w-7 h-7"></i> 
+                    </button> 
+                </div> 
 
-                <!-- NUEVO: Contenedor para mostrar el JSON de la fila seleccionada -->
-                <div id="json-display-container" class="mb-4 p-3 rounded-lg light:bg-gray-100 dark:bg-gray-700 text-xs shadow-inner hidden">
-                    <h4 class="font-semibold text-blue-400 mb-1">JSON para Filtrado:</h4>
-                    <pre id="selected-json-display" class="whitespace-pre-wrap font-mono text-gray-300"></pre>
-                </div>
-                <!-- FIN NUEVO: Contenedor JSON -->
+                <!-- NUEVO: Contenedor para mostrar el JSON de la fila seleccionada --> 
+                <div id="json-display-container" class="mb-4 p-3 rounded-lg light:bg-gray-100 dark:bg-gray-700 text-xs shadow-inner hidden"> 
+                    <h4 class="font-semibold text-blue-400 mb-1">JSON para Filtrado:</h4> 
+                    <pre id="selected-json-display" class="whitespace-pre-wrap font-mono text-gray-300"></pre> 
+                </div> 
+                <!-- FIN NUEVO: Contenedor JSON --> 
 
 
-                <!-- Feed de Actividad Reciente -->
-                <h3 class="text-xl font-semibold mb-3 border-b light:border-gray-200 dark:border-gray-600 pb-1">Tabla de Empleados (Datos GAS)</h3>
+                <!-- Feed de Actividad Reciente --> 
+                <h3 class="text-xl font-semibold mb-3 border-b light:border-gray-200 dark:border-gray-600 pb-1">Tabla de Empleados (Datos GAS)</h3> 
 
-                <div id="${ACTIVITY_FEED_ID}" class="space-y-3">
-                    <!-- Contenido dinámico (Loading Spinner inicial) -->
-                    <div id="loading-spinner" class="text-center py-8">
-                        <i data-lucide="loader-circle" class="w-8 h-8 mx-auto animate-spin text-blue-500"></i>
-                        <p class="mt-2 text-sm text-gray-400">Cargando datos de empleados...</p>
-                    </div>
-                </div>
-            `,
-            'NuevoReg.html': `
-                <h2 class="text-2xl font-semibold mb-4 text-center">Nuevo Registro ($$ \\text{NuevoReg.html} $$)</h2>
-                <div class="p-6 rounded-xl shadow-lg light:bg-gray-100 dark:bg-gray-600">
-                    <p>Aquí irá el formulario para crear un registro.</p>
-                    <button class="mt-4 w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors">Crear</button>
-                </div>
-            `,
-            'EditarReg.html': `
-                <h2 class="text-2xl font-semibold mb-4 text-center">Editar Registros ($$ \\text{EditarReg.html} $$)</h2>
-                <div class="p-6 rounded-xl shadow-lg light:bg-gray-100 dark:bg-gray-600">
-                    <p>Listado de elementos para edición.</p>
-                    <ul class="mt-4 space-y-2">
-                        <li class="p-4 light:bg-white dark:bg-gray-700 rounded-lg shadow-md">Elemento a Editar 1</li>
-                        <li class="p-4 light:bg-white dark:bg-gray-700 rounded-lg shadow-md">Elemento a Editar 2</li>
-                    </ul>
-                </div>
-            `,
-            'PerfilUsuario.html': `
-                <h2 class="text-2xl font-semibold mb-4 text-center">Mi Perfil ($$ \\text{PerfilUsuario.html} $$)</h2>
-                <div class="flex flex-col items-center p-6 rounded-xl shadow-lg light:bg-gray-100 dark:bg-gray-600">
-                    <div class="w-24 h-24 rounded-full light:bg-gray-300 dark:bg-gray-500 flex items-center justify-center text-4xl mb-4">
-                        <i data-lucide="user" class="w-12 h-12"></i>
-                    </div>
-                    <p class="text-xl font-bold">Datos del Usuario</p>
-                </div>
-            `,
-            'ConfigApp.html': `
-                <h2 class="text-2xl font-semibold mb-4 text-center">Configuración ($$ \\text{ConfigApp.html} $$)</h2>
-                <div class="p-6 rounded-xl shadow-lg light:bg-gray-100 dark:bg-gray-600 space-y-4">
-                    <p>Opciones y ajustes de la aplicación.</p>
-                    <div class="flex justify-between items-center py-2 border-t light:border-gray-300 dark:border-gray-500">
-                        <span>Versión de la App:</span>
-                        <span class="font-mono">1.0.0</span>
-                    </div>
-                </div>
-            `
+                <div id="${ACTIVITY_FEED_ID}" class="space-y-3"> 
+                    <!-- Contenido dinámico (Loading Spinner inicial) --> 
+                    <div id="loading-spinner" class="text-center py-8"> 
+                        <i data-lucide="loader-circle" class="w-8 h-8 mx-auto animate-spin text-blue-500"></i> 
+                        <p class="mt-2 text-sm text-gray-400">Cargando datos de empleados...</p> 
+                    </div> 
+                </div> 
+            `, 
+            'NuevoReg.html': ` 
+                <h2 class="text-2xl font-semibold mb-4 text-center">Nuevo Registro ($$ \\text{NuevoReg.html} $$)</h2> 
+                <div class="p-6 rounded-xl shadow-lg light:bg-gray-100 dark:bg-gray-600"> 
+                    <p>Aquí irá el formulario para crear un registro.</p> 
+                    <button class="mt-4 w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors">Crear</button> 
+                </div> 
+            `, 
+            'EditarReg.html': ` 
+                <h2 class="text-2xl font-semibold mb-4 text-center">Editar Registros ($$ \\text{EditarReg.html} $$)</h2> 
+                <div class="p-6 rounded-xl shadow-lg light:bg-gray-100 dark:bg-gray-600"> 
+                    <p>Listado de elementos para edición.</p> 
+                    <ul class="mt-4 space-y-2"> 
+                        <li class="p-4 light:bg-white dark:bg-gray-700 rounded-lg shadow-md">Elemento a Editar 1</li> 
+                        <li class="p-4 light:bg-white dark:bg-gray-700 rounded-lg shadow-md">Elemento a Editar 2</li> 
+                    </ul> 
+                </div> 
+            `, 
+            'PerfilUsuario.html': ` 
+                <h2 class="text-2xl font-semibold mb-4 text-center">Mi Perfil ($$ \\text{PerfilUsuario.html} $$)</h2> 
+                <div class="flex flex-col items-center p-6 rounded-xl shadow-lg light:bg-gray-100 dark:bg-gray-600"> 
+                    <div class="w-24 h-24 rounded-full light:bg-gray-300 dark:bg-gray-500 flex items-center justify-center text-4xl mb-4"> 
+                        <i data-lucide="user" class="w-12 h-12"></i> 
+                    </div> 
+                    <p class="text-xl font-bold">Datos del Usuario</p> 
+                </div> 
+            `, 
+            'ConfigApp.html': ` 
+                <h2 class="text-2xl font-semibold mb-4 text-center">Configuración ($$ \\text{ConfigApp.html} $$)</h2> 
+                <div class="p-6 rounded-xl shadow-lg light:bg-gray-100 dark:bg-gray-600 space-y-4"> 
+                    <p>Opciones y ajustes de la aplicación.</p> 
+                    <div class="flex justify-between items-center py-2 border-t light:border-gray-300 dark:border-gray-500"> 
+                        <span>Versión de la App:</span> 
+                        <span class="font-mono">1.0.0</span> 
+                    </div> 
+                </div> 
+            ` 
         };
-
-        // --- FUNCIONES DE FORMATO ESPECÍFICAS ---
-
-        /**
-         * Formatea un número de Cédula (o cualquier número grande) para incluir separadores de miles (puntos).
-         */
-        function formatCedula(value) {
-            const num = Number(value);
-            if (isNaN(num)) return value || 'N/A';
-            return num.toLocaleString('es-ES'); // Usa el punto como separador de miles
-        }
-
-        /**
-         * Formatea un valor de fecha al formato 'dd/mm/yyyy'.
-         */
-        function formatDate(value) {
-            if (value === null || value === undefined || value === '') return '';
-            
-            let date;
-            
-            if (typeof value === 'string' && value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)) {
-                // Si ya viene en formato dd/mm/yyyy, intenta parsear como tal (esto puede ser inestable)
-                const parts = value.split('/');
-                date = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-
-                if (isNaN(date.getTime())) {
-                    date = new Date(value);
-                }
-            } else {
-                date = new Date(value);
-            }
-            
-            if (isNaN(date.getTime())) {
-                return String(value); 
-            }
-
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const year = date.getFullYear();
-
-            return `${day}/${month}/${year}`;
-        }
         
-        /**
-         * Aplica el formato solicitado a los nombres y apellidos.
-         * Formato: PrimerNombre InicialSegundoNombre. PrimerApellido InicialSegundoApellido.
-         * @param {Object} record El registro de datos original.
-         * @returns {string} El nombre completo formateado.
-         */
-        function formatFullNameForFiltering(record) {
-            // Asumiendo que la data tiene las columnas NOMBRES y APELLIDOS con los nombres/apellidos completos
-            // Si la data viniera separada (e.g., PRIMER_NOMBRE, SEGUNDO_NOMBRE, etc.), la lógica sería más directa.
-            
-            const rawNombres = String(record.NOMBRES || '').trim().split(/\s+/);
-            const rawApellidos = String(record.APELLIDOS || '').trim().split(/\s+/);
+        // --- FUNCIONES DE UTILIDAD (MODAL Y ALERTA) ---
 
-            // 1. Nombres: Primer nombre + Inicial del segundo
-            let firstName = rawNombres[0] || '';
-            let secondNameInitial = (rawNombres.length > 1 && rawNombres[1]) ? rawNombres[1].charAt(0) + '.' : '';
-
-            // 2. Apellidos: Primer apellido + Inicial del segundo
-            let firstSurname = rawApellidos[0] || '';
-            let secondSurnameInitial = (rawApellidos.length > 1 && rawApellidos[1]) ? rawApellidos[1].charAt(0) + '.' : '';
-
-            // Construir el resultado final, limpiando espacios dobles
-            const formattedName = `${firstName} ${secondNameInitial} ${firstSurname} ${secondSurnameInitial}`.trim().replace(/\s+/g, ' ');
-
-            return formattedName;
-        }
-
-        // --- FIN FUNCIONES DE FORMATO ESPECÍFICAS ---
-
-
-        /**
-         * Aplica la ordenación al array de datos completo.
-         */
-        function sortData(data, key, order) {
-            if (!data || !key || !order) return data;
-
-            const sortedData = [...data]; 
-
-            sortedData.sort((a, b) => {
-                const valA = String(a[key] || '').toLowerCase();
-                const valB = String(b[key] || '').toLowerCase();
-
-                const numA = parseFloat(valA);
-                const numB = parseFloat(valB);
-                
-                let comparison = 0;
-                
-                if (!isNaN(numA) && !isNaN(numB) && isFinite(numA) && isFinite(numB)) {
-                    comparison = numA - numB;
-                } else {
-                    if (valA < valB) comparison = -1;
-                    if (valA > valB) comparison = 1;
-                }
-
-                return order === 'asc' ? comparison : -comparison;
-            });
-            return sortedData;
-        }
-
-        /**
-         * Determina la clase de alineación del contenido para una columna específica.
-         */
-        function getContentAlignmentClass(key) {
-            switch (key.toUpperCase()) {
-                case 'CEDULA':
-                case 'CTRL2': // DÍAS
-                    return 'text-right';
-                case 'INGRESO':
-                    return 'text-center';
-                default:
-                    return 'text-left';
-            }
-        }
-        
-        /**
-         * Determina la clase de alineación del encabezado para una columna específica.
-         */
-        function getHeaderAlignmentClass(key) {
-            return 'text-center';
-        }
-
-
-        /**
-         * Renderiza el feed de actividad con los datos obtenidos de la API de GAS en formato de tabla.
-         */
-        function renderActivityFeed(data) {
-            const container = document.getElementById(ACTIVITY_FEED_ID);
-            if (!container) return;
-            
-            // Limpiar el contenedor (remover spinner/error)
-            container.innerHTML = ''; 
-
-            if (!data || data.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-8 text-gray-500 dark:text-gray-400">
-                        <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-2"></i>
-                        <p>No se encontraron registros de empleados.</p>
-                    </div>
-                `;
-                const totalRecordsSpan = document.querySelector('#metric-total-records span[data-count="total"]');
-                if (totalRecordsSpan) totalRecordsSpan.textContent = '0';
-                lucide.createIcons();
-                return;
-            }
-
-            const totalRecordsSpan = document.querySelector('#metric-total-records span[data-count="total"]');
-            if (totalRecordsSpan) totalRecordsSpan.textContent = data.length;
-            
-            let dataToRender = [...data];
-            if (sortOrder && currentSortColumn) {
-                dataToRender = sortData(dataToRender, currentSortColumn, sortOrder);
-            }
-
-            // --- DEFINICIÓN DE COLUMNAS ---
-            // Se usa el nombre de campo ORIGINAL (key) para referirse a la propiedad en el objeto.
-            const columnDefinitions = [
-                { 
-                    key: 'ID', 
-                    display: 'ID', 
-                    isVirtual: true, 
-                    isSortable: false, 
-                    width: 'w-12', 
-                    alignHeader: 'text-center', 
-                    alignContent: 'text-center', 
-                    stickyHeaderClass: 'sticky left-0 z-20', 
-                    stickyCellClass: 'sticky left-0 z-10 sticky-id-cell' 
-                },
-                { key: 'EMPRESA', display: 'EMPRESA', isSortable: true, width: 'w-24' },
-                { key: 'NOMINA', display: 'NÓMINA', isSortable: true, width: 'w-20' },
-                { key: 'APELLIDOS', display: 'APELLIDOS', isSortable: true, width: 'w-32' },
-                { key: 'NOMBRES', display: 'NOMBRES', isSortable: true, width: 'w-32' },
-                { key: 'CEDULA', display: 'CÉDULA', isSortable: true, width: 'w-24', format: formatCedula },
-                { key: 'CARGO', display: 'CARGO', isSortable: true, width: 'w-32' },
-                { key: 'INGRESO', display: 'INGRESO', isSortable: true, width: 'w-24', format: formatDate },
-                { key: 'SECTOR', display: 'SECTOR', isSortable: true, width: 'w-24' },
-                { key: 'PERFIL', display: 'PERFIL', isSortable: true, width: 'w-24' },
-                // *** Mapeo de nombres de campo ***
-                { key: 'CTRL2', display: COLUMN_DISPLAY_MAP['CTRL2'], isSortable: true, width: 'w-16' }, // DÍAS VACACIONES (Se mantiene en la tabla)
-                { key: 'CTRL1', display: COLUMN_DISPLAY_MAP['CTRL1'], isSortable: true, width: 'w-16' }, // NOTA
-                // *******************************
-                { key: 'NACIMIENTO', display: 'NACIMIENTO', isSortable: true, width: 'w-24', format: formatDate },
-            ];
-
-            // 1. Generar la cabecera de la tabla
-            const tableHeadersHtml = columnDefinitions.map(col => {
-                const headerBgStyle = col.isVirtual ? 'style="background-color: var(--color-header);"' : '';
-                const headerAlignClass = col.isVirtual ? col.alignHeader : getHeaderAlignmentClass(col.key);
-
-                let sortIndicatorHtml = '';
-                if (col.isSortable && col.key === currentSortColumn) {
-                    const iconName = sortOrder === 'asc' ? 'chevron-up' : 'chevron-down';
-                    sortIndicatorHtml = `<i data-lucide="${iconName}" class="w-4 h-4 inline-block ml-1"></i>`;
-                }
-
-                const headerClasses = `px-4 py-2 ${headerAlignClass} text-sm font-bold uppercase tracking-wider text-white ${col.width || ''} whitespace-nowrap ${col.stickyHeaderClass || ''} ${col.isSortable ? 'sortable-header' : ''}`;
-                
-                return `
-                    <th ${headerBgStyle} class="${headerClasses}" data-column-key="${col.key}">
-                        ${col.display} ${sortIndicatorHtml}
-                    </th>
-                `;
-            }).join('');
-
-            // 2. Generar las filas de la tabla con el ID correlativo
-            const tableRowsHtml = dataToRender.map((item, index) => {
-                const rowId = index + 1;
-                
-                // Serializar el objeto de datos completo para adjuntarlo al evento dblclick
-                const recordJsonString = JSON.stringify(item);
-
-                // Lógica para aplicar estilo a toda la fila
-                const originalCtrl1Value = item['CTRL1']; // Usar nombre de campo original
-                const isCtrl1NonEmpty = originalCtrl1Value !== null && originalCtrl1Value !== undefined && String(originalCtrl1Value).trim().toUpperCase() !== 'N/A' && String(originalCtrl1Value).trim().length > 0;
-                
-                // Clase de la fila: aplica color si CTRL1 no está vacío/N/A Y la clase 'worker-row' para el hover.
-                const rowClass = (isCtrl1NonEmpty 
-                    ? 'text-red-400 dark:text-red-300' 
-                    : 'light:text-gray-900 dark:text-gray-100') + ' worker-row';
-
-                // Generar celdas para la fila actual
-                const cellsHtml = columnDefinitions.map(col => {
-                    let content;
-                    let cellClasses = 'px-4 py-0 text-sm whitespace-nowrap '; 
-                    let stickyClasses = col.stickyCellClass || '';
-                    let alignmentClass = '';
-
-                    let rawValue = item[col.key];
-                    
-                    if (col.isVirtual) {
-                        content = rowId;
-                        cellClasses += 'font-semibold'; 
-                        alignmentClass = col.alignContent;
-                    } else {
-                        const key = col.key;
-                        if (rawValue === null || rawValue === undefined || rawValue === '') {
-                            if (key === 'CTRL2') { // DÍAS
-                                rawValue = 0;
-                            } else if (key === 'CTRL1' || key === 'NACIMIENTO') { // NOTA
-                                rawValue = '';
-                            } else {
-                                rawValue = 'N/A';
-                            }
-                        }
-                        
-                        // Aplicar formato si existe, de lo contrario, usar el valor crudo/limpio
-                        content = col.format ? col.format(rawValue) : String(rawValue);
-                        
-                        cellClasses += 'dark:bg-gray-700 light:bg-white';
-                        alignmentClass = getContentAlignmentClass(col.key);
-
-                        let textStyleClass = '';
-                        if (content === 'N/A' || content === '') {
-                            textStyleClass = 'text-gray-400 italic';
-                            if (content === 'N/A') content = 'N/A';
-                            if (content === '') content = '';
-                        } else if (col.key === 'CTRL2' && content === 0) { // DÍAS
-                            textStyleClass = 'font-medium text-sm text-center'; 
-                        }
-                        
-                        // Retorna la celda con el valor y las clases de estilo
-                        return `<td class="${cellClasses} ${alignmentClass} ${stickyClasses} ${textStyleClass}">${content}</td>`;
-                    }
-                    
-                    // Caso ID (sticky)
-                    return `<td class="${cellClasses} ${alignmentClass} ${stickyClasses}">${content}</td>`;
-                }).join('');
-
-                // Añadir el listener dblclick y el atributo data-record al <tr>
-                return `
-                    <tr class="${rowClass} light:hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-150 border-b light:border-gray-200 dark:border-gray-700" 
-                        ondblclick="handleRowDoubleClick(JSON.parse(this.getAttribute('data-record')))"
-                        data-record='${recordJsonString.replace(/'/g, "&apos;")}' >
-                        ${cellsHtml}
-                    </tr>
-                `;
-            }).join('');
-
-            // 3. Estructura completa de la tabla con estilos responsivos
-            const activityHtml = `
-                <!-- Contenedor JSON (Visible por defecto, pero oculto en el HTML) -->
-                ${document.getElementById('json-display-container').outerHTML}
-                
-                <!-- Contenedor principal con sombra y borde. Se mantiene sin redondeo (90 grados). -->
-                <div class="shadow-xl border light:border-gray-200 dark:border-gray-700">
-                    
-                    <!-- Contenedor con altura máxima y scroll vertical y horizontal -->
-                    <div class="max-h-[38vh] md:max-h-80 overflow-y-auto overflow-x-auto" id="table-scroll-container">
-                        
-                        <!-- min-w-full asegura que ocupe todo el ancho disponible para forzar el scroll horizontal si es necesario. -->
-                        <table class="min-w-full table-auto divide-y light:divide-gray-200 dark:divide-gray-700">
-                            
-                            <!-- Cabecera de la tabla (sticky top-0) con color #2D59A1 (Fijo) -->
-                            <thead style="background-color: var(--color-header);" class="sticky top-0 z-10 shadow-md" id="employee-table-header">
-                                <tr>
-                                    ${tableHeadersHtml}
-                                
-                                </tr>
-                            </thead>
-                            
-                            <!-- Cuerpo de la tabla con color de fondo para filas -->
-                            <tbody class="divide-y light:divide-gray-200 dark:divide-gray-700 light:bg-white dark:bg-gray-700" id="employee-table-body">
-                                ${tableRowsHtml}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            `;
-
-            container.innerHTML = activityHtml;
-            lucide.createIcons();
-            
-            // Re-configurar listeners después de actualizar el DOM
-            setupSearchControls();
-            setupHeaderSortListeners();
-        }
-        
-        /**
-         * Maneja la lógica de ordenación al hacer clic en un encabezado de columna.
-         */
-        function handleHeaderClick(columnKey) {
-            if (columnKey === 'ID') {
-                return;
-            }
-
-            if (columnKey !== currentSortColumn) {
-                currentSortColumn = columnKey;
-                sortOrder = 'asc';
-            } else {
-                sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
-            }
-
-            filterAndRenderData();
-        }
-
-        /**
-         * Configura el listener de click para los encabezados de la tabla.
-         */
-        function setupHeaderSortListeners() {
-            const tableHeaderRow = document.querySelector('#employee-table-header tr');
-            if (!tableHeaderRow) return;
-
-            tableHeaderRow.querySelectorAll('th').forEach(header => {
-                const columnKey = header.getAttribute('data-column-key');
-                if (columnKey && columnKey !== 'ID') {
-                    header.addEventListener('click', () => handleHeaderClick(columnKey));
-                }
-            });
-        }
-
-        /**
-         * Filtra la variable global employeeData basada en el texto de búsqueda y renderiza el resultado.
-         */
-        function filterAndRenderData() {
-            clearTimeout(debounceTimer);
-            
-            const searchInput = document.getElementById('search-input');
-            const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
-
-            debounceTimer = setTimeout(() => {
-                let dataToRender = employeeData;
-
-                if (query) {
-                    dataToRender = employeeData.filter(record => {
-                        return Object.keys(record).some(key => {
-                            if (key.toUpperCase() === 'ID') {
-                                return false;
-                            }
-                            
-                            const value = record[key];
-                            if (value !== null && value !== undefined) {
-                                return String(value).toLowerCase().includes(query);
-                            }
-                            return false;
-                        });
-                    });
-                }
-
-                renderActivityFeed(dataToRender);
-            }, 300);
-        }
-        
-        /**
-         * Configura el listener para el campo de búsqueda y el botón de limpiar.
-         */
-        function setupSearchControls() {
-            const searchInput = document.getElementById('search-input');
-            const clearBtn = document.getElementById('clear-search-btn');
-            
-            if (!searchInput || !clearBtn) return;
-            
-            searchInput.addEventListener('input', filterAndRenderData);
-            
-            clearBtn.onclick = () => {
-                searchInput.value = ''; 
-                filterAndRenderData(); 
-            };
-        }
-
-        /**
-         * Obtiene los datos de empleados de la API de Google Apps Script.
-         */
-        async function fetchActivityFeed() {
-            const container = document.getElementById(ACTIVITY_FEED_ID);
-            const totalRecordsSpan = document.querySelector('#metric-total-records span[data-count="total"]');
-            const searchInput = document.getElementById('search-input');
-
-            if (!container || !totalRecordsSpan) return;
-
-            container.innerHTML = `
-                <div id="loading-spinner" class="text-center py-8">
-                    <i data-lucide="loader-circle" class="w-8 h-8 mx-auto animate-spin text-blue-500"></i>
-                    <p class="mt-2 text-sm text-gray-400">Cargando datos de empleados...</p>
-                </div>
-            `;
-            totalRecordsSpan.textContent = '...';
-            if (searchInput) {
-                searchInput.value = ''; 
-                searchInput.disabled = true; 
-            }
-            
-            currentSortColumn = null; 
-            sortOrder = null; 
-            
-            lucide.createIcons(); 
-
-            try {
-                const maxRetries = 3;
-                let response = null;
-                let data = null;
-                
-                for (let i = 0; i < maxRetries; i++) {
-                    try {
-                        response = await fetch(GAS_API_URL, { method: 'GET' });
-                        if (response.ok) {
-                            data = await response.json();
-                            break;
-                        }
-                    } catch (e) {
-                        if (i < maxRetries - 1) {
-                            await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
-                        } else {
-                            throw e; 
-                        }
-                    }
-                }
-                
-                if (!response.ok) {
-                    throw new Error(`Error HTTP: ${response.status}`);
-                }
-                
-                let loadedData = [];
-                
-                if (data && Array.isArray(data.data)) {
-                    loadedData = data.data;
-                } else if (Array.isArray(data)) {
-                    loadedData = data;
-                } else if (data && Array.isArray(data.records)) {
-                    loadedData = data.records;
-                } else if (data && data.error) {
-                    throw new Error(`Error reportado por la API de GAS: ${data.error}`);
-                }
-                
-                // Limpieza inicial de valores nulos
-                employeeData = loadedData.map(item => {
-                    const newItem = {};
-                    for (const key in item) {
-                        newItem[key] = item[key] === null || item[key] === undefined ? '' : item[key];
-                    }
-                    return newItem;
-                });
-
-                renderActivityFeed(employeeData);
-                
-                if (searchInput) {
-                    searchInput.disabled = false;
-                }
-
-            } catch (error) {
-                console.error("Error al obtener datos de GAS:", error);
-                
-                container.innerHTML = `
-                    <div class="text-center py-8 text-red-500 dark:text-red-400">
-                        <i data-lucide="plug-zap" class="w-10 h-10 mx-auto mb-2"></i>
-                        <p class="font-bold">Error de Carga</p>
-                        <p class="text-sm mt-1">${error.message || 'No se pudieron cargar los datos de la API.'}</p>
-                    </div>
-                `;
-                lucide.createIcons();
-                totalRecordsSpan.textContent = '0';
-                if (searchInput) {
-                    searchInput.disabled = true;
-                }
-            }
-        }
-
-        // ------------------------------------------------------------------
-        // --- FUNCIONES PARA MODAL Y JSON DE FILTRADO ---
-        // ------------------------------------------------------------------
-        
-        /**
-         * Aplica los formatos especiales al registro para generar el JSON de filtrado.
-         * ESTE ES EL CAMBIO CLAVE para aplicar la lógica solicitada sin tocar el GAS.
-         * @param {Object} record El objeto de datos original (tal como viene de GAS).
-         * @returns {Object} El objeto de datos formateado para el JSON de filtrado.
-         */
-        function formatWorkerForFiltering(record) {
-            const formattedRecord = {};
-            
-            // 1. CEDULA, EMPRESA (Valores directos)
-            formattedRecord.CEDULA = record.CEDULA || '';
-            formattedRecord.EMPRESA = record.EMPRESA || '';
-            
-            // 2. INGRESO (Formato dd/mm/yyyy)
-            formattedRecord.INGRESO = formatDate(record.INGRESO);
-
-            // 3. NOMBRE_FORMATEADO (PrimerNombre InicialSegundo. PrimerApellido InicialSegundo.)
-            // Usando los campos NOMBRES y APELLIDOS (asumiendo que vienen completos)
-            formattedRecord.NOMBRE_FORMATEADO = formatFullNameForFiltering(record);
-
-            return formattedRecord;
-        }
-
-        /**
-         * Maneja el evento dblclick en una fila, genera el JSON y abre el modal de detalle.
-         * @param {Object} record - Objeto de datos del trabajador de la fila seleccionada.
-         */
-        function handleRowDoubleClick(record) {
-            // 1. Crear el JSON de filtrado (usando la nueva función de formato)
-            const filteringJson = formatWorkerForFiltering(record);
-            
-            // 2. Guardar el JSON globalmente para uso futuro
-            _globalSelectedWorkerData = filteringJson;
-            
-            // 3. Mostrar el JSON en el panel de verificación
-            const jsonDisplay = document.getElementById('selected-json-display');
-            const jsonContainer = document.getElementById('json-display-container');
-            if (jsonDisplay && jsonContainer) {
-                jsonDisplay.textContent = JSON.stringify(_globalSelectedWorkerData, null, 2);
-                jsonContainer.classList.remove('hidden'); // Hacer visible el contenedor del JSON
-            }
-
-            // 4. Preparar y abrir el modal
-            populateModal(record);
-            openModal();
-        }
-
-        /**
-         * Función auxiliar para crear y añadir un campo de detalle al contenedor.
-         * @param {HTMLElement} modalBody - El contenedor donde se añadirán los campos.
-         * @param {string} labelText - El texto de la etiqueta.
-         * @param {string} valueText - El valor del campo.
-         * @param {string} [customClasses=''] - Clases Tailwind adicionales para el valor.
-         */
-        function createDetailField(modalBody, labelText, valueText, customClasses = '') {
-            const itemDiv = document.createElement('div');
-            // Reducido de p-2 a p-1.5 para menor padding vertical
-            itemDiv.className = 'p-1.5 rounded-lg light:bg-gray-100 dark:bg-gray-800 border-l-4 border-blue-500 shadow-md';
-            itemDiv.innerHTML = `
-                <!-- Etiqueta (más pequeña) -->
-                <p class="text-xs font-medium light:text-gray-500 dark:text-gray-400 uppercase tracking-wider">${labelText}</p>
-                <!-- Valor (más grande, con posibles clases personalizadas) -->
-                <p class="text-base font-semibold light:text-gray-900 dark:text-white break-words ${customClasses}">${valueText}</p>
-            `;
-            modalBody.appendChild(itemDiv);
-        }
-
-        /**
-         * Rellena el contenido del modal con los datos del trabajador, aplicando reglas.
-         */
-        function populateModal(record) {
-            const modalBody = document.getElementById('modalBodyContent');
-            modalBody.innerHTML = ''; // Limpiar contenido anterior
-            
-            const nombres = record.NOMBRES ? String(record.NOMBRES).trim() : 'N/A';
-            const apellidos = record.APELLIDOS ? String(record.APELLIDOS).trim() : 'N/A';
-            
-            // Campo Compuesto (NOMBRES + APELLIDOS)
-            const fullNameHtml = `<div>${nombres}<br>${apellidos}</div>`;
-
-            // REQUISITO 3 & 4: Campo Compuesto (NOMBRES + APELLIDOS)
-            createDetailField(modalBody, 'Nombre Completo', fullNameHtml, 'text-lg font-extrabold text-blue-400');
-
-            // Campos a excluir NOMBRES y APELLIDOS (ya están en Nombre Completo)
-            // IMPORTANTE: Se excluyen NOMBRES, APELLIDOS, y DÍAS VACACIONES (CTRL2).
-            const excludedKeys = ['NOMBRES', 'APELLIDOS', 'CTRL2']; 
-
-            MODAL_FIELD_MAP.forEach(key => {
-                if (excludedKeys.includes(key)) {
-                    return; // Saltar campos excluidos
-                }
-
-                let value = record[key];
-                let displayKey = COLUMN_DISPLAY_MAP[key] || key;
-                let customClasses = '';
-
-                // Aplicar Formato: CÉDULA, INGRESO, NACIMIENTO
-                if (key === 'CEDULA') {
-                    value = formatCedula(value);
-                    customClasses = 'text-green-400';
-                } else if (key === 'INGRESO' || key === 'NACIMIENTO') {
-                    // Usar la función de formato de fecha
-                    value = formatDate(value);
-                } else if (key === 'CTRL1') { // REQUISITO 6: NOTA (no mostrar si N/A o vacío)
-                    if (!value || String(value).trim().toUpperCase() === 'N/A') {
-                        return; // Omitir el campo completo
-                    }
-                }
-                
-                // Mostrar N/A si el valor final está vacío
-                const finalValue = value === null || value === undefined || String(value).trim() === '' ? 'N/A' : String(value);
-
-                // Crear y añadir el campo
-                createDetailField(modalBody, displayKey, finalValue, customClasses);
-            });
-        }
-
-        /**
-         * Muestra el modal de detalle.
-         */
-        function openModal() {
-            const modal = document.getElementById('DetalleTrabajadorModal');
-            if (modal) {
-                modal.style.display = 'flex';
-            }
-        }
-
-        /**
-         * Oculta el modal de detalle.
-         */
-        function closeModal() {
-            const modal = document.getElementById('DetalleTrabajadorModal');
-            if (modal) {
-                modal.style.display = 'none';
-            }
-        }
-        // ------------------------------------------------------------------
-        // --- FIN: FUNCIONES PARA MODAL Y JSON DE FILTRADO ---
-        // ------------------------------------------------------------------
-
-
-        /**
-         * Simula la función alert() con un mensaje en la interfaz.
-         */
+        /** Muestra una alerta personalizada (reemplazo de alert()) */
         function showCustomAlert(message) {
-            const tempAlert = document.createElement('div');
-            tempAlert.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 bg-blue-600 text-white px-6 py-3 rounded-lg shadow-2xl transition-opacity duration-300 opacity-0 font-bold';
-            tempAlert.textContent = message;
-            
-            const appContainer = document.getElementById('app-container');
-            if (appContainer) {
-                tempAlert.style.position = 'absolute';
-                appContainer.appendChild(tempAlert);
-
-                setTimeout(() => tempAlert.classList.remove('opacity-0'), 10);
-                
-                setTimeout(() => {
-                    tempAlert.classList.add('opacity-0');
-                    setTimeout(() => appContainer.removeChild(tempAlert), 300);
-                }, 3000);
-            }
+            alertMessage.textContent = message;
+            alertModal.style.display = 'flex';
         }
 
-        /**
-         * Inicializa el modo de color.
-         */
-        function initializeTheme() {
-            const storedTheme = localStorage.getItem('theme');
-            const isDarkMode = storedTheme === 'dark' || !storedTheme;
-            
-            if (isDarkMode) {
-                htmlElement.classList.add('dark');
-            } else {
-                htmlElement.classList.remove('dark');
-            }
-            updateToggleIcon(isDarkMode);
+        /** Cierra la alerta personalizada */
+        function closeCustomAlert() {
+            alertModal.style.display = 'none';
         }
 
-        /**
-         * Cambia el icono del botón de toggle según el modo actual.
-         */
-        function updateToggleIcon(isDark) {
-            const iconElement = themeToggle.querySelector('i, svg');
-            
-            if (!iconElement) {
-                return;
-            }
-
-            const iconName = isDark ? 'sun' : 'moon';
-            const iconColor = isDark ? 'text-yellow-300 dark:text-yellow-400' : 'text-yellow-600 dark:text-yellow-400';
-            
-            const newIconHtml = `<i data-lucide="${iconName}" class="w-6 h-6 ${iconColor}"></i>`;
-            iconElement.outerHTML = newIconHtml;
-            
-            lucide.createIcons();
+        /** Muestra el modal de detalle del trabajador */
+        function showModal() {
+            modalOverlay.style.display = 'flex';
         }
 
-        /**
-         * Maneja la lógica de cambio de tema (Dark/Light).
-         */
+        /** Cierra el modal de detalle del trabajador */
+        function closeModal() {
+            modalOverlay.style.display = 'none';
+            
+            // El panel JSON permanece visible después del cierre del modal.
+        }
+
+        // --- LÓGICA DE TEMAS ---
+
+        /** Alterna entre modo oscuro y claro */
         function toggleTheme() {
-            const isDarkMode = htmlElement.classList.toggle('dark');
-            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
-            updateToggleIcon(isDarkMode);
-        }
-
-        /**
-         * Simula la carga de contenido basada en el archivo de destino.
-         */
-        function loadContent(fileName) {
-            footerButtons.forEach(btn => btn.classList.remove('active'));
-
-            const currentBtn = document.querySelector(`.footer-btn[data-file="${fileName}"]`);
-            if (currentBtn) {
-                currentBtn.classList.add('active');
+            const isDark = htmlElement.classList.contains('dark');
+            if (isDark) {
+                htmlElement.classList.remove('dark');
+                htmlElement.classList.add('light');
+                themeToggle.querySelector('i').setAttribute('data-lucide', 'moon');
+                themeToggle.querySelector('i').classList.replace('text-yellow-300', 'text-gray-700');
+            } else {
+                htmlElement.classList.remove('light');
+                htmlElement.classList.add('dark');
+                themeToggle.querySelector('i').setAttribute('data-lucide', 'sun');
+                themeToggle.querySelector('i').classList.replace('text-gray-700', 'text-yellow-300');
             }
-            
-            const contentHtml = mockContentMap[fileName] || `<h2 class="text-2xl font-semibold mb-4 text-center">404 - Archivo ${fileName} No Encontrado</h2>`;
-
-            mainContent.innerHTML = contentHtml;
-            lucide.createIcons();
-            
-            if (fileName === 'inicio.html') {
-                fetchActivityFeed();
-            }
-
-            mainContent.scrollTop = 0;
+            lucide.createIcons(); // Vuelve a renderizar los iconos
         }
-
-        // --- Event Listeners y Inicialización ---
         themeToggle.addEventListener('click', toggleTheme);
-        
-        footerButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const fileName = button.getAttribute('data-file');
-                if (fileName) {
-                    loadContent(fileName);
+        // Inicializa el icono correcto al cargar
+        document.addEventListener('DOMContentLoaded', () => {
+            if (htmlElement.classList.contains('light')) {
+                themeToggle.querySelector('i').setAttribute('data-lucide', 'moon');
+                themeToggle.querySelector('i').classList.replace('text-yellow-300', 'text-gray-700');
+            }
+        });
+
+        // --- LÓGICA DE NAVEGACIÓN (SPA) ---
+
+        /** Carga el contenido de la sección seleccionada (simulación SPA) */
+        function loadContent(sectionName) {
+            // Desactiva todos los botones y activa el actual
+            footerButtons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-section') === sectionName) {
+                    btn.classList.add('active');
                 }
+            });
+
+            // Limpia el contenido y muestra el spinner si es la sección de Inicio
+            mainContent.innerHTML = '';
+            
+            // Determina la clave de contenido a cargar usando el NAV_MAP
+            const contentKey = NAV_MAP[sectionName];
+
+            if (sectionName === 'Inicio') {
+                // Carga el contenido mock de 'inicio.html' que incluye el spinner, búsqueda y métricas
+                mainContent.innerHTML = mockContentMap[contentKey];
+                lucide.createIcons(); // Vuelve a renderizar los iconos
+                
+                // Adjunta los listeners al contenido recién cargado
+                document.getElementById('search-input').addEventListener('input', handleSearchDebounced);
+                document.getElementById('clear-search-btn').addEventListener('click', clearSearchAndTable);
+                
+                // Llama a la función para cargar los datos
+                loadData();
+            } else {
+                // Carga el contenido mock para otras secciones
+                mainContent.innerHTML = mockContentMap[contentKey] || `<div class="p-8 text-center text-gray-500 dark:text-gray-400">Contenido para ${sectionName}</div>`;
+                lucide.createIcons(); // Vuelve a renderizar los iconos
+            }
+        }
+
+        // Agrega listeners a los botones de navegación
+        footerButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                loadContent(btn.getAttribute('data-section'));
             });
         });
 
-        window.onload = function() {
-            const savedTheme = localStorage.getItem('theme');
+        // --- LÓGICA DE BÚSQUEDA Y ORDENACIÓN ---
+
+        /** Función de debounce para la búsqueda */
+        function handleSearchDebounced() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(handleSearch, 300);
+        }
+
+        /** Filtra los datos y reconstruye la tabla (SIN ORDENAR) */
+        function handleSearch() {
+            const query = document.getElementById('search-input').value.toLowerCase().trim();
             
-            if (!savedTheme) {
-                localStorage.setItem('theme', 'dark');
+            if (query === '') {
+                filteredEmployeeData = [...allEmployeeData];
+                // Si la búsqueda se limpia, oculta el panel JSON
+                document.getElementById('json-display-container')?.classList.add('hidden');
+            } else {
+                filteredEmployeeData = allEmployeeData.filter(worker => {
+                    // Busca en los valores de todas las columnas (sensible)
+                    return Object.values(worker).some(value => 
+                        String(value).toLowerCase().includes(query)
+                    );
+                });
             }
-            initializeTheme();
+
+            // CAMBIO CLAVE: Después de filtrar, reconstruye la tabla sin ordenar
+            buildTable(filteredEmployeeData);
+        }
+        
+        /** Limpia el campo de búsqueda y reinicia la tabla */
+        function clearSearchAndTable() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('json-display-container')?.classList.add('hidden'); // Oculta JSON
+            handleSearch(); // Llama a la búsqueda para mostrar todos los datos (sin ordenar)
+        }
+
+        /** Maneja el clic en el encabezado para ordenar */
+        function handleSort(columnKey) {
+            if (currentSortColumn === columnKey) {
+                // Cambia el orden si se hace clic en la misma columna
+                sortOrder = (sortOrder === 'asc') ? 'desc' : 'asc';
+            } else {
+                // Columna nueva, establece el orden inicial a ascendente
+                currentSortColumn = columnKey;
+                sortOrder = 'asc';
+            }
+
+            // Para ordenar, siempre se llama a sortAndRenderTable
+            sortAndRenderTable();
+        }
+
+        /** Ordena los datos filtrados y llama a la función de renderizado de tabla (Usada SOLO para ordenamiento manual) */
+        function sortAndRenderTable() {
+            const key = currentSortColumn;
+            const order = sortOrder;
+
+            // Ordena el array filtrado actualmente
+            filteredEmployeeData.sort((a, b) => {
+                const valA = a[key] !== null && a[key] !== undefined ? String(a[key]).toUpperCase() : '';
+                const valB = b[key] !== null && b[key] !== undefined ? String(b[key]).toUpperCase() : '';
+
+                if (valA < valB) {
+                    return order === 'asc' ? -1 : 1;
+                }
+                if (valA > valB) {
+                    return order === 'asc' ? 1 : -1;
+                }
+                return 0; // Sin cambios
+            });
+
+            // Reconstruye la tabla con los datos ordenados
+            buildTable(filteredEmployeeData);
+        }
+        
+        // --- LÓGICA DE SELECCIÓN Y MODAL ---
+
+        /** * Maneja el evento de CLICK simple en la fila.
+         * Muestra el panel JSON de la fila seleccionada.
+         */
+        function handleRowSelection(rowData, rowElement) {
+            // 1. Limpiar selección visual previa
+            if (_globalSelectedRowElement) {
+                _globalSelectedRowElement.classList.remove('selected-row');
+            }
+
+            // 2. Aplicar selección visual a la nueva fila
+            _globalSelectedRowElement = rowElement;
+            _globalSelectedRowElement.classList.add('selected-row');
+
+            // 3. Guardar datos y renderizar JSON
+            _globalSelectedWorkerData = rowData;
+            renderSelectedJson(rowData);
+        }
+
+        /** Muestra el modal con los detalles de la fila seleccionada */
+        function showWorkerDetail(rowData, rowIndex) {
+            // Asegura que los datos estén seleccionados y el JSON actualizado
+            _globalSelectedWorkerData = rowData;
+            modalBodyContent.innerHTML = ''; // Limpia contenido anterior
+
+            // Construir el contenido del modal
+            MODAL_FIELD_MAP.forEach(field => {
+                const value = rowData[field.key];
+                
+                // Aplicar el formateador de la definición del MODAL_FIELD_MAP
+                const formattedValue = field.format(value);
+
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center py-1 border-b border-gray-600 dark:border-gray-500 last:border-b-0';
+                
+                // Título del campo
+                const labelSpan = document.createElement('span');
+                labelSpan.className = 'font-medium text-gray-300 dark:text-gray-200 flex items-center';
+                labelSpan.textContent = field.label + ':';
+                
+                // Valor del campo
+                const valueSpan = document.createElement('span');
+                valueSpan.className = 'font-bold text-white dark:text-blue-200 truncate ml-4';
+                valueSpan.textContent = formattedValue;
+
+                div.appendChild(labelSpan);
+                div.appendChild(valueSpan);
+                modalBodyContent.appendChild(div);
+            });
             
-            loadContent('inicio.html');
-        };
+            // Renderiza el JSON (simulado) y lo muestra en el inicio
+            renderSelectedJson(rowData);
+
+            showModal();
+        }
+        
+        /** Renderiza el JSON simplificado de la fila seleccionada */
+        function renderSelectedJson(rowData) {
+            const jsonDisplayContainer = document.getElementById('json-display-container');
+            const jsonDisplay = document.getElementById('selected-json-display');
+            
+            // Crear objeto JSON simplificado
+            const simplifiedJson = {};
+            JSON_FIELD_MAP.forEach(key => {
+                let value;
+                
+                if (key === 'NOMBRE_TRABAJADOR') {
+                    // Cálculo del nombre formateado
+                    value = formatWorkerName(rowData.NOMBRES, rowData.APELLIDOS); 
+                } else {
+                    value = rowData[key];
+                }
+                
+                // Formatear fechas si es la columna INGRESO
+                if (key === 'INGRESO' || key === 'NACIMIENTO') {
+                    value = formatDate(value);
+                }
+                
+                // APLICACIÓN DE FORMATO: CEDULA en el JSON con puntos
+                if (key === 'CEDULA') {
+                    value = formatNumberWithDots(value);
+                }
+                
+                simplifiedJson[key] = value;
+            });
+            
+            jsonDisplay.textContent = JSON.stringify(simplifiedJson, null, 2);
+            // Mostrar el contenedor JSON (es el objetivo del click simple)
+            jsonDisplayContainer.classList.remove('hidden');
+        }
+
+        // --- LÓGICA DE RENDERIZADO DE TABLA ---
+        
+        /**
+         * Construye la tabla HTML con los datos y aplica estilos para cabecera/columna fija.
+         * @param {Array<Object>} data - El array de objetos con los datos del personal.
+         */
+        function buildTable(data) {
+            const tableContainer = document.getElementById(ACTIVITY_FEED_ID);
+            
+            // Crear o actualizar el contenedor de la tabla
+            let tableWrapper = document.getElementById('table-wrapper');
+            if (!tableWrapper) {
+                tableWrapper = document.createElement('div');
+                tableWrapper.id = 'table-wrapper';
+                tableWrapper.className = 'table-scroll-container'; // Esta clase controla el scroll
+                
+                // Crear la tabla
+                const dataTable = document.createElement('table');
+                dataTable.id = 'data-table';
+                // Usamos 'border-collapse' de Tailwind aquí para el efecto de colapsado
+                dataTable.className = 'min-w-full table-fixed border-collapse'; 
+                
+                tableWrapper.appendChild(dataTable);
+                tableContainer.appendChild(tableWrapper);
+            }
+            const dataTable = document.getElementById('data-table');
+            dataTable.innerHTML = '';
+
+            // 1. Crear el encabezado (thead)
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            
+            // Columna ID (Fija y con color)
+            const idHeader = document.createElement('th');
+            idHeader.textContent = 'ID';
+            // Aseguramos que la celda ID fija también esté centrada
+            idHeader.className = 'sticky-id-cell header text-xs uppercase tracking-wider shadow-sm w-16 text-center'; 
+            headerRow.appendChild(idHeader);
+
+            // Resto de encabezados (Interactivos para ordenación)
+            TABLE_COLUMNS.forEach(col => {
+                const th = document.createElement('th');
+                th.textContent = col.label;
+                // Aseguramos que los encabezados estén centrados
+                th.className = 'sortable-header text-xs uppercase tracking-wider shadow-sm text-center';
+                th.style.width = '120px'; // Ancho de columna por defecto
+                
+                // Indicador de ordenación (SOLO si se ha aplicado una ordenación manual)
+                if (currentSortColumn === col.key) {
+                    const icon = document.createElement('i');
+                    icon.setAttribute('data-lucide', sortOrder === 'asc' ? 'chevron-up' : 'chevron-down');
+                    icon.classList.add('w-4', 'h-4', 'inline-block', 'ml-1');
+                    th.appendChild(icon);
+                }
+                
+                // Agregar listener de ordenación
+                th.addEventListener('click', () => handleSort(col.key));
+
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            dataTable.appendChild(thead);
+            lucide.createIcons(); // Renderizar iconos de ordenación
+
+            // 2. Crear el cuerpo de la tabla (tbody)
+            const tbody = document.createElement('tbody');
+            data.forEach((rowData, index) => {
+                const tr = document.createElement('tr');
+                
+                // LÓGICA DE COLORACIÓN DE FILA: Si CTRL1 no está vacío, aplicar color rojo
+                const ctrl1Value = rowData.CTRL1 ? String(rowData.CTRL1).trim() : '';
+                if (ctrl1Value.length > 0) {
+                    tr.classList.add('row-warning-text');
+                }
+                
+                // Clase hover personalizada para el fondo oscuro
+                tr.classList.add('worker-row', 'transition-colors', 'duration-150'); 
+                
+                // Clic simple: Selección y mostrar JSON
+                tr.addEventListener('click', (event) => {
+                    // Evita que el clic se ejecute inmediatamente antes del dblclick
+                    if (event.detail === 1) { 
+                       handleRowSelection(rowData, tr);
+                    }
+                });
+
+                // Doble clic: Abrir el modal de detalle
+                tr.addEventListener('dblclick', () => showWorkerDetail(rowData, index + 1));
+                
+                // Si esta fila es la previamente seleccionada globalmente, aplícale el estilo
+                if (_globalSelectedWorkerData && _globalSelectedWorkerData.CEDULA === rowData.CEDULA) {
+                    tr.classList.add('selected-row');
+                    // Actualizar la referencia del elemento (necesario al reconstruir la tabla)
+                    _globalSelectedRowElement = tr;
+                }
+
+
+                // Celda ID (Fija y con color)
+                const idCell = document.createElement('td');
+                idCell.textContent = index + 1; // ID correlativo
+                idCell.className = 'sticky-id-cell text-sm';
+                tr.appendChild(idCell);
+
+                // Resto de celdas de datos
+                TABLE_COLUMNS.forEach(col => {
+                    const td = document.createElement('td');
+                    let value = rowData[col.key];
+
+                    // Formateo especial para la columna INGRESO
+                    if (col.key === 'INGRESO' || col.key === 'NACIMIENTO') {
+                        value = formatDate(value);
+                    }
+                    
+                    // APLICACIÓN DE FORMATO: Cédula con puntos para la tabla
+                    if (col.key === 'CEDULA') {
+                        value = formatNumberWithDots(value);
+                    }
+                    
+                    // Formateo para CTRL2 (Días Vacaciones)
+                    if (col.key === 'CTRL2') {
+                        value = value || '0';
+                    }
+
+                    td.textContent = value !== undefined && value !== null ? value : 'N/A';
+                    
+                    // APLICACIÓN DE LA CLASE ÚNICA Y JUSTIFICACIÓN
+                    td.className = 'table-data-cell'; 
+                    
+                    // Lógica de justificación de contenido
+                    if (col.key === 'CEDULA' || col.key === 'CTRL2') {
+                        // Justificación a la derecha para campos numéricos (con padding derecho)
+                        td.classList.add('text-right', 'pr-3', 'pl-1'); 
+                    } else {
+                        // Justificación a la izquierda para el resto (con padding izquierdo)
+                        td.classList.add('text-left', 'pl-3', 'pr-1'); 
+                    }
+
+                    tr.appendChild(td);
+                });
+
+                tbody.appendChild(tr);
+            });
+            dataTable.appendChild(tbody);
+
+            // 3. Ocultar el spinner y mostrar la tabla
+            document.getElementById('loading-spinner')?.classList.add('hidden');
+            tableWrapper.classList.remove('hidden');
+            
+            // 4. Actualizar métricas
+            
+            // 4a. Métrica 1: Total Registros (del conjunto filtrado)
+            const totalFilteredRecords = data.length;
+            const totalMetricElement = document.querySelector('[data-metric="total"]');
+            if (totalMetricElement) {
+                totalMetricElement.textContent = totalFilteredRecords;
+            }
+
+            // 4b. Métrica 2: Sin Datos Vacaciones (Registros filtrados donde CTRL1 tiene valor)
+            const recordsWithCtrl1 = data.filter(worker => {
+                const ctrl1Value = worker.CTRL1 ? String(worker.CTRL1).trim() : '';
+                return ctrl1Value.length > 0;
+            }).length;
+
+            const ctrl1MetricElement = document.querySelector('[data-metric="ctrl1_warning"]');
+            if (ctrl1MetricElement) {
+                 ctrl1MetricElement.textContent = recordsWithCtrl1;
+            }
+        }
+
+        // --- LÓGICA DE CARGA DE DATOS ---
+        
+        /**
+         * Función principal para cargar y procesar los datos desde GAS.
+         */
+        async function loadData() {
+            const tableContainer = document.getElementById(ACTIVITY_FEED_ID);
+            
+            // Mostrar spinner y ocultar cualquier tabla anterior
+            document.getElementById('loading-spinner')?.classList.remove('hidden');
+            document.getElementById('table-wrapper')?.classList.add('hidden');
+
+            try {
+                const response = await fetch(GAS_API_URL, {
+                    method: 'GET',
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error de red: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                let data = result;
+
+                // Estructura común de GAS: { data: [...] } o array directo
+                if (result && result.data && Array.isArray(result.data)) {
+                    data = result.data;
+                } else if (!Array.isArray(result)) {
+                    throw new Error("Formato de datos no válido. Se esperaba un array JSON.");
+                }
+
+                if (data.length === 0) {
+                    tableContainer.innerHTML = '<div class="text-center py-8 text-gray-500 dark:text-gray-400">No se encontraron registros.</div>';
+                } else {
+                    allEmployeeData = data;
+                    filteredEmployeeData = [...data]; // Inicialmente, todos los datos son filtrados
+
+                    // CAMBIO CLAVE: Renderiza la tabla inicial SIN ordenamiento
+                    buildTable(filteredEmployeeData);
+                }
+
+            } catch (error) {
+                console.error("Fallo al obtener los datos:", error);
+                
+                // Mostrar mensaje de error en el contenedor
+                tableContainer.innerHTML = `
+                    <div class="bg-red-800 p-4 rounded-xl shadow-lg text-white">
+                        <strong class="font-bold">Error de Carga:</strong>
+                        <p class="mt-1 text-sm">No se pudo cargar la información. Detalles: ${error.message}</p>
+                        <p class="mt-2 text-xs opacity-80">Verifique la URL y la implementación de Google Apps Script (CORS/Deploy).</p>
+                    </div>
+                `;
+                // También actualiza las métricas a 0 o N/A en caso de error
+                const totalMetricElement = document.querySelector('[data-metric="total"]');
+                if (totalMetricElement) totalMetricElement.textContent = 'N/A';
+                const ctrl1MetricElement = document.querySelector('[data-metric="ctrl1_warning"]');
+                if (ctrl1MetricElement) ctrl1MetricElement.textContent = 'N/A';
+            }
+        }
+
+        // --- INICIALIZACIÓN ---
+
+        // Inicia la aplicación cargando el contenido de la sección 'Inicio'
+        document.addEventListener('DOMContentLoaded', () => {
+            loadContent('Inicio');
+        });
+        
     </script>
 </body>
 </html>
