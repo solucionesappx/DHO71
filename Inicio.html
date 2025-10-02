@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplicación Móvil - Datos GAS Vr</title>
+    <title>Aplicación Móvil - Datos GAS</title>
     <!-- Carga de Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Carga de Lucide Icons CDN para iconos limpios -->
@@ -36,6 +36,9 @@
             --header-offset: 76px; 
             /* Altura del footer (h-18 = 72px) para el padding inferior del main */
             --footer-height: 72px; 
+            
+            /* Padding base para el modo inmersivo */
+            --immersive-padding: 16px; 
             
             /* Color de hover verde para la fila */
             --color-row-hover: #15803d; /* Verde oscuro (ej. Emerald 700) */
@@ -92,11 +95,15 @@
             border-color: #4b5563;
         }
 
-        /* Ajuste del contenido principal: Solo se mantiene el offset inferior */
+        /* AJUSTE: Las propiedades de padding del main ahora se manejan en JS 
+           para alternar entre modo normal (con offset) y modo inmersivo (con padding reducido).
+           Se mantiene solo flex y overflow para el scroll principal. */
         main {
-            padding-bottom: var(--footer-height); 
             flex-grow: 1;
-            overflow-y: auto; /* Habilitar scroll solo en el cuerpo */
+            overflow-y: auto; 
+            padding-left: 1rem; /* px-4 */
+            padding-right: 1rem; /* px-4 */
+            transition: padding 0.3s ease-in-out;
         }
         
         /* Estilo para los botones del footer (interacción táctil) */
@@ -125,12 +132,19 @@
 
         /* Contenedor de la tabla con scroll horizontal, max-height y SIN scroll vertical interno */
         .table-scroll-container {
-            max-height: 300px; 
+            max-height: 450px; 
             overflow-x: auto; 
             overflow-y: auto; 
             border-radius: 0.75rem; /* rounded-xl */
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
             display: block; 
+        }
+        
+        /* REGLA DE ANCHO AUTOMÁTICO SOLICITADA */
+        .table-scroll-container table {
+            table-layout: auto; /* Ancho de columna basado en el contenido */
+            width: max-content; /* Permite que la tabla se ensanche para que el scroll funcione */
+            min-width: 100%; /* Asegura que ocupe el 100% del contenedor visible si el contenido es pequeño */
         }
         
         /* Encabezados fijos: CENTRADOS */
@@ -185,6 +199,7 @@
             border-right: 1px solid rgba(255, 255, 255, 0.2); /* Separador suave */
             font-weight: bold;
             text-align: center;
+            /* Se ha quitado el 'w-16' fijo de CSS para que JS controle el padding y el ancho. */
         }
 
         /* Combinación para la celda de la esquina superior izquierda (Header de ID) */
@@ -254,6 +269,52 @@
             max-width: 380px; /* Ancho máximo para que no sea demasiado grande */
         }
         
+        /* --- ESTILOS DEL TOGGLE SWITCH DE PANTALLA COMPLETA --- */
+        .toggle-switch-container {
+            position: relative;
+            display: inline-block;
+            width: 50px; /* Ancho total */
+            height: 28px; /* Altura total */
+        }
+
+        .toggle-switch-container input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #374151; /* Color Negro/Gris Oscuro (off) */
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--color-header); /* #2D59A1 (on) */
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px); /* Mueve el círculo a la derecha (50 - 20 - 4*2 = 22) */
+        }
+        
     </style>
 </head>
 <body class="dark transition-colors duration-300">
@@ -262,7 +323,7 @@
     <div id="app-container" class="shadow-xl">
         
         <!-- CINTILLO SUPERIOR FIJO (HEADER) -->
-        <header class="fixed top-0 w-full h-14 border-b border-gray-700 dark:border-gray-500 flex items-center justify-between px-4">
+        <header id="app-header" class="fixed top-0 w-full h-14 border-b border-gray-700 dark:border-gray-500 flex items-center justify-between px-4">
             <h1 class="text-xl font-bold">Mi Aplicación Móvil</h1>
             
             <div class="flex space-x-3">
@@ -281,13 +342,13 @@
         </header>
 
         <!-- CUERPO PRINCIPAL (MAIN) -->
-        <!-- pt-[76px] asegura 56px de offset del header + 20px de padding interno. -->
-        <main id="main-content" class="px-4 pb-4 flex flex-col space-y-4 pt-[76px]">
+        <!-- Las clases de padding se manejarán dinámicamente en JS para el modo inmersivo. -->
+        <main id="main-content" class="pb-4 flex flex-col space-y-4 pt-[76px]">
             <!-- Contenido simulado de la página de Inicio (se carga dinámicamente) -->
         </main>
 
         <!-- BARRA DE NAVEGACIÓN FIJA (FOOTER) -->
-        <footer class="fixed bottom-0 w-full h-18 border-t border-gray-700 dark:border-gray-500 flex items-center justify-around py-2">
+        <footer id="app-footer" class="fixed bottom-0 w-full h-18 border-t border-gray-700 dark:border-gray-500 flex items-center justify-around py-2">
             
             <!-- AJUSTE CLAVE: Se añade la clase 'active' al botón de Inicio para la carga inicial -->
             <button class="footer-btn active" data-section="Inicio">
@@ -386,9 +447,9 @@
         
         // --- CONSTANTES DE CACHÉ ---
         const CACHE_KEY = 'employeeDataCache';
-        // CAMBIO: 900000 milisegundos = 15 minutos (antes era 3600000 = 1 hora)
-        const CACHE_EXPIRATION_MS = 900000; 
-        
+        const CACHE_EXPIRATION_MS = 900000; // 15 minutos
+        const FULLSCREEN_KEY = 'fullscreenActive'; // Clave para localStorage
+
         // Mapeos de las columnas que se muestran en la TABLA (debe coincidir con las keys del JSON de GAS)
         const TABLE_COLUMNS = [
             { key: 'EMPRESA', label: 'EMPRESA' },
@@ -404,7 +465,7 @@
             { key: 'CTRL2', label: 'Días Vacaciones' }, 
         ];
         
-        // Mapeos para el contenido del MODAL y el JSON de Filtrado
+        // Mapeos para el contenido del MODAL
         const MODAL_FIELD_MAP = [
             { key: 'NOMBRES', label: 'Nombres', format: (v) => v || 'N/A' },
             { key: 'APELLIDOS', label: 'Apellidos', format: (v) => v || 'N/A' },
@@ -423,7 +484,6 @@
         ];
         
         // Campos usados para el JSON de filtrado (simulado)
-        // CEDULA será formateada en renderSelectedJson
         const JSON_FIELD_MAP = [
             'CEDULA', 
             'EMPRESA', 
@@ -431,7 +491,7 @@
             'NOMBRE_TRABAJADOR' // Nuevo campo calculado
         ];
         
-        // Mapeo de navegación para cargar el contenido SPA (Utiliza las claves de tu mock)
+        // Mapeo de navegación para cargar el contenido SPA
         const NAV_MAP = {
             'Inicio': 'inicio.html',
             'Nuevo Registro': 'NuevoReg.html',
@@ -439,105 +499,7 @@
             'Perfil': 'PerfilUsuario.html',
             'Configuración': 'ConfigApp.html'
         };
-        
-        /**
-         * Formatea un número o cadena de número para incluir separadores de miles con punto.
-         * Ej: 12345678 -> 12.345.678
-         * @param {string|number} value Número a formatear.
-         * @returns {string} Número formateado.
-         */
-        function formatNumberWithDots(value) {
-            // Convierte a string si no lo es, y elimina cualquier caracter no numérico (excepto si son separadores de miles/decimales para limpieza)
-            const numStr = String(value).replace(/[^\d]/g, ''); 
-            if (!numStr) return '';
-            
-            // Usa Intl.NumberFormat para formatear con separador de miles de punto
-            try {
-                // Se fuerza 'es-ES' que usa '.' como separador de miles
-                // Se usa 'style: decimal' por si el número es un string muy largo
-                const formatted = new Intl.NumberFormat('es-ES', { style: 'decimal', useGrouping: true }).format(parseInt(numStr, 10));
-                return formatted;
-            } catch (e) {
-                // Fallback simple: usar regex (menos robusto que Intl, pero funciona)
-                return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-            }
-        }
 
-        /**
-         * Función para formatear el nombre completo del trabajador según la regla:
-         * 1er Nombre + Inicial 2do Nombre. + 1er Apellido + Inicial 2do Apellido.
-         * @param {string} nombres Cadena de nombres (ej: "JUAN ALBERTO")
-         * @param {string} apellidos Cadena de apellidos (ej: "PÉREZ GÓMEZ")
-         * @returns {string} El nombre formateado (ej: "JUAN A. PÉREZ G.")
-         */
-        function formatWorkerName(nombres, apellidos) {
-            if (!nombres || !apellidos) return 'N/A';
-
-            // Limpia y divide las cadenas en palabras, eliminando vacíos
-            const names = nombres.trim().toUpperCase().split(/\s+/).filter(Boolean);
-            const lastNames = apellidos.trim().toUpperCase().split(/\s+/).filter(Boolean);
-
-            let formattedName = '';
-
-            // 1. Primer Nombre + Inicial del Segundo Nombre (si existe)
-            if (names.length > 0) {
-                formattedName += names[0];
-                if (names.length > 1) {
-                    formattedName += ' ' + names[1].charAt(0) + '.'; // JUAN A.
-                }
-            }
-
-            // 2. Primer Apellido
-            if (lastNames.length > 0) {
-                if (formattedName) formattedName += ' '; // Añade espacio entre nombre y apellido
-                formattedName += lastNames[0]; // JUAN A. PÉREZ
-                
-                // 3. Inicial del Segundo Apellido (si existe)
-                if (lastNames.length > 1) {
-                    formattedName += ' ' + lastNames[1].charAt(0) + '.'; // JUAN A. PÉREZ G.
-                }
-            }
-            
-            return formattedName.trim() || 'N/A';
-        }
-
-        // Función para formatear fechas a un formato legible (DD/MM/YYYY)
-        function formatDate(dateString) {
-            try {
-                // Intenta crear una fecha a partir de la cadena (funciona con formatos YYYY-MM-DD o fechas de Excel/Sheet)
-                let date = new Date(dateString);
-                
-                // Si es una fecha válida y no es NaN, formatea
-                if (!isNaN(date.getTime())) {
-                    // Si el dato es un número (serial de Excel), ajusta la base de tiempo
-                    if (!isNaN(dateString) && String(dateString).length < 10) { 
-                        const excelDate = new Date(1899, 11, 30); // Época base de Excel
-                        excelDate.setDate(excelDate.getDate() + parseInt(dateString));
-                        date = excelDate;
-                    }
-                    
-                    const day = String(date.getDate()).padStart(2, '0');
-                    const month = String(date.getMonth() + 1).padStart(2, '0');
-                    const year = date.getFullYear();
-                    return `${day}/${month}/${year}`;
-                }
-            } catch (e) {
-                // Si falla la conversión, devuelve el valor original
-                return dateString;
-            }
-            return dateString;
-        }
-
-        // --- VARIABLES DOM Y CONTENIDO MOCK ---
-        const themeToggle = document.getElementById('theme-toggle');
-        const htmlElement = document.documentElement;
-        const mainContent = document.getElementById('main-content');
-        const footerButtons = document.querySelectorAll('.footer-btn');
-        const modalOverlay = document.getElementById('DetalleTrabajadorModal');
-        const modalBodyContent = document.getElementById('modalBodyContent');
-        const alertModal = document.getElementById('custom-alert-modal');
-        const alertMessage = document.getElementById('alert-message');
-        
         // Obtiene la fecha actual en formato DD/MM/YYYY para la tarjeta de bienvenida
         const todayDate = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
         
@@ -643,19 +605,122 @@
                     <p class="text-xl font-bold">Datos del Usuario</p> 
                 </div> 
             `, 
+            // *** CONTENIDO ACTUALIZADO DE CONFIGURACIÓN CON EL TOGGLE SWITCH ***
             'ConfigApp.html': ` 
                 <h2 class="text-2xl font-semibold mb-4 text-center">Configuración ($$ \\text{ConfigApp.html} $$)</h2> 
                 <div class="p-6 rounded-xl shadow-lg light:bg-gray-100 dark:bg-gray-600 space-y-4"> 
-                    <p>Opciones y ajustes de la aplicación.</p> 
-                    <div class="flex justify-between items-center py-2 border-t light:border-gray-300 dark:border-gray-500"> 
+                    
+                    <!-- Opción de Pantalla Completa (Full Screen) -->
+                    <div class="flex justify-between items-center py-2 border-b light:border-gray-300 dark:border-gray-500"> 
+                        <span class="font-medium">Modo Pantalla Completa (Inmersivo)</span> 
+                        
+                        <label class="toggle-switch-container">
+                            <!-- El input llama a toggleFullscreen() cuando su estado cambia -->
+                            <input type="checkbox" id="fullscreen-toggle" onchange="toggleFullscreen()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- Separador y Versión de la App -->
+                    <div class="flex justify-between items-center py-2"> 
                         <span>Versión de la App:</span> 
                         <span class="font-mono">1.0.0</span> 
                     </div> 
                 </div> 
             ` 
+            // *** FIN CONTENIDO ACTUALIZADO ***
         };
         
         // --- FUNCIONES DE UTILIDAD (MODAL Y ALERTA) ---
+        
+        /**
+         * Formatea un número o cadena de número para incluir separadores de miles con punto.
+         * Ej: 12345678 -> 12.345.678
+         * @param {string|number} value Número a formatear.
+         * @returns {string} Número formateado.
+         */
+        function formatNumberWithDots(value) {
+            // Convierte a string si no lo es, y elimina cualquier caracter no numérico (excepto si son separadores de miles/decimales para limpieza)
+            const numStr = String(value).replace(/[^\d]/g, ''); 
+            if (!numStr) return '';
+            
+            // Usa Intl.NumberFormat para formatear con separador de miles de punto
+            try {
+                // Se fuerza 'es-ES' que usa '.' como separador de miles
+                // Se usa 'style: decimal' por si el número es un string muy largo
+                const formatted = new Intl.NumberFormat('es-ES', { style: 'decimal', useGrouping: true }).format(parseInt(numStr, 10));
+                return formatted;
+            } catch (e) {
+                // Fallback simple: usar regex (menos robusto que Intl, pero funciona)
+                return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            }
+        }
+
+        /**
+         * Función para formatear el nombre completo del trabajador según la regla:
+         * 1er Nombre + Inicial 2do Nombre. + 1er Apellido + Inicial 2do Apellido.
+         * @param {string} nombres Cadena de nombres (ej: "JUAN ALBERTO")
+         * @param {string} apellidos Cadena de apellidos (ej: "PÉREZ GÓMEZ")
+         * @returns {string} El nombre formateado (ej: "JUAN A. PÉREZ G.")
+         */
+        function formatWorkerName(nombres, apellidos) {
+            if (!nombres || !apellidos) return 'N/A';
+
+            // Limpia y divide las cadenas en palabras, eliminando vacíos
+            const names = nombres.trim().toUpperCase().split(/\s+/).filter(Boolean);
+            const lastNames = apellidos.trim().toUpperCase().split(/\s+/).filter(Boolean);
+
+            let formattedName = '';
+
+            // 1. Primer Nombre + Inicial del Segundo Nombre (si existe)
+            if (names.length > 0) {
+                formattedName += names[0];
+                if (names.length > 1) {
+                    formattedName += ' ' + names[1].charAt(0) + '.'; // JUAN A.
+                }
+            }
+
+            // 2. Primer Apellido
+            if (lastNames.length > 0) {
+                if (formattedName) formattedName += ' '; // Añade espacio entre nombre y apellido
+                formattedName += lastNames[0]; // JUAN A. PÉREZ
+                
+                // 3. Inicial del Segundo Apellido (si existe)
+                if (lastNames.length > 1) {
+                    formattedName += ' ' + lastNames[1].charAt(0) + '.'; // JUAN A. PÉREZ G.
+                }
+            }
+            
+            return formattedName.trim() || 'N/A';
+        }
+
+        /**
+         * Función para formatear fechas a un formato legible (DD/MM/YYYY).
+         * @param {string} dateString Cadena de fecha.
+         * @returns {string} Fecha formateada.
+         */
+        function formatDate(dateString) {
+            try {
+                let date = new Date(dateString);
+                
+                if (!isNaN(date.getTime())) {
+                    // Ajuste para seriales de Excel/Sheet
+                    if (!isNaN(dateString) && String(dateString).length < 10) { 
+                        const excelDate = new Date(1899, 11, 30); 
+                        excelDate.setDate(excelDate.getDate() + parseInt(dateString));
+                        date = excelDate;
+                    }
+                    
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const year = date.getFullYear();
+                    return `${day}/${month}/${year}`;
+                }
+            } catch (e) {
+                return dateString;
+            }
+            return dateString;
+        }
 
         /** Muestra una alerta personalizada (reemplazo de alert()) */
         function showCustomAlert(message) {
@@ -676,9 +741,75 @@
         /** Cierra el modal de detalle del trabajador */
         function closeModal() {
             modalOverlay.style.display = 'none';
-            
-            // El panel JSON permanece visible después del cierre del modal.
         }
+        
+        // --- VARIABLES DOM ---
+        const themeToggle = document.getElementById('theme-toggle');
+        const htmlElement = document.documentElement;
+        const appContainer = document.getElementById('app-container');
+        const mainContent = document.getElementById('main-content');
+        const appHeader = document.getElementById('app-header');
+        const appFooter = document.getElementById('app-footer');
+        const footerButtons = document.querySelectorAll('.footer-btn');
+        const modalOverlay = document.getElementById('DetalleTrabajadorModal');
+        const modalBodyContent = document.getElementById('modalBodyContent');
+        const alertModal = document.getElementById('custom-alert-modal');
+        const alertMessage = document.getElementById('alert-message');
+
+        /** * LÓGICA DE PANTALLA COMPLETA SIMULADA 
+         * Simula el modo inmersivo dentro del contenedor.
+         * Es una solución alternativa ya que el navegador bloquea la API Fullscreen
+         * dentro de un iframe (error: Disallowed by permissions policy).
+         */
+        function toggleFullscreen() {
+            const toggle = document.getElementById('fullscreen-toggle');
+            const isChecked = toggle.checked;
+
+            if (isChecked) {
+                // Entrar en modo inmersivo: Ocultar header/footer
+                appHeader.style.display = 'none';
+                appFooter.style.display = 'none';
+                
+                // Aplicar padding superior/inferior solo para el modo inmersivo
+                mainContent.style.paddingTop = 'var(--immersive-padding)'; 
+                mainContent.style.paddingBottom = 'var(--immersive-padding)'; 
+                
+                localStorage.setItem(FULLSCREEN_KEY, 'true');
+                console.log("Modo Inmersivo Activado: Se ocultaron Header y Footer.");
+            } else {
+                // Salir del modo inmersivo: Mostrar header/footer
+                appHeader.style.display = 'flex';
+                appFooter.style.display = 'flex';
+                
+                // Restaurar padding superior/inferior para el modo normal (con barras)
+                mainContent.style.paddingTop = 'var(--header-offset)'; 
+                mainContent.style.paddingBottom = 'var(--footer-height)'; 
+                
+                localStorage.setItem(FULLSCREEN_KEY, 'false');
+                console.log("Modo Inmersivo Desactivado: Se restauraron Header y Footer.");
+            }
+        }
+        
+        /** Aplica el estado de inmersión guardado al cargar una sección. */
+        function applyFullscreenState() {
+            const isFsActive = localStorage.getItem(FULLSCREEN_KEY) === 'true';
+
+            // Usar la lógica de toggleFullscreen de forma controlada para aplicar el estado
+            if (appHeader && appFooter) {
+                if (isFsActive) {
+                    appHeader.style.display = 'none';
+                    appFooter.style.display = 'none';
+                    mainContent.style.paddingTop = 'var(--immersive-padding)'; 
+                    mainContent.style.paddingBottom = 'var(--immersive-padding)'; 
+                } else {
+                    appHeader.style.display = 'flex';
+                    appFooter.style.display = 'flex';
+                    mainContent.style.paddingTop = 'var(--header-offset)'; 
+                    mainContent.style.paddingBottom = 'var(--footer-height)'; 
+                }
+            }
+        }
+
 
         // --- LÓGICA DE TEMAS ---
 
@@ -719,7 +850,7 @@
                 }
             });
 
-            // Limpia el contenido y muestra el spinner si es la sección de Inicio
+            // Limpia el contenido
             mainContent.innerHTML = '';
             
             // Determina la clave de contenido a cargar usando el NAV_MAP
@@ -736,11 +867,29 @@
                 
                 // Llama a la función para cargar los datos
                 loadData();
+            } else if (sectionName === 'Configuración') {
+                 // Carga el contenido mock de 'ConfigApp.html'
+                mainContent.innerHTML = mockContentMap[contentKey];
+                lucide.createIcons();
+                
+                // ********* LÓGICA ESPECÍFICA PARA CONFIGURACIÓN *********
+                const fullscreenToggle = document.getElementById('fullscreen-toggle');
+                
+                // Aplicar estado del localStorage al toggle
+                const isFsActive = localStorage.getItem(FULLSCREEN_KEY) === 'true';
+                if (fullscreenToggle) {
+                    fullscreenToggle.checked = isFsActive;
+                }
+                // ********************************************************
+
             } else {
                 // Carga el contenido mock para otras secciones
                 mainContent.innerHTML = mockContentMap[contentKey] || `<div class="p-8 text-center text-gray-500 dark:text-gray-400">Contenido para ${sectionName}</div>`;
                 lucide.createIcons(); // Vuelve a renderizar los iconos
             }
+            
+            // APLICA EL ESTADO DE INMERSIÓN GUARDADO
+            applyFullscreenState();
         }
 
         // Agrega listeners a los botones de navegación
@@ -775,7 +924,7 @@
                 });
             }
 
-            // CAMBIO CLAVE: Después de filtrar, reconstruye la tabla sin ordenar
+            // Después de filtrar, reconstruye la tabla sin ordenar
             buildTable(filteredEmployeeData);
         }
         
@@ -826,9 +975,7 @@
         
         // --- LÓGICA DE SELECCIÓN Y MODAL ---
 
-        /** * Maneja el evento de CLICK simple en la fila.
-         * Muestra el panel JSON de la fila seleccionada.
-         */
+        /** Maneja el evento de CLICK simple en la fila. Muestra el panel JSON de la fila seleccionada. */
         function handleRowSelection(rowData, rowElement) {
             // 1. Limpiar selección visual previa
             if (_globalSelectedRowElement) {
@@ -846,15 +993,12 @@
 
         /** Muestra el modal con los detalles de la fila seleccionada */
         function showWorkerDetail(rowData, rowIndex) {
-            // Asegura que los datos estén seleccionados y el JSON actualizado
             _globalSelectedWorkerData = rowData;
             modalBodyContent.innerHTML = ''; // Limpia contenido anterior
 
             // Construir el contenido del modal
             MODAL_FIELD_MAP.forEach(field => {
                 const value = rowData[field.key];
-                
-                // Aplicar el formateador de la definición del MODAL_FIELD_MAP
                 const formattedValue = field.format(value);
 
                 const div = document.createElement('div');
@@ -898,7 +1042,7 @@
                     value = rowData[key];
                 }
                 
-                // Formatear fechas si es la columna INGRESO
+                // Formatear INGRESO/NACIMIENTO
                 if (key === 'INGRESO' || key === 'NACIMIENTO') {
                     value = formatDate(value);
                 }
@@ -925,6 +1069,10 @@
         function buildTable(data) {
             const tableContainer = document.getElementById(ACTIVITY_FEED_ID);
             
+            // Mostrar spinner y ocultar cualquier tabla anterior
+            document.getElementById('loading-spinner')?.classList.remove('hidden');
+            document.getElementById('table-wrapper')?.classList.add('hidden');
+            
             // Crear o actualizar el contenedor de la tabla
             let tableWrapper = document.getElementById('table-wrapper');
             if (!tableWrapper) {
@@ -935,8 +1083,7 @@
                 // Crear la tabla
                 const dataTable = document.createElement('table');
                 dataTable.id = 'data-table';
-                // Usamos 'border-collapse' de Tailwind aquí para el efecto de colapsado
-                dataTable.className = 'min-w-full table-fixed border-collapse'; 
+                dataTable.className = 'min-w-full border-collapse'; 
                 
                 tableWrapper.appendChild(dataTable);
                 tableContainer.appendChild(tableWrapper);
@@ -951,17 +1098,15 @@
             // Columna ID (Fija y con color)
             const idHeader = document.createElement('th');
             idHeader.textContent = 'ID';
-            // Aseguramos que la celda ID fija también esté centrada
-            idHeader.className = 'sticky-id-cell header text-xs uppercase tracking-wider shadow-sm w-16 text-center'; 
+            // CAMBIO CLAVE: Se elimina 'w-16' y se añade 'px-3' para reducir el ancho
+            idHeader.className = 'sticky-id-cell header text-xs uppercase tracking-wider shadow-sm text-center px-3'; 
             headerRow.appendChild(idHeader);
 
             // Resto de encabezados (Interactivos para ordenación)
             TABLE_COLUMNS.forEach(col => {
                 const th = document.createElement('th');
                 th.textContent = col.label;
-                // Aseguramos que los encabezados estén centrados
                 th.className = 'sortable-header text-xs uppercase tracking-wider shadow-sm text-center';
-                th.style.width = '120px'; // Ancho de columna por defecto
                 
                 // Indicador de ordenación (SOLO si se ha aplicado una ordenación manual)
                 if (currentSortColumn === col.key) {
@@ -996,7 +1141,6 @@
                 
                 // Clic simple: Selección y mostrar JSON
                 tr.addEventListener('click', (event) => {
-                    // Evita que el clic se ejecute inmediatamente antes del dblclick
                     if (event.detail === 1) { 
                        handleRowSelection(rowData, tr);
                     }
@@ -1016,7 +1160,8 @@
                 // Celda ID (Fija y con color)
                 const idCell = document.createElement('td');
                 idCell.textContent = index + 1; // ID correlativo
-                idCell.className = 'sticky-id-cell text-sm';
+                // CAMBIO CLAVE: Se añade 'px-3' (padding horizontal) y 'py-1' (vertical)
+                idCell.className = 'sticky-id-cell text-sm px-3 py-1';
                 tr.appendChild(idCell);
 
                 // Resto de celdas de datos
@@ -1073,7 +1218,7 @@
                 totalMetricElement.textContent = totalFilteredRecords;
             }
 
-            // 4b. Métrica 2: Con Notas/Alerta (Registros filtrados donde CTRL1 tiene valor)
+            // 4b. Métrica 2: Con Notas/Alerta (Registros filtrados con CTRL1 con valor)
             const recordsWithCtrl1 = data.filter(worker => {
                 const ctrl1Value = worker.CTRL1 ? String(worker.CTRL1).trim() : '';
                 return ctrl1Value.length > 0;
