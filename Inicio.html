@@ -306,7 +306,7 @@
         const htmlElement = document.documentElement;
         const mainContent = document.getElementById('main-content');
         const footerButtons = document.querySelectorAll('.footer-btn');
-        const usuarioprimerNombre = localStorage.getItem('Usuario_Primer_Nombre');
+        const usuarioprimerNombre = localStorage.getElementById('Usuario_Primer_Nombre');
         
         // Función para obtener la fecha de hoy en español para el dashboard
         const todayDate = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
