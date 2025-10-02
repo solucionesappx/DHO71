@@ -307,18 +307,6 @@
         const mainContent = document.getElementById('main-content');
         const footerButtons = document.querySelectorAll('.footer-btn');
 
-        const usuarioTienda = localStorage.getItem('Usuario_Tienda');
-        const usuarioNombre = localStorage.getItem('Usuario_Nombre');
-        const usuarioPerfil = localStorage.getItem('Usuario_Perfil');
-        const usuarioIdx = localStorage.getItem('Usuario_Idx');
-        const todayDate = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
-
-        // Extraer el primer nombre
-        let primerNombre = '';
-        if (usuarioNombre) {
-            primerNombre = usuarioNombre.trim().split(' ')[0];
-        };
-
         // Función para obtener la fecha de hoy en español para el dashboard
         const todayDate = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
 
