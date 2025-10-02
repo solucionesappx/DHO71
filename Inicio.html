@@ -125,7 +125,7 @@
 
         /* Contenedor de la tabla con scroll horizontal, max-height y SIN scroll vertical interno */
         .table-scroll-container {
-            max-height: 450px; 
+            max-height: 330px; 
             overflow-x: auto; 
             overflow-y: auto; 
             border-radius: 0.75rem; /* rounded-xl */
@@ -384,6 +384,11 @@
         const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbx87WvxA9ca1KyGMA1wsw1npZw5vPtjoItomhF823BICXScNrWGFh5m0Dj6Veb24CtHXQ/exec?sheet=BD_Personal2';
         const ACTIVITY_FEED_ID = 'activity-feed-container';
         
+        // --- CONSTANTES DE CACHÉ ---
+        const CACHE_KEY = 'employeeDataCache';
+        // CAMBIO: 900000 milisegundos = 15 minutos (antes era 3600000 = 1 hora)
+        const CACHE_EXPIRATION_MS = 900000; 
+        
         // Mapeos de las columnas que se muestran en la TABLA (debe coincidir con las keys del JSON de GAS)
         const TABLE_COLUMNS = [
             { key: 'EMPRESA', label: 'EMPRESA' },
@@ -566,7 +571,7 @@
                         <div class="flex flex-col leading-tight"> 
                             <!-- Cambiado a data-metric="ctrl1_warning" -->
                             <span class="text-xl font-extrabold text-red-500" data-metric="ctrl1_warning">...</span> 
-                            <span class="text-xs light:text-gray-500 dark:text-gray-300 whitespace-nowrap">Sin Datos Vacaciones</span> 
+                            <span class="text-xs light:text-gray-500 dark:text-gray-300 whitespace-nowrap">Con Notas/Alerta</span> 
                         </div> 
                     </div> 
                 </div> 
@@ -1068,7 +1073,7 @@
                 totalMetricElement.textContent = totalFilteredRecords;
             }
 
-            // 4b. Métrica 2: Sin Datos Vacaciones (Registros filtrados donde CTRL1 tiene valor)
+            // 4b. Métrica 2: Con Notas/Alerta (Registros filtrados donde CTRL1 tiene valor)
             const recordsWithCtrl1 = data.filter(worker => {
                 const ctrl1Value = worker.CTRL1 ? String(worker.CTRL1).trim() : '';
                 return ctrl1Value.length > 0;
@@ -1080,10 +1085,11 @@
             }
         }
 
-        // --- LÓGICA DE CARGA DE DATOS ---
+        // --- LÓGICA DE CARGA DE DATOS (CON CACHÉ) ---
         
         /**
-         * Función principal para cargar y procesar los datos desde GAS.
+         * Función principal para cargar y procesar los datos desde GAS, 
+         * utilizando localStorage como caché con una expiración de 15 minutos.
          */
         async function loadData() {
             const tableContainer = document.getElementById(ACTIVITY_FEED_ID);
@@ -1091,7 +1097,33 @@
             // Mostrar spinner y ocultar cualquier tabla anterior
             document.getElementById('loading-spinner')?.classList.remove('hidden');
             document.getElementById('table-wrapper')?.classList.add('hidden');
-
+            
+            // --- 1. INTENTAR CARGAR DESDE CACHÉ ---
+            const cachedData = localStorage.getItem(CACHE_KEY);
+            if (cachedData) {
+                try {
+                    const parsedCache = JSON.parse(cachedData);
+                    const now = new Date().getTime();
+                    
+                    // Verificar si el caché aún es válido (15 minutos)
+                    if (now < parsedCache.expiry && Array.isArray(parsedCache.data)) {
+                        console.log("Cargando datos desde el CACHÉ local (Válido por 15 minutos).");
+                        const dataToUse = parsedCache.data;
+                        allEmployeeData = dataToUse;
+                        filteredEmployeeData = [...dataToUse];
+                        buildTable(filteredEmployeeData);
+                        return; // ¡Carga exitosa desde caché!
+                    } else {
+                        console.log("Caché expirado o no válido (15 minutos). Recuperando datos nuevos.");
+                        localStorage.removeItem(CACHE_KEY); // Limpiar caché expirado
+                    }
+                } catch (e) {
+                    console.error("Error al parsear el caché local:", e);
+                    localStorage.removeItem(CACHE_KEY); // Limpiar caché corrupto
+                }
+            }
+            
+            // --- 2. SI EL CACHÉ FALLA O EXPIRA, HACER FETCH ---
             try {
                 const response = await fetch(GAS_API_URL, {
                     method: 'GET',
@@ -1117,7 +1149,13 @@
                     allEmployeeData = data;
                     filteredEmployeeData = [...data]; // Inicialmente, todos los datos son filtrados
 
-                    // CAMBIO CLAVE: Renderiza la tabla inicial SIN ordenamiento
+                    // --- 3. GUARDAR NUEVOS DATOS EN CACHÉ LOCAL (15 MINUTOS) ---
+                    const expiry = new Date().getTime() + CACHE_EXPIRATION_MS;
+                    const cacheObject = { data: data, expiry: expiry };
+                    localStorage.setItem(CACHE_KEY, JSON.stringify(cacheObject));
+                    console.log("Nuevos datos obtenidos y guardados en caché (expira en 15 minutos).");
+                    
+                    // Renderizar la tabla con los datos frescos
                     buildTable(filteredEmployeeData);
                 }
 
