@@ -1391,13 +1391,7 @@
             // 1. Guardar el contenido original (detalle del trabajador)
             const workerDetailHTML = modalBodyContent.innerHTML;
             
-            // 2. Mostrar spinner/cargando
-            modalBodyContent.innerHTML = workerDetailHTML + `
-                <div id="vacation-loading-area" class="text-center py-8">
-                    <i data-lucide="loader-circle" class="w-8 h-8 mx-auto animate-spin text-blue-500"></i>
-                    <p class="mt-2 text-sm text-gray-400">Buscando registros de vacaciones para ${formatNumberWithDots(cedula)}...</p>
-                </div>
-            `;
+
             lucide.createIcons();
             
             // Reutilizamos BASE_GAS_API_URL y agregamos los parámetros de hoja y filtro
