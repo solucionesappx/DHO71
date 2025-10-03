@@ -375,13 +375,13 @@
                         <div class="flex items-center space-x-2">
                             <h3 class="text-xl font-bold text-blue-400">Detalle Trabajador</h3>
                             
-                            <button onclick="showModalVacaciones()" class="p-1 rounded-full hover:bg-gray-600 transition duration-150" title="Ver Historial de Vacaciones">
+                            <button onclick="showVacationDaysAlert()" class="p-1 rounded-full hover:bg-gray-600 transition-colors">
                                 <i data-lucide="calendar" class="w-6 h-6 text-yellow-400"></i>
                             </button>
-                            </div>
+                        </div>
                         
                         <button onclick="closeModal()" class="text-3xl text-red-400 hover:text-red-600 transition duration-150 p-2 -mr-3">
-                            <i data-lucide="x" class="w-6 h-6 icon-x relative"></i>                     
+                            <i data-lucide="x" class="w-6 h-6 icon-x relative -mt-8 -mr-2"></i>                     
                         </button>
                     </div>
                     
@@ -399,10 +399,17 @@
             
         </div>
         <div id="custom-alert-modal" class="modal-overlay" onclick="closeCustomAlert()">
-            <div id="alert-content-wrapper" class="mx-auto" onclick="event.stopPropagation()">
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl w-full transition-all duration-300">
-                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Mensaje del Sistema</h3>
-                    <p id="alert-message" class="text-gray-700 dark:text-gray-300 mb-4"></p>
+            
+            <div id="alert-content-wrapper" 
+                 class="mx-auto absolute top-[var(--header-offset)] w-full max-w-[380px]" 
+                 onclick="event.stopPropagation()">
+                
+                <div class="bg-gray-800 p-6 rounded-xl shadow-2xl w-full transition-all duration-300 transform scale-100 dark:bg-gray-700">
+                    
+                    <h3 class="text-xl font-bold text-blue-400 mb-3">Mensaje del Sistema</h3>
+                    
+                    <p id="alert-message" class="text-white dark:text-gray-200 mb-4"></p>
+                    
                     <button onclick="closeCustomAlert()" class="w-full py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg">Aceptar</button>
                 </div>
             </div>
@@ -683,30 +690,6 @@
             return dateString;
         }
 
-        // ******************************************************
-        // * NUEVA FUNCIONALIDAD: Función para el Historial de Vacaciones
-        // ******************************************************
-        /** Simula la apertura de un modal o vista para el historial de vacaciones.
-         * Utiliza la CÉDULA como identificador clave del trabajador.
-         */
-        function showModalVacaciones() {
-            if (!_globalSelectedWorkerData) {
-                showCustomAlert('No hay un trabajador seleccionado. Por favor, haga doble clic en una fila para ver su detalle.');
-                return;
-            }
-            
-            // 1. Obtener el nombre formateado y el ID clave (CÉDULA)
-            const workerName = formatWorkerName(_globalSelectedWorkerData.NOMBRES, _globalSelectedWorkerData.APELLIDOS);
-            const workerCedula = formatNumberWithDots(_globalSelectedWorkerData.CEDULA);
-            
-            // 2. Mostrar la acción simulada con el nombre y la cédula como clave
-            showCustomAlert(`Abriendo Historial de Vacaciones para: ${workerName} (Cédula clave: ${workerCedula}). Aquí se cargarían los datos de registro de días de descanso.`);
-            
-            // 3. Registro de la acción en consola, utilizando la CÉDULA como la clave de búsqueda.
-            console.log(`Función showModalVacaciones activada. Clave de búsqueda (CEDULA): ${_globalSelectedWorkerData.CEDULA}`);
-        }
-        // ******************************************************
-
         /** Muestra una alerta personalizada (reemplazo de alert()) */
         function showCustomAlert(message) {
             alertMessage.textContent = message;
@@ -728,6 +711,22 @@
             modalOverlay.style.display = 'none';
         }
         
+        /**
+         * Muestra una alerta con los días de vacaciones (CTRL2) del trabajador seleccionado.
+         * Esta función se ejecuta al hacer clic en el nuevo botón de Calendario del modal.
+         */
+        function showVacationDaysAlert() {
+            if (!_globalSelectedWorkerData) {
+                showCustomAlert("Error: No se ha seleccionado ningún trabajador.");
+                return;
+            }
+
+            const workerName = formatWorkerName(_globalSelectedWorkerData.NOMBRES, _globalSelectedWorkerData.APELLIDOS);
+            const ctrl2Value = _globalSelectedWorkerData.CTRL2 || '0';
+            
+            showCustomAlert(`Trabajador: ${workerName}\nDías de Vacaciones Disponibles (CTRL2): ${ctrl2Value}`);
+        }
+
         // --- VARIABLES DOM ---
         const themeToggle = document.getElementById('theme-toggle');
         const htmlElement = document.documentElement;
