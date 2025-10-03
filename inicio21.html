@@ -257,7 +257,7 @@
         }
 
         /* Contenedor del modal */
-        #modal-content-wrapper {
+        #modal-content-wrapper, #alert-content-wrapper {
             /* Fija la posición relativa al contenido principal (simulando fixed dentro del max-width: 500px) */
             position: absolute; 
             top: var(--header-offset); /* Alineado con el inicio del contenido principal (tarjeta de bienvenida) */
@@ -265,6 +265,11 @@
             /* Ajuste para que ocupe todo el ancho en móvil, o una posición fija en desktop */
             width: 90%; 
             max-width: 380px; /* Ancho máximo para que no sea demasiado grande */
+        }
+        
+        /* Ajuste específico para el Modal de Vacaciones (más ancho) */
+        #vacation-modal-content-wrapper {
+             max-width: 450px !important;
         }
         
         /* --- ESTILOS DEL TOGGLE SWITCH DE PANTALLA COMPLETA --- */
@@ -374,11 +379,12 @@
                         
                         <div class="flex items-center space-x-2">
                             <h3 class="text-xl font-bold text-blue-400">Detalle Trabajador</h3>
+                            
                             <button onclick="showVacationDaysAlert()" class="p-1">
                                 <i data-lucide="calendar" class="w-6 h-6 text-yellow-400"></i>
                             </button>
                         </div>
-                     
+                        
                         <button onclick="closeModal()" class="text-3xl text-red-400 hover:text-red-600 transition duration-150 p-2 -mr-3">
                             <i data-lucide="x" class="w-6 h-6 icon-x relative -mt-8 -mr-2"></i>                     
                         </button>
@@ -413,6 +419,35 @@
                 </div>
             </div>
         </div>
+        <div id="VacationDetailModal" class="modal-overlay" onclick="closeVacationModal()">
+            <div id="vacation-modal-content-wrapper" 
+                 class="mx-auto absolute top-[var(--header-offset)] w-[95%] max-w-[450px]" 
+                 onclick="event.stopPropagation()">
+                
+                <div class="bg-gray-800 p-6 rounded-xl shadow-2xl w-full transition-all duration-300 transform scale-100 dark:bg-gray-700">
+                    
+                    <div class="flex justify-between items-center pb-3 border-b border-gray-600 mb-4">
+                        <h3 class="text-xl font-bold text-yellow-400">Detalle de Vacaciones</h3>
+                        <button onclick="closeVacationModal()" class="text-3xl text-red-400 hover:text-red-600 transition duration-150 p-2 -mr-3">
+                            <i data-lucide="x" class="w-6 h-6 icon-x relative -mt-8 -mr-2"></i>                     
+                        </button>
+                    </div>
+                    
+                    <div id="vacationWorkerDetails" class="text-sm light:text-gray-200 dark:text-gray-300 mb-4 bg-gray-700 p-3 rounded-lg">
+                        </div>
+                    
+                    <h4 class="text-lg font-semibold mb-2 text-white">Registros en Hoja "Vacaciones"</h4>
+                    
+                    <div id="vacationTableContainer" class="table-scroll-container h-64">
+                        <div id="vacation-loading-spinner" class="text-center py-4"> 
+                            <i data-lucide="loader-circle" class="w-6 h-6 mx-auto animate-spin text-yellow-500"></i> 
+                            <p class="mt-2 text-sm text-gray-400">Cargando registros de vacaciones...</p> 
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
         </div>
 
     <script>
@@ -427,13 +462,12 @@
         let _globalSelectedRowElement = null; // Almacena la fila HTML seleccionada
         
         // Estado de ordenación:
-        // CORRECCIÓN: Se inicializa a null para que no haya indicador visual de ordenación al cargar.
         let currentSortColumn = null; 
         let sortOrder = 'asc'; // 'asc' (ascendente), 'desc' (descendente)
         
         // --- CONSTANTES ---
-        // URL de la API de Google Apps Script (Debe ser reemplazada por la URL de implementación de GAS real)
-        const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbx87WvxA9ca1KyGMA1wsw1npZw5vPtjoItomhF823BICXScNrWGFh5m0Dj6Veb24CtHXQ/exec?sheet=BD_Personal2';
+        // URL BASE de la API de Google Apps Script (se utilizará para construir la URL con el nombre de la hoja y el filtro)
+        const BASE_GAS_API_URL = 'https://script.google.com/macros/s/AKfycbx87WvxA9ca1KyGMA1wsw1npZw5vPtjoItomhF823BICXScNrWGFh5m0Dj6Veb24CtHXQ/exec';
         const ACTIVITY_FEED_ID = 'activity-feed-container';
         
         // --- CONSTANTES DE CACHÉ ---
@@ -441,7 +475,7 @@
         const CACHE_EXPIRATION_MS = 900000; // 15 minutos
         const FULLSCREEN_KEY = 'fullscreenActive'; // Clave para localStorage
 
-        // Mapeos de las columnas que se muestran en la TABLA (debe coincidir con las keys del JSON de GAS)
+        // Mapeos de las columnas que se muestran en la TABLA BD_Personal2
         const TABLE_COLUMNS = [
             { key: 'EMPRESA', label: 'EMPRESA' },
             { key: 'NOMINA', label: 'NÓMINA' },
@@ -456,7 +490,17 @@
             { key: 'CTRL2', label: 'Días Vacaciones' }, 
         ];
         
-        // Mapeos para el contenido del MODAL
+        // Mapeos de las columnas que se muestran en la TABLA VACACIONES (Estructura asumida)
+        const VACATION_TABLE_COLUMNS = [
+            { key: 'CEDULA', label: 'Cédula' },
+            { key: 'FECHA_INICIO', label: 'Inicio' },
+            { key: 'FECHA_FIN', label: 'Fin' },
+            { key: 'DIAS', label: 'Días' },
+            { key: 'PERIODO', label: 'Período' },
+            { key: 'ESTADO', label: 'Estado' },
+        ];
+        
+        // Mapeos para el contenido del MODAL DetalleTrabajadorModal
         const MODAL_FIELD_MAP = [
             { key: 'NOMBRES', label: 'Nombres', format: (v) => v || 'N/A' },
             { key: 'APELLIDOS', label: 'Apellidos', format: (v) => v || 'N/A' },
@@ -601,6 +645,23 @@
         // --- FUNCIONES DE UTILIDAD (MODAL Y ALERTA) ---
         
         /**
+         * Construye la URL de la API de GAS con la hoja y un filtro opcional.
+         * Se asume un formato de filtro `&filterCol={col}&filterValue={value}`
+         * @param {string} sheetName - Nombre de la hoja a consultar.
+         * @param {string} [filterCol] - Nombre de la columna a filtrar (e.g., 'CEDULA').
+         * @param {string} [filterValue] - Valor para filtrar (e.g., '12345678').
+         * @returns {string} La URL construida.
+         */
+        function buildGasApiUrl(sheetName, filterCol = null, filterValue = null) {
+            let url = `${BASE_GAS_API_URL}?sheet=${encodeURIComponent(sheetName)}`;
+            if (filterCol && filterValue) {
+                // Formato asumido para filtrar en GAS
+                url += `&filterCol=${encodeURIComponent(filterCol)}&filterValue=${encodeURIComponent(filterValue)}`;
+            }
+            return url;
+        }
+
+        /**
          * Formatea un número o cadena de número para incluir separadores de miles con punto.
          * Ej: 12345678 -> 12.345.678
          * @param {string|number} value Número a formatear.
@@ -710,20 +771,41 @@
             modalOverlay.style.display = 'none';
         }
         
+        /** Cierra el modal de detalle de vacaciones */
+        function closeVacationModal() {
+            vacationModalOverlay.style.display = 'none';
+        }
+        
         /**
-         * Muestra una alerta con los días de vacaciones (CTRL2) del trabajador seleccionado.
-         * Esta función se ejecuta al hacer clic en el nuevo botón de Calendario del modal.
+         * Muestra el modal de detalle de vacaciones y comienza la carga de datos.
+         * Esta función se ejecuta al hacer clic en el botón de Calendario del modal DetalleTrabajadorModal.
          */
         function showVacationDaysAlert() {
             if (!_globalSelectedWorkerData) {
                 showCustomAlert("Error: No se ha seleccionado ningún trabajador.");
                 return;
             }
-
-            const workerName = formatWorkerName(_globalSelectedWorkerData.NOMBRES, _globalSelectedWorkerData.APELLIDOS);
-            const ctrl2Value = _globalSelectedWorkerData.CTRL2 || '0';
             
-            showCustomAlert(`Trabajador: ${workerName}\nDías de Vacaciones Disponibles (CTRL2): ${ctrl2Value}`);
+            // 1. Obtener detalles clave del trabajador (según JSON_FIELD_MAP)
+            const cedula = _globalSelectedWorkerData.CEDULA;
+            const workerDetails = {
+                'NOMBRE_TRABAJADOR': formatWorkerName(_globalSelectedWorkerData.NOMBRES, _globalSelectedWorkerData.APELLIDOS),
+                'CEDULA': formatNumberWithDots(cedula),
+                'INGRESO': formatDate(_globalSelectedWorkerData.INGRESO)
+            };
+            
+            // 2. Mostrar el modal (Inicialmente con el spinner)
+            vacationModalOverlay.style.display = 'flex';
+            
+            // 3. Inyectar detalles del trabajador en el modal
+            vacationWorkerDetails.innerHTML = `
+                <p><strong>Trabajador:</strong> ${workerDetails.NOMBRE_TRABAJADOR}</p>
+                <p><strong>Cédula:</strong> ${workerDetails.CEDULA}</p>
+                <p><strong>Fecha Ingreso:</strong> ${workerDetails.INGRESO}</p>
+            `;
+            
+            // 4. Iniciar la carga de datos de vacaciones
+            fetchVacationDataAndShowModal(cedula, workerDetails);
         }
 
         // --- VARIABLES DOM ---
@@ -738,11 +820,12 @@
         const modalBodyContent = document.getElementById('modalBodyContent');
         const alertModal = document.getElementById('custom-alert-modal');
         const alertMessage = document.getElementById('alert-message');
+        const vacationModalOverlay = document.getElementById('VacationDetailModal');
+        const vacationWorkerDetails = document.getElementById('vacationWorkerDetails');
+        const vacationTableContainer = document.getElementById('vacationTableContainer');
 
         /** * LÓGICA DE PANTALLA COMPLETA SIMULADA 
          * Simula el modo inmersivo dentro del contenedor.
-         * Es una solución alternativa ya que el navegador bloquea la API Fullscreen
-         * dentro de un iframe (error: Disallowed by permissions policy).
          */
         function toggleFullscreen() {
             const toggle = document.getElementById('fullscreen-toggle');
@@ -912,7 +995,6 @@
         /** Limpia el campo de búsqueda y reinicia la tabla */
         function clearSearchAndTable() {
             document.getElementById('search-input').value = '';
-            // Se eliminó el contenedor JSON, ya no se oculta aquí.
             
             // Al limpiar, también debemos resetear el estado de ordenación para que no aparezca el icono
             currentSortColumn = null;
@@ -1047,7 +1129,7 @@
             // Como se eliminó el contenedor, no se necesita manipular el DOM aquí.
         }
 
-        // --- LÓGICA DE RENDERIZADO DE TABLA ---
+        // --- LÓGICA DE RENDERIZADO DE TABLA (BD_Personal2) ---
         
         /**
          * Construye la tabla HTML con los datos y aplica estilos para cabecera/columna fija.
@@ -1217,6 +1299,150 @@
             }
         }
 
+        // --- LÓGICA DE RENDERIZADO DE TABLA (VACACIONES) ---
+
+        /**
+         * Construye la tabla HTML para los datos de vacaciones, reutilizando las reglas CSS.
+         * @param {Array<Object>} data - El array de objetos con los datos de vacaciones.
+         */
+        function buildVacationTable(data) {
+            const container = document.getElementById('vacationTableContainer');
+            let dataTable = document.getElementById('vacation-data-table');
+            
+            // 1. Limpiar o crear la tabla
+            if (!dataTable) {
+                dataTable = document.createElement('table');
+                dataTable.id = 'vacation-data-table';
+                dataTable.className = 'min-w-full border-collapse'; 
+                container.appendChild(dataTable);
+            } else {
+                dataTable.innerHTML = '';
+            }
+
+            // Ocultar spinner
+            document.getElementById('vacation-loading-spinner')?.classList.add('hidden');
+            
+            if (data.length === 0) {
+                // Mensaje de no registros
+                dataTable.innerHTML = '<tbody><tr><td class="text-center py-4 table-data-cell light:bg-gray-100 dark:bg-gray-700" colspan="7">No se encontraron registros de vacaciones para esta Cédula.</td></tr></tbody>';
+                return;
+            }
+
+            // 2. Crear el encabezado (thead) - Reutiliza estilos
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            
+            // Columna ID (Fija para consistencia)
+            const idHeader = document.createElement('th');
+            idHeader.textContent = 'ID';
+            idHeader.className = 'sticky-id-cell header text-xs uppercase tracking-wider shadow-sm text-center px-3'; 
+            headerRow.appendChild(idHeader);
+
+            VACATION_TABLE_COLUMNS.forEach(col => {
+                const th = document.createElement('th');
+                th.textContent = col.label;
+                th.className = 'text-xs uppercase tracking-wider shadow-sm text-center'; 
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            dataTable.appendChild(thead);
+            lucide.createIcons();
+
+            // 3. Crear el cuerpo de la tabla (tbody)
+            const tbody = document.createElement('tbody');
+            data.forEach((rowData, index) => {
+                const tr = document.createElement('tr');
+                tr.classList.add('worker-row', 'transition-colors', 'duration-150');
+                
+                // Celda ID (Fija)
+                const idCell = document.createElement('td');
+                idCell.textContent = index + 1;
+                idCell.className = 'sticky-id-cell text-sm px-3 py-1';
+                tr.appendChild(idCell);
+
+                // Resto de celdas de datos
+                VACATION_TABLE_COLUMNS.forEach(col => {
+                    const td = document.createElement('td');
+                    let value = rowData[col.key];
+
+                    // Formateo de fechas y cédula
+                    if (col.key.startsWith('FECHA_') || col.key === 'INGRESO') {
+                        value = formatDate(value);
+                    }
+                    if (col.key === 'CEDULA') {
+                        value = formatNumberWithDots(value);
+                    }
+
+                    td.textContent = value !== undefined && value !== null ? value : 'N/A';
+                    td.className = 'table-data-cell';
+                    
+                    // Lógica de justificación
+                    if (col.key === 'CEDULA' || col.key === 'DIAS') {
+                        td.classList.add('text-right', 'pr-3', 'pl-1'); 
+                    } else {
+                        td.classList.add('text-left', 'pl-3', 'pr-1'); 
+                    }
+
+                    tr.appendChild(td);
+                });
+
+                tbody.appendChild(tr);
+            });
+            dataTable.appendChild(tbody);
+        }
+
+        /**
+         * Fetches vacation data for the given CEDULA and renders it in the VacationDetailModal.
+         * @param {string} cedula - The CEDULA of the worker to filter the Vacaciones sheet.
+         */
+        async function fetchVacationDataAndShowModal(cedula) {
+            const container = document.getElementById('vacationTableContainer');
+            const loadingSpinner = document.getElementById('vacation-loading-spinner');
+            
+            // Mostrar spinner si no está visible
+            loadingSpinner?.classList.remove('hidden');
+
+            try {
+                // 1. Construir la URL para la hoja 'Vacaciones', filtrando por CEDULA
+                const apiUrl = buildGasApiUrl('Vacaciones', 'CEDULA', cedula);
+                
+                console.log(`Fetching Vacations from: ${apiUrl}`);
+
+                const response = await fetch(apiUrl, { method: 'GET' });
+
+                if (!response.ok) {
+                    throw new Error(`Error de red: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                let data = result;
+
+                if (result && result.data && Array.isArray(result.data)) {
+                    data = result.data;
+                } else if (!Array.isArray(result)) {
+                    throw new Error("Formato de datos de vacaciones no válido. Se esperaba un array JSON.");
+                }
+                
+                // 2. Renderizar la tabla con los datos filtrados
+                buildVacationTable(data);
+
+            } catch (error) {
+                console.error("Fallo al obtener los datos de Vacaciones:", error);
+                
+                // 3. Mostrar mensaje de error en el contenedor de la tabla
+                container.innerHTML = `
+                    <div class="bg-red-800 p-3 rounded-lg shadow-md text-white">
+                        <p class="font-bold">Error de Carga:</p>
+                        <p class="text-sm">No se pudo cargar la hoja "Vacaciones". Detalles: ${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                // 4. Ocultar spinner
+                loadingSpinner?.classList.add('hidden');
+            }
+        }
+
+
         // --- LÓGICA DE CARGA DE DATOS (CON CACHÉ) ---
         
         /**
@@ -1257,7 +1483,9 @@
             
             // --- 2. SI EL CACHÉ FALLA O EXPIRA, HACER FETCH ---
             try {
-                const response = await fetch(GAS_API_URL, {
+                const apiUrl = buildGasApiUrl('BD_Personal2'); // Carga la hoja principal
+                
+                const response = await fetch(apiUrl, {
                     method: 'GET',
                 });
 
