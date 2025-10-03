@@ -1,0 +1,1817 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplicación Móvil - Datos GAS</title>
+    <!-- Carga de Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Carga de Lucide Icons CDN para iconos limpios -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Configuración de Tailwind para usar el color de acento y la fuente Inter  */
+        html {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent; /* Mejor experiencia táctil */
+        }
+
+        /* Definición de colores base para modo claro y oscuro */
+        :root {
+            --color-bg-light: #f9fafb;
+            --color-text-light: #1f2937;
+            --color-primary-light: #3b82f6;
+            --color-bg-dark: #1f2937;
+            --color-text-dark: #f3f4f6;
+            --color-primary-dark: #60a5fa;
+            --color-surface-light: #ffffff;
+            --color-surface-dark: #374151;
+            
+            /* Color de fondo para encabezado y columna ID: #2D59A1 */
+            --color-header: #2D59A1; 
+            
+            /* Color de texto puro para datos de la tabla */
+            --color-data-text: #ffffff;
+            
+            /* Altura de referencia para alinear el modal y la tarjeta de bienvenida (Header + Padding) */
+            --header-offset: 76px; 
+            /* Altura del footer (h-18 = 72px) para el padding inferior del main */
+            --footer-height: 72px; 
+            
+            /* Padding base para el modo inmersivo */
+            --immersive-padding: 16px; 
+            
+            /* Color de hover verde para la fila */
+            --color-row-hover: #15803d; /* Verde oscuro (ej. Emerald 700) */
+            /* Color de selección simple (ligeramente más claro que el hover para diferenciación) */
+            --color-row-selected: #1e8749; /* Verde intermedio */
+            
+            /* Color de advertencia para filas con CTRL1 (rojo sin negritas) */
+            --color-warning: #ef4444; /* Tailwind red-500 */
+        }
+        
+        /* Estilos del cuerpo en modo claro */
+        .light {
+            background-color: var(--color-bg-light);
+            color: var(--color-text-light);
+        }
+
+        /* Estilos del cuerpo en modo oscuro (por defecto en el HTML) */
+        .dark {
+            background-color: var(--color-bg-dark);
+            color: var(--color-text-dark);
+        }
+        
+        /* Contenedor principal: Fija el ancho máximo a 500px y lo centra */
+        #app-container {
+            max-width: 500px;
+            margin: 0 auto;
+            min-height: 100vh; /* Asegura que ocupe toda la altura */
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            position: relative; 
+            overflow: hidden; 
+        }
+
+        /* Estilos específicos para Header y Footer */
+        header, footer {
+            width: 100%;
+            max-width: 500px; 
+            z-index: 50; 
+            transition: background-color 0.3s, color 0.3s;
+            
+            /* Corrección de alineación: Centra el elemento 'fixed' en pantallas grandes */
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* Colores específicos para modo claro y oscuro para Header/Footer */
+        .light header, .light footer {
+            background-color: var(--color-surface-light);
+            border-color: #e5e7eb;
+        }
+        .dark header, .dark footer {
+            background-color: var(--color-surface-dark);
+            border-color: #4b5563;
+        }
+
+        /* AJUSTE: Las propiedades de padding del main ahora se manejan en JS 
+           para alternar entre modo normal (con offset) y modo inmersivo (con padding reducido).
+           Se mantiene solo flex y overflow para el scroll principal. */
+        main {
+            flex-grow: 1;
+            overflow-y: auto; 
+            padding-left: 1rem; /* px-4 */
+            padding-right: 1rem; /* px-4 */
+            transition: padding 0.3s ease-in-out;
+        }
+        
+        /* Estilo para los botones del footer (interacción táctil) */
+        .footer-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 4px;
+            font-size: 0.75rem; /* texto pequeño */
+            line-height: 1;
+            transition: color 0.2s, background-color 0.2s;
+            border-radius: 0.5rem;
+            color: inherit; /* Color de texto por defecto */
+        }
+
+        /* Estilo para el botón activo en el footer */
+        .footer-btn.active {
+            color: var(--color-primary-dark);
+        }
+        .light .footer-btn.active {
+             color: var(--color-primary-light);
+        }
+        
+        /* * ESTILO ESPECÍFICO PARA LA TABLA DE DATOS * */
+
+        /* Contenedor de la tabla con scroll horizontal, max-height y SIN scroll vertical interno */
+        .table-scroll-container {
+            max-height: 450px; 
+            overflow-x: auto; 
+            overflow-y: auto; 
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            display: block; 
+        }
+        
+        /* REGLA DE ANCHO AUTOMÁTICO SOLICITADA */
+        .table-scroll-container table {
+            table-layout: auto; /* Ancho de columna basado en el contenido */
+            width: max-content; /* Permite que la tabla se ensanche para que el scroll funcione */
+            min-width: 100%; /* Asegura que ocupe el 100% del contenedor visible si el contenido es pequeño */
+        }
+        
+        /* Encabezados fijos: CENTRADOS */
+        .table-scroll-container th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: var(--color-header); /* #2D59A1 */
+            color: var(--color-data-text);
+            padding: 0.75rem 1rem;
+            text-align: center; /* CENTRADO */
+            white-space: nowrap;
+        }
+
+        /* REGLA ÚNICA PARA LAS CELDAS DE DATOS (td) */
+        .table-data-cell {
+            font-size: 0.875rem; /* text-sm */
+            /* Solo padding vertical, el horizontal se controla con clases Tailwind en JS para justificación */
+            padding-top: 0.25rem; 
+            padding-bottom: 0.25rem;
+            white-space: nowrap; /* whitespace-nowrap */
+            transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+        }
+
+        .light .table-data-cell {
+            color: var(--color-text-light);
+            border-bottom: 1px solid #e5e7eb; /* light:border-gray-200 */
+            background-color: var(--color-surface-light); /* light:bg-white */
+        }
+
+        .dark .table-data-cell {
+            color: var(--color-text-dark);
+            border-bottom: 1px solid var(--color-surface-dark); /* dark:border-gray-700 */
+            background-color: var(--color-bg-dark); /* dark:bg-gray-800 */
+        }
+        
+        /* NUEVO: Estilo para filas con advertencia (CTRL1 no vacío) */
+        .row-warning-text td {
+            color: var(--color-warning) !important;
+        }
+        .row-warning-text:hover td {
+            /* Asegura que el color rojo se mantenga visible sobre el hover verde, pero el hover tiene prioridad */
+            color: #ffffff !important; 
+        }
+
+        /* Columna ID fija (sticky) */
+        .sticky-id-cell {
+            position: sticky;
+            left: 0;
+            background-color: var(--color-header) !important; /* Mismo color que el encabezado (#2D59A1) */
+            color: var(--color-data-text) !important; /* Texto blanco puro */
+            border-right: 1px solid rgba(255, 255, 255, 0.2); /* Separador suave */
+            font-weight: bold;
+            text-align: center;
+            /* Se ha quitado el 'w-16' fijo de CSS para que JS controle el padding y el ancho. */
+        }
+
+        /* Combinación para la celda de la esquina superior izquierda (Header de ID) */
+        .sticky-id-cell.header {
+            top: 0;
+            z-index: 20; 
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1); 
+        }
+        
+        /* Estilo para los encabezados de la tabla interactivos */
+        .sortable-header {
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.1s;
+        }
+
+        .sortable-header:hover {
+            background-color: rgba(255, 255, 255, 0.1); /* Ligero hover para feedback */
+        }
+        
+        /* REGLA DE HOVER (APLICACIÓN A TD dentro de TR: verde oscuro) */
+        .worker-row:hover td {
+            background-color: var(--color-row-hover) !important;
+            color: #ffffff !important; 
+            cursor: pointer; 
+            border-bottom-color: var(--color-row-hover) !important; 
+        }
+
+        /* REGLA DE SELECCIÓN (CLICK): Para dar un feedback visual persistente mientras el JSON está visible */
+        .worker-row.selected-row td {
+            background-color: var(--color-row-selected) !important;
+            color: #ffffff !important; 
+            border-bottom-color: var(--color-row-selected) !important; 
+        }
+
+        /* Sobrescribir para la celda ID fija al hacer hover o selección */
+        .worker-row:hover td.sticky-id-cell,
+        .worker-row.selected-row td.sticky-id-cell {
+            background-color: var(--color-row-hover) !important;
+            /* Mantiene la separación visible con un borde blanco más fuerte */
+            border-right: 1px solid rgba(255, 255, 255, 0.4) !important; 
+        }
+
+        /* --- ESTILOS DEL MODAL FIJO Y ALINEADO --- */
+        .modal-overlay {
+            /* Fija el modal sobre todo el viewport */
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6); /* Fondo semi-transparente */
+            display: none; /* Oculto por defecto */
+            justify-content: center;
+            align-items: center;
+            z-index: 40; /* Por debajo del header/footer */
+        }
+
+        /* Contenedor del modal */
+        #modal-content-wrapper {
+            /* Fija la posición relativa al contenido principal (simulando fixed dentro del max-width: 500px) */
+            position: absolute; 
+            top: var(--header-offset); /* Alineado con el inicio del contenido principal (tarjeta de bienvenida) */
+            
+            /* Ajuste para que ocupe todo el ancho en móvil, o una posición fija en desktop */
+            width: 90%; 
+            max-width: 380px; /* Ancho máximo para que no sea demasiado grande */
+        }
+        
+        /* AJUSTE para el modal de Vacaciones: más ancho y centrado */
+        #vacaciones-modal-content-wrapper {
+             /* Fija la posición relativa al contenido principal */
+            position: absolute; 
+            top: var(--header-offset); 
+            
+            /* Ajuste para que ocupe todo el ancho en móvil, o una posición fija en desktop */
+            width: 95%; 
+            max-width: 500px; /* Ancho máximo para el historial */
+        }
+        
+        /* --- ESTILOS DEL TOGGLE SWITCH DE PANTALLA COMPLETA --- */
+        .toggle-switch-container {
+            position: relative;
+            display: inline-block;
+            width: 50px; /* Ancho total */
+            height: 28px; /* Altura total */
+        }
+
+        .toggle-switch-container input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #374151; /* Color Negro/Gris Oscuro (off) */
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--color-header); /* #2D59A1 (on) */
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px); /* Mueve el círculo a la derecha (50 - 20 - 4*2 = 22) */
+        }
+        
+    </style>
+</head>
+<body class="dark transition-colors duration-300">
+
+    <!-- Contenedor principal con ancho máximo de 500px, centrado -->
+    <div id="app-container" class="shadow-xl">
+        
+        <!-- CINTILLO SUPERIOR FIJO (HEADER) -->
+        <header id="app-header" class="fixed top-0 w-full h-14 border-b border-gray-700 dark:border-gray-500 flex items-center justify-between px-4">
+            <h1 class="text-xl font-bold">Mi Aplicación Móvil</h1>
+            
+            <div class="flex space-x-3">
+                
+                <!-- Botón de Modo Oscuro/Claro (Toggle) -->
+                <button id="theme-toggle" class="p-2 rounded-full hover:opacity-80 transition-opacity">
+                    <!-- Icono inicial: Sol (para indicar que al tocar se irá a modo claro) -->
+                    <i data-lucide="sun" class="w-6 h-6 text-yellow-300"></i>
+                </button>
+                
+                <!-- Icono de Cerrar Sesión -->
+                <button class="p-2 rounded-full hover:opacity-80 transition-opacity" onclick="showCustomAlert('Funcionalidad de Cerrar Sesión (simulada)')">
+                    <i data-lucide="log-out" class="w-6 h-6 text-red-400 dark:text-red-300"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- CUERPO PRINCIPAL (MAIN) -->
+        <!-- Las clases de padding se manejarán dinámicamente en JS para el modo inmersivo. -->
+        <main id="main-content" class="pb-4 flex flex-col space-y-4 pt-[76px]">
+            <!-- Contenido simulado de la página de Inicio (se carga dinámicamente) -->
+        </main>
+
+        <!-- BARRA DE NAVEGACIÓN FIJA (FOOTER) -->
+        <footer id="app-footer" class="fixed bottom-0 w-full h-18 border-t border-gray-700 dark:border-gray-500 flex items-center justify-around py-2">
+            
+            <!-- AJUSTE CLAVE: Se añade la clase 'active' al botón de Inicio para la carga inicial -->
+            <button class="footer-btn active" data-section="Inicio">
+                <i data-lucide="home" class="w-6 h-6"></i>
+                <span>Inicio</span>
+            </button>
+            
+            <button class="footer-btn" data-section="Nuevo Registro">
+                <i data-lucide="plus-square" class="w-6 h-6"></i>
+                <span>Registro</span>
+            </button>
+            
+            <button class="footer-btn" data-section="Editar">
+                <i data-lucide="edit" class="w-6 h-6"></i>
+                <span>Editar</span>
+            </button>
+            
+            <button class="footer-btn" data-section="Perfil">
+                <i data-lucide="user" class="w-6 h-6"></i>
+                <span>Perfil</span>
+            </button>
+            
+            <button class="footer-btn" data-section="Configuración">
+                <i data-lucide="settings" class="w-6 h-6"></i>
+                <span>Config</span>
+            </button>
+        </footer>
+
+        <!-- Modal de Detalle Trabajador (Overlay) -->
+        <div id="DetalleTrabajadorModal" class="modal-overlay">
+            
+            <!-- Contenedor interno que simula la alineación fija -->
+            <div id="modal-content-wrapper" class="mx-auto">
+                <div class="bg-gray-800 p-6 rounded-xl shadow-2xl w-full transition-all duration-300 transform scale-100 dark:bg-gray-700">
+                    
+                    <!-- Encabezado del Modal con Botón de Cancelar -->
+                    <div class="flex justify-between items-center pb-3 border-b border-gray-600 mb-4">
+                        
+                        <!-- NUEVO: Contenedor para Título + Botón de Vacaciones -->
+                        <div class="flex items-center space-x-2">
+                            <h3 class="text-xl font-bold text-blue-400">Detalle Trabajador</h3>
+                            
+                            <!-- Botón de Calendario (Nueva acción: showModalVacaciones) -->
+                            <button onclick="showModalVacaciones()" class="p-1 rounded-full hover:bg-gray-600 transition duration-150" title="Ver Historial de Vacaciones">
+                                <i data-lucide="calendar" class="w-6 h-6 text-yellow-400"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- 3. Botón de Cancelar (esquina superior derecha) -->
+                        <button onclick="closeModal()" class="text-3xl text-red-400 hover:text-red-600 transition duration-150 p-2 -mr-3">
+                            <i data-lucide="x" class="w-6 h-6 icon-x relative -mt-8 -mr-2"></i>                     
+                        </button>
+                    </div>
+                    
+                    <!-- Contenido del Detalle del Trabajador (Grid responsivo) -->
+                    <div id="modalBodyContent" class="grid grid-cols-1 gap-2 text-left text-sm">
+                        <!-- El contenido se inyecta con JavaScript -->
+                        <p class="text-gray-400">Cargando...</p>
+                    </div>
+                    
+                    <!-- Botón de acción (Editar) -->
+                    <button class="mt-6 w-full py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors shadow-md"
+                            onclick="closeModal(); loadContent('Editar');">
+                        <i data-lucide="edit-3" class="w-4 h-4 inline-block mr-2"></i>
+                        Editar Registro
+                    </button>
+                </div>
+            </div>
+            
+        </div>
+        <!-- FIN Modal de Detalle Trabajador -->
+
+        <!-- Modal de Historial de Vacaciones (Overlay) -->
+        <div id="VacacionesModal" class="modal-overlay">
+            <!-- Contenedor interno que simula la alineación fija -->
+            <div id="vacaciones-modal-content-wrapper" class="mx-auto">
+                <div class="bg-gray-800 p-6 rounded-xl shadow-2xl w-full transition-all duration-300 transform scale-100 dark:bg-gray-700">
+                    
+                    <!-- Encabezado del Modal con Botón de Cancelar -->
+                    <div class="flex justify-between items-center pb-3 border-b border-gray-600 mb-4">
+                        <h3 class="text-xl font-bold text-yellow-400" id="vacaciones-modal-title">Historial de Vacaciones</h3>
+                        <button onclick="closeVacacionesModal()" class="text-3xl text-red-400 hover:text-red-600 transition duration-150 p-2 -mr-3">
+                            <i data-lucide="x" class="w-6 h-6"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Contenedor del Título del Trabajador y la Tabla -->
+                    <div id="vacaciones-content">
+                        <p id="vacaciones-worker-name" class="text-md font-semibold mb-3 text-blue-300"></p>
+                        <!-- Se aplica la clase de scroll y se fuerza una altura máxima -->
+                        <div id="vacaciones-table-container" class="table-scroll-container h-80 max-h-80">
+                            <!-- Contenido dinámico (Tabla de Vacaciones) -->
+                            <div class="text-center py-8" id="vacaciones-loading-spinner">
+                                <i data-lucide="loader-circle" class="w-8 h-8 mx-auto animate-spin text-blue-500"></i>
+                                <p class="mt-2 text-sm text-gray-400">Cargando historial...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+        <!-- FIN Modal de Historial de Vacaciones -->
+
+        <!-- Modal de Alerta Personalizada (para simular alert()) -->
+        <div id="custom-alert-modal" class="modal-overlay" onclick="closeCustomAlert()">
+            <div id="alert-content-wrapper" class="mx-auto" onclick="event.stopPropagation()">
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl w-full transition-all duration-300">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Mensaje del Sistema</h3>
+                    <p id="alert-message" class="text-gray-700 dark:text-gray-300 mb-4"></p>
+                    <button onclick="closeCustomAlert()" class="w-full py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg">Aceptar</button>
+                </div>
+            </div>
+        </div>
+        <!-- Fin Modal de Alerta -->
+
+    </div>
+
+    <script>
+        // Inicializa los iconos de Lucide (los convierte de tags <i> a SVG)
+        lucide.createIcons();
+
+        // --- ESTADO GLOBAL ---
+        let allEmployeeData = []; // Almacena el dataset completo sin filtrar
+        let filteredEmployeeData = []; // Almacena el dataset filtrado para la tabla
+        let debounceTimer; // Para controlar la frecuencia de búsqueda
+        let _globalSelectedWorkerData = null; // Almacena los datos del trabajador seleccionado
+        let _globalSelectedRowElement = null; // Almacena la fila HTML seleccionada
+        let _globalEmployeeForRegistration = null; // Almacena el empleado para el nuevo registro
+
+        // Estado de ordenación:
+        let currentSortColumn = null; 
+        let sortOrder = 'asc'; // 'asc' (ascendente), 'desc' (descendente)
+        
+        // --- CONSTANTES ---
+        // URL de la API de Google Apps Script (Debe ser reemplazada por la URL de implementación de GAS real)
+        const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbx87WvxA9ca1KyGMA1wsw1npZw5vPtjoItomhF823BICXScNrWGFh5m0Dj6Veb24CtHXQ/exec'; // URL base sin parámetros
+        const EMPLOYEE_DATA_URL = `${GAS_API_URL}?sheet=BD_Personal2`;
+        const VACACIONES_DATA_URL = `${GAS_API_URL}?sheet=Vacaciones`; // Se usará también para POST
+        const ACTIVITY_FEED_ID = 'activity-feed-container';
+        
+        // --- CONSTANTES DE CACHÉ ---
+        const CACHE_KEY = 'employeeDataCache';
+        const CACHE_EXPIRATION_MS = 900000; // 15 minutos
+        const FULLSCREEN_KEY = 'fullscreenActive'; // Clave para localStorage
+        
+        // Cédula de usuario simulada (para RegistroUser)
+        const SIMULATED_USER_ID = "GAS_USER_123";
+
+        // Mapeos de las columnas que se muestran en la TABLA (debe coincidir con las keys del JSON de GAS)
+        const TABLE_COLUMNS = [
+            { key: 'EMPRESA', label: 'EMPRESA' },
+            { key: 'NOMINA', label: 'NÓMINA' },
+            { key: 'APELLIDOS', label: 'APELLIDOS' },
+            { key: 'NOMBRES', label: 'NOMBRES' },
+            { key: 'CEDULA', label: 'CÉDULA' }, // Se aplicará formato aquí
+            { key: 'CARGO', label: 'CARGO' },
+            { key: 'INGRESO', label: 'INGRESO' },
+            { key: 'SECTOR', label: 'SECTOR' },
+            { key: 'PERFIL', label: 'PERFIL' },
+            // Se incluye CTRL2 (Días Vacaciones)
+            { key: 'CTRL2', label: 'Días Vacaciones' }, 
+        ];
+        
+        // Mapeo de las columnas de la tabla de VACACIONES
+        const VACACIONES_TABLE_COLUMNS = [
+            { key: 'PERIODO', label: 'PERIODO' },
+            { key: 'DESCRIPCIÓN_CONCEPTO', label: 'CONCEPTO' },
+            { key: 'DIAS_VACACIONES', label: 'DÍAS' },
+            { key: 'BONO_VACACIONAL', label: 'BONO' },
+            { key: 'RegistroUser', label: 'Usuario Reg.' },
+            { key: 'RegistroDate', label: 'Fecha Reg.' },
+        ];
+        
+        // Mapeos para el contenido del MODAL
+        const MODAL_FIELD_MAP = [
+            { key: 'NOMBRES', label: 'Nombres', format: (v) => v || 'N/A' },
+            { key: 'APELLIDOS', label: 'Apellidos', format: (v) => v || 'N/A' },
+            // APLICACIÓN DE FORMATO: CEDULA debe mostrar puntos
+            { key: 'CEDULA', label: 'Cédula', format: (v) => v ? formatNumberWithDots(v) : 'N/A' },
+            { key: 'CARGO', label: 'Cargo', format: (v) => v || 'N/A' },
+            { key: 'EMPRESA', label: 'Empresa', format: (v) => v || 'N/A' },
+            { key: 'SECTOR', label: 'Sector', format: (v) => v || 'N/A' },
+            { key: 'NOMINA', label: 'Nómina', format: (v) => v || 'N/A' },
+            { key: 'PERFIL', label: 'Perfil', format: (v) => v || 'N/A' },
+            { key: 'INGRESO', label: 'Fecha Ingreso', format: (v) => v ? formatDate(v) : 'N/A' },
+            { key: 'NACIMIENTO', label: 'Fecha Nacimiento', format: (v) => v ? formatDate(v) : 'N/A' },
+            // Mapeo de CTRL2 con etiqueta Días Vacaciones
+            { key: 'CTRL2', label: 'Días Vacaciones', format: (v) => v || '0' },
+            { key: 'CTRL1', label: 'Nota/Comentario', format: (v) => v || 'Sin nota' },
+        ];
+        
+        // Campos usados para el JSON de filtrado (simulado)
+        const JSON_FIELD_MAP = [
+            'CEDULA', 
+            'EMPRESA', 
+            'INGRESO', 
+            'NOMBRE_TRABAJADOR' // Nuevo campo calculado
+        ];
+        
+        // Mapeo de navegación para cargar el contenido SPA
+        const NAV_MAP = {
+            'Inicio': 'inicio.html',
+            'Nuevo Registro': 'NuevoReg.html',
+            'Editar': 'EditarReg.html',
+            'Perfil': 'PerfilUsuario.html',
+            'Configuración': 'ConfigApp.html'
+        };
+
+        // Obtiene la fecha actual en formato DD/MM/YYYY para la tarjeta de bienvenida
+        const todayDate = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        
+        // Mapa de contenido simulado por archivo (es clave para la simulación SPA) 
+        const mockContentMap = { 
+            'inicio.html': ` 
+                <!-- Tarjeta de Bienvenida y Resumen (Punto de Alineación del Modal) --> 
+                <div class="bg-blue-600 dark:bg-blue-700 p-3 rounded-2xl text-white shadow-xl mb-4" id="welcome-card-ref"> 
+                    <div class="flex items-center justify-between"> 
+                        <h2 class="text-xl font-bold">¡Hola, Usuario!</h2> 
+                        <span class="text-sm opacity-90">${todayDate}</span> 
+                    </div> 
+                </div> 
+                
+                <!-- AJUSTE: Métricas Clave (Distribución horizontal compacta) --> 
+                <div class="flex justify-between space-x-2 mb-4"> 
+                    <!-- Métrica 1: Total Registros (se actualiza con el conjunto FILTRADO) --> 
+                    <div id="metric-total-records" 
+                          class="w-1/2 p-1.5 rounded-xl shadow-2xl transition-all duration-300 light:bg-white dark:bg-gray-700 flex items-center space-x-2"> 
+                        <i data-lucide="users" class="w-6 h-6 text-green-500 flex-shrink-0"></i> 
+                        <div class="flex flex-col leading-tight"> 
+                            <!-- Cambiado a data-metric="total" -->
+                            <span class="text-xl font-extrabold text-green-500" data-metric="total">...</span> 
+                            <span class="text-xs light:text-gray-500 dark:text-gray-300 whitespace-nowrap">Total Empleados</span> 
+                        </div> 
+                    </div> 
+
+                    <!-- Métrica 2: Con Notas/Alerta (Registros filtrados con CTRL1 con valor) --> 
+                    <div class="w-1/2 p-1.5 rounded-xl shadow-2xl transition-all duration-300 light:bg-white dark:bg-gray-700 flex items-center space-x-2"> 
+                        <i data-lucide="alert-triangle" class="w-6 h-6 text-red-500 flex-shrink-0"></i> 
+                        <div class="flex flex-col leading-tight"> 
+                            <!-- Cambiado a data-metric="ctrl1_warning" -->
+                            <span class="text-xl font-extrabold text-red-500" data-metric="ctrl1_warning">...</span> 
+                            <span class="text-xs light:text-gray-500 dark:text-gray-300 whitespace-nowrap">Con Notas/Alerta</span> 
+                        </div> 
+                    </div> 
+                </div> 
+
+                <!-- MOTOR DE BÚSQUEDA Y CONTROLES (RADIO REDUCIDO: rounded-xl) --> 
+                <div class="flex items-center space-x-2 mb-4 text-red-900"> 
+                    <!-- Contenedor del Input y el Icono de Búsqueda --> 
+                    <div class="relative flex-grow rounded-xl"> 
+                        <!-- Clases de color para asegurar texto claro en modo oscuro --> 
+                        <input type="text" id="search-input" placeholder="Buscar por Nombre, Cédula, Cargo..." 
+                               class="w-full pl-10 pr-4 py-2 rounded-xl shadow-inner 
+                                           light:bg-white dark:bg-gray-700 
+                                           text-gray-900 dark:text-gray-100 
+                                           placeholder-gray-400 border light:border-gray-300 dark:border-gray-600 
+                                           focus:outline-none focus:ring-2 focus:ring-blue-500"> 
+                        
+                        <!-- Icono de Búsqueda --> 
+                        <i data-lucide="search" class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 light:text-gray-500 dark:text-gray-300"></i> 
+                    </div> 
+
+                    <!-- Botón Limpiar --> 
+                    <button id="clear-search-btn" class="p-2.5 rounded-full light:bg-white dark:bg-gray-700 shadow-md transition-colors duration-200 text-red-500 dark:text-red-400 font-bold" title="Reiniciar Filtros"> 
+                        <i data-lucide="x-circle" class="w-7 h-7"></i> 
+                    </button> 
+                </div> 
+
+                <!-- Feed de Actividad Reciente --> 
+                <h3 class="text-xl font-semibold mb-3 border-b light:border-gray-200 dark:border-gray-600 pb-1">Tabla de Empleados (Datos GAS)</h3> 
+
+                <div id="${ACTIVITY_FEED_ID}" class="space-y-3"> 
+                    <!-- Contenido dinámico (Loading Spinner inicial) --> 
+                    <div id="loading-spinner" class="text-center py-8"> 
+                        <i data-lucide="loader-circle" class="w-8 h-8 mx-auto animate-spin text-blue-500"></i> 
+                        <p class="mt-2 text-sm text-gray-400">Cargando datos de empleados...</p> 
+                    </div> 
+                </div> 
+            `, 
+            'NuevoReg.html': ` 
+                <h2 class="text-2xl font-semibold mb-4 text-center text-green-400">Nuevo Registro de Movimiento</h2> 
+                
+                <div class="p-4 rounded-xl shadow-xl light:bg-gray-100 dark:bg-gray-700 space-y-4"> 
+                    <!-- 1. Buscador de Empleado por Cédula -->
+                    <div id="search-employee-form" class="space-y-3">
+                        <label for="reg-cedula-input" class="block font-medium">Buscar Empleado por Cédula:</label>
+                        <div class="flex space-x-2">
+                            <input type="number" id="reg-cedula-input" placeholder="Ej: 12345678" 
+                                class="flex-grow p-3 rounded-lg shadow-inner light:bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 dark:text-gray-100"
+                                onkeyup="checkCedulaInput(event)">
+                            <button id="search-reg-btn" onclick="searchEmployeeForRegistration()" 
+                                class="p-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg transition-colors shadow-md">
+                                <i data-lucide="search" class="w-6 h-6"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 2. Contenedor de Resultado de Búsqueda y Formulario de Registro -->
+                    <div id="employee-registration-area" class="hidden">
+                        
+                        <!-- Tarjeta de Información del Empleado -->
+                        <div id="worker-info-card" class="p-3 bg-green-100 dark:bg-gray-600 rounded-lg border-l-4 border-green-500 shadow-md mb-4">
+                            <!-- Contenido inyectado por JS -->
+                        </div>
+                        
+                        <!-- Formulario de Registro de Vacaciones -->
+                        <form id="vacaciones-registration-form" onsubmit="event.preventDefault(); handleVacacionesSubmission(event);" class="space-y-4">
+                            
+                            <h3 class="text-xl font-semibold border-b pb-2 text-green-400">Registrar Movimiento</h3>
+                            
+                            <!-- Campo: Concepto (Select) -->
+                            <div>
+                                <label for="reg-concepto" class="block text-sm font-medium mb-1">Concepto del Movimiento:</label>
+                                <select id="reg-concepto" required
+                                    class="w-full p-3 rounded-lg shadow-inner light:bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 dark:text-gray-100">
+                                    <option value="">Seleccione un concepto...</option>
+                                    <option value="Días Tomados">Días Tomados (Resta de saldo)</option>
+                                    <option value="Días Vendidos/Compensados">Días Vendidos/Compensados (Resta de saldo)</option>
+                                    <option value="Bono Vacacional Pagado">Bono Vacacional Pagado</option>
+                                    <option value="Ajuste Positivo">Ajuste Positivo (Suma de saldo)</option>
+                                    <option value="Ajuste Negativo">Ajuste Negativo (Resta de saldo)</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Campo: Días a Registrar (Number) -->
+                            <div>
+                                <label for="reg-dias" class="block text-sm font-medium mb-1">Días/Monto a Registrar:</label>
+                                <input type="number" id="reg-dias" required step="0.01" min="0.01" placeholder="Ingrese el número de días o el monto del bono" 
+                                    class="w-full p-3 rounded-lg shadow-inner light:bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 dark:text-gray-100">
+                                <p class="text-xs mt-1 light:text-gray-600 dark:text-gray-400">Si es bono, ingrese el monto. Si son días, ingrese la cantidad.</p>
+                            </div>
+
+                            <!-- Campo: Periodo (Text o Fecha, se dejará como texto libre) -->
+                            <div>
+                                <label for="reg-periodo" class="block text-sm font-medium mb-1">Periodo o Fecha del Movimiento (Opcional):</label>
+                                <input type="text" id="reg-periodo" placeholder="Ej: 2024-2025 o 01/01/2025" 
+                                    class="w-full p-3 rounded-lg shadow-inner light:bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 dark:text-gray-100">
+                            </div>
+                            
+                            <!-- Campo: Comentario (Textarea) -->
+                            <div>
+                                <label for="reg-comentario" class="block text-sm font-medium mb-1">Comentario/Detalle Adicional:</label>
+                                <textarea id="reg-comentario" rows="3" placeholder="Detalle la razón del movimiento (Obligatorio para Ajustes)" 
+                                    class="w-full p-3 rounded-lg shadow-inner light:bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 dark:text-gray-100"></textarea>
+                            </div>
+                            
+                            <!-- Botón de Envío -->
+                            <button type="submit" id="submit-reg-btn"
+                                class="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors shadow-lg flex items-center justify-center space-x-2">
+                                <i data-lucide="check-circle" class="w-5 h-5"></i>
+                                <span>Registrar Movimiento</span>
+                            </button>
+                            
+                        </form>
+                    </div>
+                    
+                    <!-- Contenedor de Mensajes de Error/Éxito de Búsqueda -->
+                    <div id="reg-message-container" class="mt-4 p-3 rounded-lg text-center font-medium">
+                        <!-- Mensajes inyectados aquí -->
+                    </div>
+
+                </div> 
+            `, 
+            'EditarReg.html': ` 
+                <h2 class="text-2xl font-semibold mb-4 text-center">Editar Registros ($$ \\text{EditarReg.html} $$)</h2> 
+                <div class="p-6 rounded-xl shadow-lg light:bg-gray-100 dark:bg-gray-600"> 
+                    <p>Listado de elementos para edición.</p> 
+                    <ul class="mt-4 space-y-2"> 
+                        <li class="p-4 light:bg-white dark:bg-gray-700 rounded-lg shadow-md">Elemento a Editar 1</li> 
+                        <li class="p-4 light:bg-white dark:bg-gray-700 rounded-lg shadow-md">Elemento a Editar 2</li> 
+                    </ul> 
+                </div> 
+            `, 
+            'PerfilUsuario.html': ` 
+                <h2 class="text-2xl font-semibold mb-4 text-center">Mi Perfil ($$ \\text{PerfilUsuario.html} $$)</h2> 
+                <div class="flex flex-col items-center p-6 rounded-xl shadow-lg light:bg-gray-100 dark:bg-gray-600"> 
+                    <div class="w-24 h-24 rounded-full light:bg-gray-300 dark:bg-gray-500 flex items-center justify-center text-4xl mb-4"> 
+                        <i data-lucide="user" class="w-12 h-12"></i> 
+                    </div> 
+                    <p class="text-xl font-bold">Datos del Usuario</p> 
+                </div> 
+            `, 
+            // *** CONTENIDO ACTUALIZADO DE CONFIGURACIÓN CON EL TOGGLE SWITCH ***
+            'ConfigApp.html': ` 
+                <h2 class="text-2xl font-semibold mb-4 text-center">Configuración ($$ \\text{ConfigApp.html} $$)</h2> 
+                <div class="p-6 rounded-xl shadow-lg light:bg-gray-100 dark:bg-gray-600 space-y-4"> 
+                    
+                    <!-- Opción de Pantalla Completa (Full Screen) -->
+                    <div class="flex justify-between items-center py-2 border-b light:border-gray-300 dark:border-gray-500"> 
+                        <span class="font-medium">Modo Pantalla Completa (Inmersivo)</span> 
+                        
+                        <label class="toggle-switch-container">
+                            <!-- El input llama a toggleFullscreen() cuando su estado cambia -->
+                            <input type="checkbox" id="fullscreen-toggle" onchange="toggleFullscreen()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- Separador y Versión de la App -->
+                    <div class="flex justify-between items-center py-2"> 
+                        <span>Versión de la App:</span> 
+                        <span class="font-mono">1.0.0</span> 
+                    </div> 
+                </div> 
+            ` 
+            // *** FIN CONTENIDO ACTUALIZADO ***
+        };
+        
+        // --- FUNCIONES DE UTILIDAD (MODAL Y ALERTA) ---
+        
+        /**
+         * Formatea un número o cadena de número para incluir separadores de miles con punto.
+         * Ej: 12345678 -> 12.345.678
+         * @param {string|number} value Número a formatear.
+         * @returns {string} Número formateado.
+         */
+        function formatNumberWithDots(value) {
+            // Convierte a string si no lo es, y elimina cualquier caracter no numérico (excepto si son separadores de miles/decimales para limpieza)
+            const numStr = String(value).replace(/[^\d]/g, ''); 
+            if (!numStr) return '';
+            
+            // Usa Intl.NumberFormat para formatear con separador de miles de punto
+            try {
+                // Se fuerza 'es-ES' que usa '.' como separador de miles
+                // Se usa 'style: decimal' por si el número es un string muy largo
+                const formatted = new Intl.NumberFormat('es-ES', { style: 'decimal', useGrouping: true }).format(parseInt(numStr, 10));
+                return formatted;
+            } catch (e) {
+                // Fallback simple: usar regex (menos robusto que Intl, pero funciona)
+                return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            }
+        }
+
+        /**
+         * Función para formatear el nombre completo del trabajador según la regla:
+         * * @param {string} nombres Cadena de nombres (ej: "JUAN ALBERTO")
+         * @param {string} apellidos Cadena de apellidos (ej: "PÉREZ GÓMEZ")
+         * @param {boolean} full Si es true, retorna Nombre + Apellido completo.
+         * @returns {string} El nombre formateado (ej: "JUAN A. PÉREZ G." o "JUAN ALBERTO PÉREZ GÓMEZ")
+         */
+        function formatWorkerName(nombres, apellidos, full = false) {
+            if (!nombres || !apellidos) return 'N/A';
+
+            // Limpia y divide las cadenas en palabras, eliminando vacíos
+            const names = nombres.trim().toUpperCase().split(/\s+/).filter(Boolean);
+            const lastNames = apellidos.trim().toUpperCase().split(/\s+/).filter(Boolean);
+            
+            if (full) {
+                 return `${names.join(' ')} ${lastNames.join(' ')}`.trim() || 'N/A';
+            }
+
+            let formattedName = '';
+
+            // 1. Primer Nombre + Inicial del Segundo Nombre (si existe)
+            if (names.length > 0) {
+                formattedName += names[0];
+                if (names.length > 1) {
+                    formattedName += ' ' + names[1].charAt(0) + '.'; // JUAN A.
+                }
+            }
+
+            // 2. Primer Apellido
+            if (lastNames.length > 0) {
+                if (formattedName) formattedName += ' '; // Añade espacio entre nombre y apellido
+                formattedName += lastNames[0]; // JUAN A. PÉREZ
+                
+                // 3. Inicial del Segundo Apellido (si existe)
+                if (lastNames.length > 1) {
+                    formattedName += ' ' + lastNames[1].charAt(0) + '.'; // JUAN A. PÉREZ G.
+                }
+            }
+            
+            return formattedName.trim() || 'N/A';
+        }
+
+        /**
+         * Función para formatear fechas a un formato legible (DD/MM/YYYY).
+         * @param {string} dateString Cadena de fecha.
+         * @returns {string} Fecha formateada.
+         */
+        function formatDate(dateString) {
+            try {
+                let date = new Date(dateString);
+                
+                if (!isNaN(date.getTime())) {
+                    // Ajuste para seriales de Excel/Sheet
+                    if (!isNaN(dateString) && String(dateString).length < 10) { 
+                        const excelDate = new Date(1899, 11, 30); 
+                        excelDate.setDate(excelDate.getDate() + parseInt(dateString));
+                        date = excelDate;
+                    }
+                    
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const year = date.getFullYear();
+                    return `${day}/${month}/${year}`;
+                }
+            } catch (e) {
+                return dateString;
+            }
+            return dateString;
+        }
+
+        /** Muestra una alerta personalizada (reemplazo de alert()) */
+        function showCustomAlert(message) {
+            alertMessage.textContent = message;
+            alertModal.style.display = 'flex';
+        }
+
+        /** Cierra la alerta personalizada */
+        function closeCustomAlert() {
+            alertModal.style.display = 'none';
+        }
+
+        /** Muestra el modal de detalle del trabajador */
+        function showModal() {
+            modalOverlay.style.display = 'flex';
+        }
+
+        /** Cierra el modal de detalle del trabajador */
+        function closeModal() {
+            modalOverlay.style.display = 'none';
+        }
+        
+        /** Muestra el modal de Vacaciones */
+        function showVacacionesModal() {
+            vacacionesModalOverlay.style.display = 'flex';
+        }
+
+        /** Cierra el modal de Vacaciones */
+        function closeVacacionesModal() {
+            vacacionesModalOverlay.style.display = 'none';
+            // Opcional: Volver a mostrar el modal de detalle del trabajador
+            // showModal(); 
+        }
+
+        /** Lógica principal para mostrar el modal de Vacaciones */
+        function showModalVacaciones() {
+            // 1. Cerrar el modal de detalle (si está abierto)
+            closeModal(); 
+            
+            // 2. Verificar si hay un trabajador seleccionado
+            if (!_globalSelectedWorkerData || !_globalSelectedWorkerData.CEDULA) {
+                showCustomAlert('Error: No hay un trabajador seleccionado para ver su historial de vacaciones.');
+                return;
+            }
+            
+            // 3. Obtener datos del trabajador
+            const workerName = formatWorkerName(_globalSelectedWorkerData.NOMBRES, _globalSelectedWorkerData.APELLIDOS, true); // Nombre completo
+            const workerCedula = _globalSelectedWorkerData.CEDULA;
+            
+            // 4. Configurar el modal de vacaciones
+            vacacionesWorkerName.textContent = `Historial de: ${workerName} (Cédula: ${formatNumberWithDots(workerCedula)})`;
+            vacacionesTableContainer.innerHTML = ''; // Limpiar contenido previo
+            
+            // Re-adjuntar y mostrar spinner
+            vacacionesTableContainer.appendChild(vacacionesLoadingSpinner); 
+            vacacionesLoadingSpinner.classList.remove('hidden');
+
+            // 5. Mostrar el modal y cargar los datos
+            showVacacionesModal();
+            loadVacacionesData(workerCedula);
+        }
+        
+        // --- VARIABLES DOM ---
+        const themeToggle = document.getElementById('theme-toggle');
+        const htmlElement = document.documentElement;
+        const appContainer = document.getElementById('app-container');
+        const mainContent = document.getElementById('main-content');
+        const appHeader = document.getElementById('app-header');
+        const appFooter = document.getElementById('app-footer');
+        const footerButtons = document.querySelectorAll('.footer-btn');
+        const modalOverlay = document.getElementById('DetalleTrabajadorModal');
+        const modalBodyContent = document.getElementById('modalBodyContent');
+        const alertModal = document.getElementById('custom-alert-modal');
+        const alertMessage = document.getElementById('alert-message');
+        
+        // Nuevas variables DOM para el modal de Vacaciones
+        const vacacionesModalOverlay = document.getElementById('VacacionesModal');
+        const vacacionesTableContainer = document.getElementById('vacaciones-table-container');
+        const vacacionesLoadingSpinner = document.getElementById('vacaciones-loading-spinner');
+        const vacacionesWorkerName = document.getElementById('vacaciones-worker-name');
+
+        /** * LÓGICA DE PANTALLA COMPLETA SIMULADA 
+         * Simula el modo inmersivo dentro del contenedor.
+         */
+        function toggleFullscreen() {
+            const toggle = document.getElementById('fullscreen-toggle');
+            const isChecked = toggle.checked;
+
+            if (isChecked) {
+                // Entrar en modo inmersivo: Ocultar header/footer
+                appHeader.style.display = 'none';
+                appFooter.style.display = 'none';
+                
+                // Aplicar padding superior/inferior solo para el modo inmersivo
+                mainContent.style.paddingTop = 'var(--immersive-padding)'; 
+                mainContent.style.paddingBottom = 'var(--immersive-padding)'; 
+                
+                localStorage.setItem(FULLSCREEN_KEY, 'true');
+                console.log("Modo Inmersivo Activado: Se ocultaron Header y Footer.");
+            } else {
+                // Salir del modo inmersivo: Mostrar header/footer
+                appHeader.style.display = 'flex';
+                appFooter.style.display = 'flex';
+                
+                // Restaurar padding superior/inferior para el modo normal (con barras)
+                mainContent.style.paddingTop = 'var(--header-offset)'; 
+                mainContent.style.paddingBottom = 'var(--footer-height)'; 
+                
+                localStorage.setItem(FULLSCREEN_KEY, 'false');
+                console.log("Modo Inmersivo Desactivado: Se restauraron Header y Footer.");
+            }
+        }
+        
+        /** Aplica el estado de inmersión guardado al cargar una sección. */
+        function applyFullscreenState() {
+            const isFsActive = localStorage.getItem(FULLSCREEN_KEY) === 'true';
+
+            // Usar la lógica de toggleFullscreen de forma controlada para aplicar el estado
+            if (appHeader && appFooter) {
+                if (isFsActive) {
+                    appHeader.style.display = 'none';
+                    appFooter.style.display = 'none';
+                    mainContent.style.paddingTop = 'var(--immersive-padding)'; 
+                    mainContent.style.paddingBottom = 'var(--immersive-padding)'; 
+                } else {
+                    appHeader.style.display = 'flex';
+                    appFooter.style.display = 'flex';
+                    mainContent.style.paddingTop = 'var(--header-offset)'; 
+                    mainContent.style.paddingBottom = 'var(--footer-height)'; 
+                }
+            }
+        }
+
+
+        // --- LÓGICA DE TEMAS ---
+
+        /** Alterna entre modo oscuro y claro */
+        function toggleTheme() {
+            const isDark = htmlElement.classList.contains('dark');
+            if (isDark) {
+                htmlElement.classList.remove('dark');
+                htmlElement.classList.add('light');
+                themeToggle.querySelector('i').setAttribute('data-lucide', 'moon');
+                themeToggle.querySelector('i').classList.replace('text-yellow-300', 'text-gray-700');
+            } else {
+                htmlElement.classList.remove('light');
+                htmlElement.classList.add('dark');
+                themeToggle.querySelector('i').setAttribute('data-lucide', 'sun');
+                themeToggle.querySelector('i').classList.replace('text-gray-700', 'text-yellow-300');
+            }
+            lucide.createIcons(); // Vuelve a renderizar los iconos
+        }
+        themeToggle.addEventListener('click', toggleTheme);
+        // Inicializa el icono correcto al cargar
+        document.addEventListener('DOMContentLoaded', () => {
+            if (htmlElement.classList.contains('light')) {
+                themeToggle.querySelector('i').setAttribute('data-lucide', 'moon');
+                themeToggle.querySelector('i').classList.replace('text-yellow-300', 'text-gray-700');
+            }
+        });
+
+        // --- LÓGICA DE NAVEGACIÓN (SPA) ---
+
+        /** Carga el contenido de la sección seleccionada (simulación SPA) */
+        function loadContent(sectionName) {
+            // Desactiva todos los botones y activa el actual
+            footerButtons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-section') === sectionName) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Limpia el contenido
+            mainContent.innerHTML = '';
+            
+            // Determina la clave de contenido a cargar usando el NAV_MAP
+            const contentKey = NAV_MAP[sectionName];
+
+            if (sectionName === 'Inicio') {
+                // Carga el contenido mock de 'inicio.html' que incluye el spinner, búsqueda y métricas
+                mainContent.innerHTML = mockContentMap[contentKey];
+                lucide.createIcons(); // Vuelve a renderizar los iconos
+                
+                // Adjunta los listeners al contenido recién cargado
+                document.getElementById('search-input').addEventListener('input', handleSearchDebounced);
+                document.getElementById('clear-search-btn').addEventListener('click', clearSearchAndTable);
+                
+                // Llama a la función para cargar los datos
+                loadData();
+            } else if (sectionName === 'Nuevo Registro') {
+                 // Carga el contenido y ejecuta el renderizado específico para el registro
+                mainContent.innerHTML = mockContentMap[contentKey];
+                lucide.createIcons();
+                // Limpiar el estado de registro previo
+                _globalEmployeeForRegistration = null; 
+                document.getElementById('reg-cedula-input')?.focus();
+                
+            } else if (sectionName === 'Configuración') {
+                 // Carga el contenido mock de 'ConfigApp.html'
+                mainContent.innerHTML = mockContentMap[contentKey];
+                lucide.createIcons();
+                
+                // ********* LÓGICA ESPECÍFICA PARA CONFIGURACIÓN *********
+                const fullscreenToggle = document.getElementById('fullscreen-toggle');
+                
+                // Aplicar estado del localStorage al toggle
+                const isFsActive = localStorage.getItem(FULLSCREEN_KEY) === 'true';
+                if (fullscreenToggle) {
+                    fullscreenToggle.checked = isFsActive;
+                }
+                // ********************************************************
+
+            } else {
+                // Carga el contenido mock para otras secciones
+                mainContent.innerHTML = mockContentMap[contentKey] || `<div class="p-8 text-center text-gray-500 dark:text-gray-400">Contenido para ${sectionName}</div>`;
+                lucide.createIcons(); // Vuelve a renderizar los iconos
+            }
+            
+            // APLICA EL ESTADO DE INMERSIÓN GUARDADO
+            applyFullscreenState();
+        }
+
+        // Agrega listeners a los botones de navegación
+        footerButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                loadContent(btn.getAttribute('data-section'));
+            });
+        });
+
+        // --- LÓGICA DE BÚSQUEDA Y ORDENACIÓN ---
+
+        /** Función de debounce para la búsqueda */
+        function handleSearchDebounced() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(handleSearch, 300);
+        }
+
+        /** Filtra los datos y reconstruye la tabla (SIN ORDENAR) */
+        function handleSearch() {
+            const query = document.getElementById('search-input').value.toLowerCase().trim();
+            
+            if (query === '') {
+                filteredEmployeeData = [...allEmployeeData];
+            } else {
+                filteredEmployeeData = allEmployeeData.filter(worker => {
+                    // Busca en los valores de todas las columnas (sensible)
+                    return Object.values(worker).some(value => 
+                        String(value).toLowerCase().includes(query)
+                    );
+                });
+            }
+
+            // Después de filtrar, reconstruye la tabla sin ordenar
+            buildTable(filteredEmployeeData);
+        }
+        
+        /** Limpia el campo de búsqueda y reinicia la tabla */
+        function clearSearchAndTable() {
+            document.getElementById('search-input').value = '';
+            
+            // Al limpiar, también debemos resetear el estado de ordenación para que no aparezca el icono
+            currentSortColumn = null;
+            sortOrder = 'asc';
+            
+            handleSearch(); // Llama a la búsqueda para mostrar todos los datos (sin ordenar)
+        }
+
+        /** Maneja el clic en el encabezado para ordenar */
+        function handleSort(columnKey) {
+            if (currentSortColumn === columnKey) {
+                // Cambia el orden si se hace clic en la misma columna
+                sortOrder = (sortOrder === 'asc') ? 'desc' : 'asc';
+            } else {
+                // Columna nueva, establece el orden inicial a ascendente
+                currentSortColumn = columnKey;
+                sortOrder = 'asc';
+            }
+
+            // Para ordenar, siempre se llama a sortAndRenderTable
+            sortAndRenderTable();
+        }
+
+        /** Ordena los datos filtrados y llama a la función de renderizado de tabla (Usada SOLO para ordenamiento manual) */
+        function sortAndRenderTable() {
+            const key = currentSortColumn;
+            const order = sortOrder;
+
+            // Ordena el array filtrado actualmente
+            filteredEmployeeData.sort((a, b) => {
+                const valA = a[key] !== null && a[key] !== undefined ? String(a[key]).toUpperCase() : '';
+                const valB = b[key] !== null && b[key] !== undefined ? String(b[key]).toUpperCase() : '';
+
+                if (valA < valB) {
+                    return order === 'asc' ? -1 : 1;
+                }
+                if (valA > valB) {
+                    return order === 'asc' ? 1 : -1;
+                }
+                return 0; // Sin cambios
+            });
+
+            // Reconstruye la tabla con los datos ordenados
+            buildTable(filteredEmployeeData);
+        }
+        
+        // --- LÓGICA DE SELECCIÓN Y MODAL ---
+
+        /** Maneja el evento de CLICK simple en la fila. Muestra el panel JSON de la fila seleccionada. */
+        function handleRowSelection(rowData, rowElement) {
+            // 1. Limpiar selección visual previa
+            if (_globalSelectedRowElement) {
+                _globalSelectedRowElement.classList.remove('selected-row');
+            }
+
+            // 2. Aplicar selección visual a la nueva fila
+            _globalSelectedRowElement = rowElement;
+            _globalSelectedRowElement.classList.add('selected-row');
+
+            // 3. Guardar datos y registrar JSON en consola
+            _globalSelectedWorkerData = rowData;
+            renderSelectedJson(rowData);
+        }
+
+        /** Muestra el modal con los detalles de la fila seleccionada */
+        function showWorkerDetail(rowData, rowIndex) {
+            _globalSelectedWorkerData = rowData;
+            modalBodyContent.innerHTML = ''; // Limpia contenido anterior
+
+            // Construir el contenido del modal
+            MODAL_FIELD_MAP.forEach(field => {
+                const value = rowData[field.key];
+                const formattedValue = field.format(value);
+
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center py-1 border-b border-gray-600 dark:border-gray-500 last:border-b-0';
+                
+                // Título del campo
+                const labelSpan = document.createElement('span');
+                labelSpan.className = 'font-medium text-gray-300 dark:text-gray-200 flex items-center';
+                labelSpan.textContent = field.label + ':';
+                
+                // Valor del campo
+                const valueSpan = document.createElement('span');
+                valueSpan.className = 'font-bold text-white dark:text-blue-200 truncate ml-4';
+                valueSpan.textContent = formattedValue;
+
+                div.appendChild(labelSpan);
+                div.appendChild(valueSpan);
+                modalBodyContent.appendChild(div);
+            });
+            
+            // Renderiza el JSON (simulado) y lo muestra en la consola.
+            renderSelectedJson(rowData);
+
+            showModal();
+        }
+        
+        /** Muestra el JSON simplificado de la fila seleccionada en la CONSOLA. */
+        function renderSelectedJson(rowData) {
+            
+            // Crear objeto JSON simplificado
+            const simplifiedJson = {};
+            JSON_FIELD_MAP.forEach(key => {
+                let value;
+                
+                if (key === 'NOMBRE_TRABAJADOR') {
+                    // Cálculo del nombre formateado
+                    value = formatWorkerName(rowData.NOMBRES, rowData.APELLIDOS); 
+                } else {
+                    value = rowData[key];
+                }
+                
+                // Formatear INGRESO/NACIMIENTO
+                if (key === 'INGRESO' || key === 'NACIMIENTO') {
+                    value = formatDate(value);
+                }
+                
+                // APLICACIÓN DE FORMATO: CEDULA en el JSON con puntos
+                if (key === 'CEDULA') {
+                    value = formatNumberWithDots(value);
+                }
+                
+                simplifiedJson[key] = value;
+            });
+            
+            // EL CAMBIO PRINCIPAL: Mostrar el JSON simplificado en la consola.
+            console.log("--- JSON de Fila Seleccionada (mobile_app.html) ---");
+            console.log("Datos para Filtrado/Edición:", simplifiedJson);
+            console.log("-----------------------------------------------------");
+
+            // Como se eliminó el contenedor, no se necesita manipular el DOM aquí.
+        }
+
+        // --- LÓGICA DE REGISTRO DE VACACIONES (NUEVO) ---
+        
+        /**
+         * Maneja la pulsación de tecla en el input de Cédula de Registro
+         * Permite buscar al presionar 'Enter'.
+         * @param {Event} event 
+         */
+        function checkCedulaInput(event) {
+            if (event.key === 'Enter') {
+                searchEmployeeForRegistration();
+            }
+        }
+        
+        /**
+         * Busca un empleado por cédula en el array allEmployeeData
+         */
+        function searchEmployeeForRegistration() {
+            const cedulaInput = document.getElementById('reg-cedula-input');
+            const cedula = cedulaInput.value.trim();
+            const regArea = document.getElementById('employee-registration-area');
+            const msgContainer = document.getElementById('reg-message-container');
+            const searchBtn = document.getElementById('search-reg-btn');
+
+            regArea.classList.add('hidden');
+            msgContainer.innerHTML = '';
+            msgContainer.classList.remove('bg-red-500', 'bg-yellow-500');
+            searchBtn.disabled = true;
+
+            if (!cedula || isNaN(cedula)) {
+                msgContainer.innerHTML = 'Ingrese una Cédula válida (solo números).';
+                msgContainer.classList.add('bg-yellow-500', 'text-white');
+                searchBtn.disabled = false;
+                return;
+            }
+            
+            // La cédula debe ser string para la comparación con los datos de GAS
+            const workerData = allEmployeeData.find(w => String(w.CEDULA).trim() === cedula);
+
+            if (workerData) {
+                _globalEmployeeForRegistration = workerData;
+                displayRegistrationForm(workerData);
+            } else {
+                _globalEmployeeForRegistration = null;
+                msgContainer.innerHTML = `No se encontró un empleado con la Cédula: ${formatNumberWithDots(cedula)}.`;
+                msgContainer.classList.add('bg-red-500', 'text-white');
+            }
+            searchBtn.disabled = false;
+        }
+
+        /**
+         * Muestra la tarjeta de empleado y el formulario de registro.
+         * @param {Object} workerData - Datos del empleado encontrado.
+         */
+        function displayRegistrationForm(workerData) {
+            const regArea = document.getElementById('employee-registration-area');
+            const infoCard = document.getElementById('worker-info-card');
+            const msgContainer = document.getElementById('reg-message-container');
+            
+            const name = formatWorkerName(workerData.NOMBRES, workerData.APELLIDOS, true);
+            const cedula = formatNumberWithDots(workerData.CEDULA);
+            const diasVacaciones = workerData.CTRL2 || '0';
+            
+            infoCard.innerHTML = `
+                <p class="font-bold text-lg text-gray-800 dark:text-gray-100 mb-1">${name}</p>
+                <p class="text-sm text-gray-600 dark:text-gray-300">Cédula: ${cedula}</p>
+                <p class="text-sm font-semibold text-green-700 dark:text-green-400 mt-2">Días Vacaciones Disponibles (CTRL2): ${diasVacaciones}</p>
+            `;
+            
+            msgContainer.innerHTML = ''; // Limpiar mensaje de búsqueda
+            msgContainer.classList.remove('bg-red-500', 'bg-yellow-500');
+            regArea.classList.remove('hidden');
+        }
+
+        /**
+         * Simula el envío de un nuevo registro de vacaciones a la API de GAS.
+         * @param {Event} event - El evento de submit del formulario.
+         */
+        async function handleVacacionesSubmission(event) {
+            event.preventDefault();
+            
+            if (!_globalEmployeeForRegistration) {
+                 showCustomAlert('Error: Por favor, busque y seleccione un empleado primero.');
+                 return;
+            }
+            
+            const form = event.target;
+            const submitBtn = document.getElementById('submit-reg-btn');
+            const concepto = form.elements['reg-concepto'].value;
+            let dias = parseFloat(form.elements['reg-dias'].value);
+            const periodo = form.elements['reg-periodo'].value;
+            const comentario = form.elements['reg-comentario'].value;
+            
+            if (!concepto || isNaN(dias) || dias <= 0) {
+                 showCustomAlert('Error de Validación: Seleccione un concepto e ingrese una cantidad de Días/Monto válida (> 0).');
+                 return;
+            }
+            
+            // Desactivar el botón y mostrar spinner
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i data-lucide="loader-circle" class="w-5 h-5 animate-spin mr-2"></i> Procesando...';
+            lucide.createIcons();
+            
+            // Determinar qué campo se usa: DIAS_VACACIONES o BONO_VACACIONAL
+            let payload = {
+                action: 'addVacacion', // Acción para que el GAS sepa qué hacer
+                CEDULA: String(_globalEmployeeForRegistration.CEDULA),
+                DIAS_VACACIONES: 0,
+                BONO_VACACIONAL: 0,
+                PERIODO: periodo || 'N/A',
+                DESCRIPCIÓN_CONCEPTO: concepto,
+                COMENTARIO: comentario,
+                RegistroUser: SIMULATED_USER_ID,
+            };
+            
+            if (concepto.includes('Bono')) {
+                payload.BONO_VACACIONAL = dias;
+            } else {
+                // Para Días Tomados/Vendidos/Ajustes, el valor es DIAS_VACACIONES
+                // IMPORTANTE: Si es RESTA, GAS debe manejar el signo, aquí enviamos el valor positivo.
+                // El GAS script debe saber que "Días Tomados" o "Ajuste Negativo" significa resta.
+                payload.DIAS_VACACIONES = dias; 
+            }
+
+            try {
+                 // SIMULACIÓN: En lugar de un fetch real, esperamos un poco y simulamos el resultado.
+                 await new Promise(resolve => setTimeout(resolve, 1500)); 
+                 
+                 // Simular respuesta exitosa
+                 const simulationSuccess = Math.random() > 0.1; // 90% de éxito simulado
+                 
+                 if (simulationSuccess) {
+                    showCustomAlert(`Registro Exitoso para ${formatWorkerName(_globalEmployeeForRegistration.NOMBRES, _globalEmployeeForRegistration.APELLIDOS)}.\n\nDatos Enviados (en consola):\n${JSON.stringify(payload, null, 2)}`);
+                    
+                    // Opcional: Recargar los datos de la BD principal para reflejar el cambio (requiere que el GAS script lo haga)
+                    // loadData(); 
+                    
+                    // Limpiar el formulario y la búsqueda
+                    form.reset();
+                    document.getElementById('reg-cedula-input').value = '';
+                    document.getElementById('employee-registration-area').classList.add('hidden');
+                    _globalEmployeeForRegistration = null;
+                 } else {
+                    throw new Error("Simulación de fallo de red/GAS: El registro no se pudo completar.");
+                 }
+                
+            } catch (error) {
+                console.error("Fallo al registrar el movimiento:", error);
+                showCustomAlert(`Error al enviar el registro: ${error.message}. Por favor, inténtelo de nuevo.`);
+            } finally {
+                // Restaurar el botón
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i><span>Registrar Movimiento</span>';
+                lucide.createIcons();
+            }
+        }
+
+        // --- LÓGICA DE RENDERIZADO DE TABLA (EMPLEADOS) ---
+        
+        /**
+         * Construye la tabla HTML con los datos y aplica estilos para cabecera/columna fija.
+         * @param {Array<Object>} data - El array de objetos con los datos del personal.
+         */
+        function buildTable(data) {
+            const tableContainer = document.getElementById(ACTIVITY_FEED_ID);
+            
+            // Mostrar spinner y ocultar cualquier tabla anterior
+            document.getElementById('loading-spinner')?.classList.remove('hidden');
+            document.getElementById('table-wrapper')?.classList.add('hidden');
+            
+            // Crear o actualizar el contenedor de la tabla
+            let tableWrapper = document.getElementById('table-wrapper');
+            if (!tableWrapper) {
+                tableWrapper = document.createElement('div');
+                tableWrapper.id = 'table-wrapper';
+                tableWrapper.className = 'table-scroll-container'; // Esta clase controla el scroll
+                
+                // Crear la tabla
+                const dataTable = document.createElement('table');
+                dataTable.id = 'data-table';
+                dataTable.className = 'min-w-full border-collapse'; 
+                
+                tableWrapper.appendChild(dataTable);
+                tableContainer.appendChild(tableWrapper);
+            }
+            const dataTable = document.getElementById('data-table');
+            dataTable.innerHTML = '';
+
+            // 1. Crear el encabezado (thead)
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            
+            // Columna ID (Fija y con color)
+            const idHeader = document.createElement('th');
+            idHeader.textContent = 'ID';
+            // CAMBIO CLAVE: Se elimina 'w-16' y se añade 'px-3' para reducir el ancho
+            idHeader.className = 'sticky-id-cell header text-xs uppercase tracking-wider shadow-sm text-center px-3'; 
+            headerRow.appendChild(idHeader);
+
+            // Resto de encabezados (Interactivos para ordenación)
+            TABLE_COLUMNS.forEach(col => {
+                const th = document.createElement('th');
+                th.textContent = col.label;
+                th.className = 'sortable-header text-xs uppercase tracking-wider shadow-sm text-center';
+                
+                // Indicador de ordenación (SOLO si currentSortColumn no es null y coincide con la columna)
+                if (currentSortColumn && currentSortColumn === col.key) {
+                    const icon = document.createElement('i');
+                    icon.setAttribute('data-lucide', sortOrder === 'asc' ? 'chevron-up' : 'chevron-down');
+                    icon.classList.add('w-4', 'h-4', 'inline-block', 'ml-1');
+                    th.appendChild(icon);
+                }
+                
+                // Agregar listener de ordenación
+                th.addEventListener('click', () => handleSort(col.key));
+
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            dataTable.appendChild(thead);
+            lucide.createIcons(); // Renderizar iconos de ordenación
+
+            // 2. Crear el cuerpo de la tabla (tbody)
+            const tbody = document.createElement('tbody');
+            data.forEach((rowData, index) => {
+                const tr = document.createElement('tr');
+                
+                // LÓGICA DE COLORACIÓN DE FILA: Si CTRL1 no está vacío, aplicar color rojo
+                const ctrl1Value = rowData.CTRL1 ? String(rowData.CTRL1).trim() : '';
+                if (ctrl1Value.length > 0) {
+                    tr.classList.add('row-warning-text');
+                }
+                
+                // Clase hover personalizada para el fondo oscuro
+                tr.classList.add('worker-row', 'transition-colors', 'duration-150'); 
+                
+                // Clic simple: Selección y mostrar JSON
+                tr.addEventListener('click', (event) => {
+                    if (event.detail === 1) { 
+                       handleRowSelection(rowData, tr);
+                    }
+                });
+
+                // Doble clic: Abrir el modal de detalle
+                tr.addEventListener('dblclick', () => showWorkerDetail(rowData, index + 1));
+                
+                // Si esta fila es la previamente seleccionada globalmente, aplícale el estilo
+                if (_globalSelectedWorkerData && _globalSelectedWorkerData.CEDULA === rowData.CEDULA) {
+                    tr.classList.add('selected-row');
+                    // Actualizar la referencia del elemento (necesario al reconstruir la tabla)
+                    _globalSelectedRowElement = tr;
+                }
+
+
+                // Celda ID (Fija y correlativa)
+                const idCell = document.createElement('td');
+                idCell.textContent = index + 1; // ID correlativo
+                // CAMBIO CLAVE: Se añade 'px-3' (padding horizontal) y 'py-1' (vertical)
+                idCell.className = 'sticky-id-cell text-sm px-3 py-1';
+                tr.appendChild(idCell);
+
+                // Resto de celdas de datos
+                TABLE_COLUMNS.forEach(col => {
+                    const td = document.createElement('td');
+                    let value = rowData[col.key];
+
+                    // Formateo especial para la columna INGRESO
+                    if (col.key === 'INGRESO' || col.key === 'NACIMIENTO') {
+                        value = formatDate(value);
+                    }
+                    
+                    // APLICACIÓN DE FORMATO: Cédula con puntos para la tabla
+                    if (col.key === 'CEDULA') {
+                        value = formatNumberWithDots(value);
+                    }
+                    
+                    // Formateo para CTRL2 (Días Vacaciones)
+                    if (col.key === 'CTRL2') {
+                        value = value || '0';
+                    }
+
+                    td.textContent = value !== undefined && value !== null ? value : 'N/A';
+                    
+                    // APLICACIÓN DE LA CLASE ÚNICA Y JUSTIFICACIÓN
+                    td.className = 'table-data-cell'; 
+                    
+                    // Lógica de justificación de contenido
+                    if (col.key === 'CEDULA' || col.key === 'CTRL2') {
+                        // Justificación a la derecha para campos numéricos (con padding derecho)
+                        td.classList.add('text-right', 'pr-3', 'pl-1'); 
+                    } else {
+                        // Justificación a la izquierda para el resto (con padding izquierdo)
+                        td.classList.add('text-left', 'pl-3', 'pr-1'); 
+                    }
+
+                    tr.appendChild(td);
+                });
+
+                tbody.appendChild(tr);
+            });
+            dataTable.appendChild(tbody);
+
+            // 3. Ocultar el spinner y mostrar la tabla
+            document.getElementById('loading-spinner')?.classList.add('hidden');
+            tableWrapper.classList.remove('hidden');
+            
+            // 4. Actualizar métricas
+            
+            // 4a. Métrica 1: Total Registros (del conjunto filtrado)
+            const totalFilteredRecords = data.length;
+            const totalMetricElement = document.querySelector('[data-metric="total"]');
+            if (totalMetricElement) {
+                totalMetricElement.textContent = totalFilteredRecords;
+            }
+
+            // 4b. Métrica 2: Con Notas/Alerta (Registros filtrados con CTRL1 con valor)
+            const recordsWithCtrl1 = data.filter(worker => {
+                const ctrl1Value = worker.CTRL1 ? String(worker.CTRL1).trim() : '';
+                return ctrl1Value.length > 0;
+            }).length;
+
+            const ctrl1MetricElement = document.querySelector('[data-metric="ctrl1_warning"]');
+            if (ctrl1MetricElement) {
+                 ctrl1MetricElement.textContent = recordsWithCtrl1;
+            }
+        }
+        
+        // --- LÓGICA DE RENDERIZADO DE TABLA (VACACIONES) ---
+
+        /**
+         * Función de Carga de Datos de Vacaciones
+         * @param {string|number} cedula - Cédula del trabajador para filtrar.
+         */
+        async function loadVacacionesData(cedula) {
+            const tableContainer = document.getElementById('vacaciones-table-container');
+            const spinner = document.getElementById('vacaciones-loading-spinner');
+            
+            // Construir la URL con la hoja 'Vacaciones' y el filtro de cédula
+            const VACACIONES_FETCH_URL = `${VACACIONES_DATA_URL}&cedula=${cedula}`;
+
+            try {
+                const response = await fetch(VACACIONES_FETCH_URL, {
+                    method: 'GET',
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error de red: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                // Manejar tanto {data: [...]} como array directo
+                let data = result.data || result; 
+
+                spinner.classList.add('hidden'); // Ocultar spinner
+
+                if (!Array.isArray(data) || data.length === 0) {
+                    tableContainer.innerHTML = `
+                        <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                            <i data-lucide="info" class="w-6 h-6 mx-auto text-blue-400 mb-2"></i>
+                            <p>No se encontró historial de vacaciones para esta cédula.</p>
+                        </div>
+                    `;
+                    lucide.createIcons();
+                } else {
+                    buildVacacionesTable(data);
+                }
+
+            } catch (error) {
+                console.error("Fallo al obtener los datos de Vacaciones:", error);
+                spinner.classList.add('hidden');
+                tableContainer.innerHTML = `
+                    <div class="bg-red-800 p-4 rounded-xl shadow-lg text-white">
+                        <strong class="font-bold">Error de Carga:</strong>
+                        <p class="mt-1 text-sm">No se pudo cargar el historial de vacaciones.</p>
+                        <p class="mt-2 text-xs opacity-80">Verifique la implementación del GAS script.</p>
+                    </div>
+                `;
+            }
+        }
+        
+        /**
+         * Renderiza la tabla de historial de vacaciones.
+         * @param {Array<Object>} data - El array de objetos con los datos de vacaciones.
+         */
+        function buildVacacionesTable(data) {
+            const tableContainer = document.getElementById('vacaciones-table-container');
+            tableContainer.innerHTML = ''; // Limpiar contenido antes de construir la tabla
+
+            // Crear la tabla (reutilizando clases de estilo de tabla principal)
+            const dataTable = document.createElement('table');
+            dataTable.className = 'min-w-full border-collapse'; 
+
+            // 1. Crear el encabezado (thead) - FIJO
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            
+            // Columna ID (Fija)
+            const idHeader = document.createElement('th');
+            idHeader.textContent = 'ID';
+            idHeader.className = 'sticky-id-cell header text-xs uppercase tracking-wider shadow-sm text-center px-3'; 
+            headerRow.appendChild(idHeader);
+
+            // Resto de encabezados
+            VACACIONES_TABLE_COLUMNS.forEach(col => {
+                const th = document.createElement('th');
+                th.textContent = col.label;
+                th.className = 'sortable-header text-xs uppercase tracking-wider shadow-sm text-center';
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            dataTable.appendChild(thead);
+
+            // 2. Crear el cuerpo de la tabla (tbody)
+            const tbody = document.createElement('tbody');
+            data.forEach((rowData, index) => {
+                const tr = document.createElement('tr');
+                tr.classList.add('worker-row', 'transition-colors', 'duration-150'); 
+                
+                // Celda ID (Fija y correlativa)
+                const idCell = document.createElement('td');
+                idCell.textContent = index + 1; 
+                idCell.className = 'sticky-id-cell text-sm px-3 py-1';
+                tr.appendChild(idCell);
+
+                // Resto de celdas de datos
+                VACACIONES_TABLE_COLUMNS.forEach(col => {
+                    const td = document.createElement('td');
+                    let value = rowData[col.key];
+
+                    // Formateo para fechas (RegistroDate)
+                    if (col.key === 'RegistroDate') {
+                        value = formatDate(value);
+                    }
+                    
+                    // Formateo para DIAS_VACACIONES y BONO_VACACIONAL
+                    td.classList.add('table-data-cell'); 
+                    
+                    if (col.key === 'DIAS_VACACIONES' || col.key === 'BONO_VACACIONAL') {
+                        // Asegura valor y justificación a la derecha
+                        value = value || '0';
+                        td.classList.add('text-right', 'pr-3', 'pl-1'); 
+                    } else {
+                        // Justificación a la izquierda para el resto
+                        td.classList.add('text-left', 'pl-3', 'pr-1'); 
+                    }
+
+                    td.textContent = value !== undefined && value !== null ? value : 'N/A';
+                    tr.appendChild(td);
+                });
+
+                tbody.appendChild(tr);
+            });
+            dataTable.appendChild(tbody);
+            tableContainer.appendChild(dataTable);
+        }
+
+        // --- LÓGICA DE CARGA DE DATOS (CON CACHÉ) ---
+        
+        /**
+         * Función principal para cargar y procesar los datos desde GAS, 
+         * utilizando localStorage como caché con una expiración de 15 minutos.
+         */
+        async function loadData() {
+            const tableContainer = document.getElementById(ACTIVITY_FEED_ID);
+            
+            // Mostrar spinner y ocultar cualquier tabla anterior
+            document.getElementById('loading-spinner')?.classList.remove('hidden');
+            document.getElementById('table-wrapper')?.classList.add('hidden');
+            
+            // --- 1. INTENTAR CARGAR DESDE CACHÉ ---
+            const cachedData = localStorage.getItem(CACHE_KEY);
+            if (cachedData) {
+                try {
+                    const parsedCache = JSON.parse(cachedData);
+                    const now = new Date().getTime();
+                    
+                    // Verificar si el caché aún es válido (15 minutos)
+                    if (now < parsedCache.expiry && Array.isArray(parsedCache.data)) {
+                        console.log("Cargando datos desde el CACHÉ local (Válido por 15 minutos).");
+                        const dataToUse = parsedCache.data;
+                        allEmployeeData = dataToUse;
+                        filteredEmployeeData = [...dataToUse];
+                        buildTable(filteredEmployeeData);
+                        return; // ¡Carga exitosa desde caché!
+                    } else {
+                        console.log("Caché expirado o no válido (15 minutos). Recuperando datos nuevos.");
+                        localStorage.removeItem(CACHE_KEY); // Limpiar caché expirado
+                    }
+                } catch (e) {
+                    console.error("Error al parsear el caché local:", e);
+                    localStorage.removeItem(CACHE_KEY); // Limpiar caché corrupto
+                }
+            }
+            
+            // --- 2. SI EL CACHÉ FALLA O EXPIRA, HACER FETCH ---
+            try {
+                const response = await fetch(EMPLOYEE_DATA_URL, {
+                    method: 'GET',
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error de red: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                let data = result;
+
+                // Estructura común de GAS: { data: [...] } o array directo
+                if (result && result.data && Array.isArray(result.data)) {
+                    data = result.data;
+                } else if (!Array.isArray(result)) {
+                    throw new Error("Formato de datos no válido. Se esperaba un array JSON.");
+                }
+
+                if (data.length === 0) {
+                    tableContainer.innerHTML = '<div class="text-center py-8 text-gray-500 dark:text-gray-400">No se encontraron registros.</div>';
+                } else {
+                    allEmployeeData = data;
+                    filteredEmployeeData = [...data]; // Inicialmente, todos los datos son filtrados
+
+                    // --- 3. GUARDAR NUEVOS DATOS EN CACHÉ LOCAL (15 MINUTOS) ---
+                    const expiry = new Date().getTime() + CACHE_EXPIRATION_MS;
+                    const cacheObject = { data: data, expiry: expiry };
+                    localStorage.setItem(CACHE_KEY, JSON.stringify(cacheObject));
+                    console.log("Nuevos datos obtenidos y guardados en caché (expira en 15 minutos).");
+                    
+                    // Renderizar la tabla con los datos frescos
+                    buildTable(filteredEmployeeData);
+                }
+
+            } catch (error) {
+                console.error("Fallo al obtener los datos:", error);
+                
+                // Mostrar mensaje de error en el contenedor
+                tableContainer.innerHTML = `
+                    <div class="bg-red-800 p-4 rounded-xl shadow-lg text-white">
+                        <strong class="font-bold">Error de Carga:</strong>
+                        <p class="mt-1 text-sm">No se pudo cargar la información. Detalles: ${error.message}</p>
+                        <p class="mt-2 text-xs opacity-80">Verifique la URL y la implementación de Google Apps Script (CORS/Deploy).</p>
+                    </div>
+                `;
+                // También actualiza las métricas a 0 o N/A en caso de error
+                const totalMetricElement = document.querySelector('[data-metric="total"]');
+                if (totalMetricElement) totalMetricElement.textContent = 'N/A';
+                const ctrl1MetricElement = document.querySelector('[data-metric="ctrl1_warning"]');
+                if (ctrl1MetricElement) ctrl1MetricElement.textContent = 'N/A';
+            }
+        }
+
+        // --- INICIALIZACIÓN ---
+
+        // Inicia la aplicación cargando el contenido de la sección 'Inicio'
+        document.addEventListener('DOMContentLoaded', () => {
+            loadContent('Inicio');
+        });
+        
+    </script>
+</body>
+</html>
