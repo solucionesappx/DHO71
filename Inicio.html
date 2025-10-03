@@ -1376,7 +1376,7 @@
             dataTable.appendChild(tbody);
         }
 
-        /**
+/**
          * Realiza el fetch de los datos de la hoja 'Vacaciones' para una cédula específica y muestra el modal.
          * @param {string} cedula - La cédula del trabajador.
          */
@@ -1384,6 +1384,9 @@
             if (!cedula) return showCustomAlert('No se pudo obtener la Cédula del trabajador.');
 
             // Si el modal no está visible, lo abrimos. Si ya lo está, solo actualizamos el contenido.
+            // NOTA: Esta lógica parece incorrecta. Si se llama a esta función, el modal de vacaciones 
+            // siempre debe estar visible (vacationModalOverlay.style.display = 'flex' en showVacationDaysAlert).
+            // Se mantiene la lógica original para evitar introducir errores de flujo en el modal de detalle.
             if (modalOverlay.style.display !== 'flex') {
                 showModal(); 
             }
@@ -1394,9 +1397,11 @@
 
             lucide.createIcons();
             
-            // Reutilizamos BASE_GAS_API_URL y agregamos los parámetros de hoja y filtro
-            const BASE_GAS_API_URL = 'https://script.google.com/macros/s/AKfycbx87WvxA9ca1KyGMA1wsw1npZw5vPtjoItomhF823BICXScNrWGFh5m0Dj6Veb24CtHXQ/exec';
-            const VACATION_API_URL = `${BASE_GAS_API_URL}?sheet=Vacaciones&cedula=${cedula}`;
+            // ************ CORRECCIÓN DEL ERROR DE FILTRADO ************
+            // Antes: const VACATION_API_URL = `${BASE_GAS_API_URL}?sheet=Vacaciones&cedula=${cedula}`;
+            // Ahora: Usamos la función buildGasApiUrl con filterCol='CEDULA' y filterValue=cedula
+            const VACATION_API_URL = buildGasApiUrl('Vacaciones', 'CEDULA', cedula);
+            // **********************************************************
 
 
             try {
@@ -1409,7 +1414,7 @@
                 const result = await response.json();
                 let data = (result && result.data && Array.isArray(result.data)) ? result.data : [];
 
-                // *** LÓGICA DE ORDENAMIENTO DESCENDENTE POR PERIODO (NUEVO) ***
+                // *** LÓGICA DE ORDENAMIENTO DESCENDENTE POR PERIODO ***
                 data.sort((a, b) => {
                     const periodoA = String(a.PERIODO);
                     const periodoB = String(b.PERIODO);
@@ -1446,7 +1451,6 @@
                 lucide.createIcons();
             }
         }
-
         // --- LÓGICA DE CARGA DE DATOS (CON CACHÉ) ---
         
         /**
