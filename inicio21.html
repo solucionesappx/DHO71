@@ -374,14 +374,11 @@
                         
                         <div class="flex items-center space-x-2">
                             <h3 class="text-xl font-bold text-blue-400">Detalle Trabajador</h3>
-                            
-                            <button onclick="showModalVacaciones()" class="p-1 rounded-full" title="Ver Historial de Vacaciones">
-                                <i data-lucide="calendar" class="w-6 h-6 text-yellow-400"></i>
-                            </button>
-                            </div>
+                            <i data-lucide="calendar" class="w-16 h-6 text-yellow-400"></i>
+                        </div>
                         
                         <button onclick="closeModal()" class="text-3xl text-red-400 hover:text-red-600 transition duration-150 p-2 -mr-3">
-                            <i data-lucide="x" class="w-6 h-6 icon-x relative"></i>                     
+                            <i data-lucide="x" class="w-6 h-6 icon-x relative -mt-8 -mr-2"></i>                     
                         </button>
                     </div>
                     
@@ -403,7 +400,7 @@
             <div id="alert-content-wrapper" 
                  class="mx-auto absolute top-[var(--header-offset)] w-full max-w-[380px]" 
                  onclick="event.stopPropagation()">
-                 
+                
                 <div class="bg-gray-800 p-6 rounded-xl shadow-2xl w-full transition-all duration-300 transform scale-100 dark:bg-gray-700">
                     
                     <h3 class="text-xl font-bold text-blue-400 mb-3">Mensaje del Sistema</h3>
