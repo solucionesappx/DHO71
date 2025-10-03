@@ -1415,21 +1415,30 @@
                 }
 
                 const result = await response.json();
-                let data = result;
+                let data = result.data || result; // Ajuste para manejar si GAS devuelve {data:[]} o solo []
 
-                if (result && result.data && Array.isArray(result.data)) {
-                    data = result.data;
-                } else if (!Array.isArray(result)) {
+                if (!Array.isArray(data)) {
                     throw new Error("Formato de datos de vacaciones no válido. Se esperaba un array JSON.");
                 }
                 
-                // 2. Renderizar la tabla con los datos filtrados
-                buildVacationTable(data);
+                // 2. *** CORRECCIÓN DE FILTRADO (Lado del Cliente) ***
+                // Filtramos los datos recibidos con la CEDULA del trabajador seleccionado.
+                // Esto garantiza que solo se muestren los registros correctos si el filtro del GAS falla.
+                const filteredData = data.filter(row => 
+                    String(row.CEDULA).trim().toLowerCase() === String(cedula).trim().toLowerCase()
+                );
+                
+                if (filteredData.length === 0) {
+                     console.warn(`No se encontraron registros de vacaciones para la Cédula: ${cedula}`);
+                }
+                
+                // 3. Renderizar la tabla con los datos filtrados
+                buildVacationTable(filteredData);
 
             } catch (error) {
                 console.error("Fallo al obtener los datos de Vacaciones:", error);
                 
-                // 3. Mostrar mensaje de error en el contenedor de la tabla
+                // 4. Mostrar mensaje de error en el contenedor de la tabla
                 container.innerHTML = `
                     <div class="bg-red-800 p-3 rounded-lg shadow-md text-white">
                         <p class="font-bold">Error de Carga:</p>
@@ -1437,7 +1446,7 @@
                     </div>
                 `;
             } finally {
-                // 4. Ocultar spinner
+                // 5. Ocultar spinner
                 loadingSpinner?.classList.add('hidden');
             }
         }
