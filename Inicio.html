@@ -561,12 +561,7 @@
                     </button> 
                 </div> 
 
-                <!-- NUEVO: Contenedor para mostrar el JSON de la fila seleccionada --> 
-                <div id="json-display-container" class="mb-4 p-3 rounded-lg light:bg-gray-100 dark:bg-gray-700 text-xs shadow-inner hidden"> 
-                    <h4 class="font-semibold text-blue-400 mb-1">JSON para Filtrado:</h4> 
-                    <pre id="selected-json-display" class="whitespace-pre-wrap font-mono text-gray-300"></pre> 
-                </div> 
-                <!-- FIN NUEVO: Contenedor JSON --> 
+                <!-- NOTA: El contenedor JSON ha sido eliminado de aquí, la salida va a la Consola. -->
 
 
                 <!-- Feed de Actividad Reciente --> 
@@ -914,8 +909,6 @@
             
             if (query === '') {
                 filteredEmployeeData = [...allEmployeeData];
-                // Si la búsqueda se limpia, oculta el panel JSON
-                document.getElementById('json-display-container')?.classList.add('hidden');
             } else {
                 filteredEmployeeData = allEmployeeData.filter(worker => {
                     // Busca en los valores de todas las columnas (sensible)
@@ -932,7 +925,7 @@
         /** Limpia el campo de búsqueda y reinicia la tabla */
         function clearSearchAndTable() {
             document.getElementById('search-input').value = '';
-            document.getElementById('json-display-container')?.classList.add('hidden'); // Oculta JSON
+            // Se eliminó el contenedor JSON, ya no se oculta aquí.
             
             // Al limpiar, también debemos resetear el estado de ordenación para que no aparezca el icono
             currentSortColumn = null;
@@ -992,7 +985,7 @@
             _globalSelectedRowElement = rowElement;
             _globalSelectedRowElement.classList.add('selected-row');
 
-            // 3. Guardar datos y renderizar JSON
+            // 3. Guardar datos y registrar JSON en consola
             _globalSelectedWorkerData = rowData;
             renderSelectedJson(rowData);
         }
@@ -1025,16 +1018,14 @@
                 modalBodyContent.appendChild(div);
             });
             
-            // Renderiza el JSON (simulado) y lo muestra en el inicio
+            // Renderiza el JSON (simulado) y lo muestra en la consola.
             renderSelectedJson(rowData);
 
             showModal();
         }
         
-        /** Renderiza el JSON simplificado de la fila seleccionada */
+        /** Muestra el JSON simplificado de la fila seleccionada en la CONSOLA. */
         function renderSelectedJson(rowData) {
-            const jsonDisplayContainer = document.getElementById('json-display-container');
-            const jsonDisplay = document.getElementById('selected-json-display');
             
             // Crear objeto JSON simplificado
             const simplifiedJson = {};
@@ -1061,9 +1052,12 @@
                 simplifiedJson[key] = value;
             });
             
-            jsonDisplay.textContent = JSON.stringify(simplifiedJson, null, 2);
-            // Mostrar el contenedor JSON (es el objetivo del click simple)
-            jsonDisplayContainer.classList.remove('hidden');
+            // EL CAMBIO PRINCIPAL: Mostrar el JSON simplificado en la consola.
+            console.log("--- JSON de Fila Seleccionada (mobile_app.html) ---");
+            console.log("Datos para Filtrado/Edición:", simplifiedJson);
+            console.log("-----------------------------------------------------");
+
+            // Como se eliminó el contenedor, no se necesita manipular el DOM aquí.
         }
 
         // --- LÓGICA DE RENDERIZADO DE TABLA ---
