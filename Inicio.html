@@ -386,10 +386,18 @@
                     
                     <!-- Encabezado del Modal con Botón de Cancelar -->
                     <div class="flex justify-between items-center pb-3 border-b border-gray-600 mb-4">
-                        <h3 class="text-xl font-bold text-blue-400">Detalle Trabajador</h3>
-                        <!-- Botón de Cancelar (esquina superior derecha) -->
-                        <button onclick="closeModal()" class="text-gray-400 hover:text-red-400 transition duration-150 p-2 -mr-3">
-                            <i data-lucide="x" class="w-6 h-6"></i>
+                        
+                        <!-- NUEVO: Contenedor para Título + Icono Calendario -->
+                        <div class="flex items-center space-x-2">
+                            <h3 class="text-xl font-bold text-blue-400">Detalle Trabajador</h3>
+                            <!-- 2. Icono de Calendario (data-lucide="calendar") -->
+                            <i data-lucide="calendar" class="w-6 h-6 text-yellow-400"></i>
+                        </div>
+                        
+                        <!-- 3. Botón de Cancelar (esquina superior derecha) -->
+                        <button onclick="closeModal()" class="text-3xl text-red-400 hover:text-red-600 transition duration-150 p-2 -mr-3">
+                            <i data-lucide="x" class="w-6 h-6 icon-x relative -mt-8 -mr-2"></i>
+                             
                         </button>
                     </div>
                     
