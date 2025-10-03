@@ -1390,65 +1390,81 @@
         }
 
         /**
-         * Fetches vacation data for the given CEDULA and renders it in the VacationDetailModal.
-         * @param {string} cedula - The CEDULA of the worker to filter the Vacaciones sheet.
+         * Realiza el fetch de los datos de la hoja 'Vacaciones' para una cédula específica y muestra el modal.
+         * @param {string} cedula - La cédula del trabajador.
          */
         async function fetchVacationDataAndShowModal(cedula) {
-            const container = document.getElementById('vacationTableContainer');
-            const loadingSpinner = document.getElementById('vacation-loading-spinner');
+            if (!cedula) return showCustomAlert('No se pudo obtener la Cédula del trabajador.');
+
+            // Si el modal no está visible, lo abrimos. Si ya lo está, solo actualizamos el contenido.
+            if (modalOverlay.style.display !== 'flex') {
+                showModal(); 
+            }
             
-            // Mostrar spinner si no está visible
-            loadingSpinner?.classList.remove('hidden');
+            // 1. Guardar el contenido original (detalle del trabajador)
+            const workerDetailHTML = modalBodyContent.innerHTML;
+            
+            // 2. Mostrar spinner/cargando
+            modalBodyContent.innerHTML = workerDetailHTML + `
+                <div id="vacation-loading-area" class="text-center py-8">
+                    <i data-lucide="loader-circle" class="w-8 h-8 mx-auto animate-spin text-blue-500"></i>
+                    <p class="mt-2 text-sm text-gray-400">Buscando registros de vacaciones para ${formatNumberWithDots(cedula)}...</p>
+                </div>
+            `;
+            lucide.createIcons();
+            
+            // Reutilizamos BASE_GAS_API_URL y agregamos los parámetros de hoja y filtro
+            const BASE_GAS_API_URL = 'https://script.google.com/macros/s/AKfycbx87WvxA9ca1KyGMA1wsw1npZw5vPtjoItomhF823BICXScNrWGFh5m0Dj6Veb24CtHXQ/exec';
+            const VACATION_API_URL = `${BASE_GAS_API_URL}?sheet=Vacaciones&cedula=${cedula}`;
+
 
             try {
-                // 1. Construir la URL para la hoja 'Vacaciones', filtrando por CEDULA
-                const apiUrl = buildGasApiUrl('Vacaciones', 'CEDULA', cedula);
-                
-                console.log(`Fetching Vacations from: ${apiUrl}`);
-
-                const response = await fetch(apiUrl, { method: 'GET' });
+                const response = await fetch(VACATION_API_URL, { method: 'GET' });
 
                 if (!response.ok) {
                     throw new Error(`Error de red: ${response.statusText}`);
                 }
 
                 const result = await response.json();
-                let data = result.data || result; // Ajuste para manejar si GAS devuelve {data:[]} o solo []
+                let data = (result && result.data && Array.isArray(result.data)) ? result.data : [];
 
-                if (!Array.isArray(data)) {
-                    throw new Error("Formato de datos de vacaciones no válido. Se esperaba un array JSON.");
-                }
+                // *** LÓGICA DE ORDENAMIENTO DESCENDENTE POR PERIODO (NUEVO) ***
+                data.sort((a, b) => {
+                    const periodoA = String(a.PERIODO);
+                    const periodoB = String(b.PERIODO);
+
+                    // Si se trata de números o strings, la comparación funciona.
+                    // Para orden descendente (el más alto primero), se invierten los valores:
+                    if (periodoA < periodoB) {
+                        return 1; // b va antes que a (descendente)
+                    }
+                    if (periodoA > periodoB) {
+                        return -1; // a va antes que b (descendente)
+                    }
+                    return 0;
+                });
+                // *** FIN LÓGICA DE ORDENAMIENTO ***
                 
-                // 2. *** CORRECCIÓN DE FILTRADO (Lado del Cliente) ***
-                // Filtramos los datos recibidos con la CEDULA del trabajador seleccionado.
-                // Esto garantiza que solo se muestren los registros correctos si el filtro del GAS falla.
-                const filteredData = data.filter(row => 
-                    String(row.CEDULA).trim().toLowerCase() === String(cedula).trim().toLowerCase()
-                );
+                // 3. Generar la tabla HTML
+                const vacationTableHTML = buildVacationTable(data);
                 
-                if (filteredData.length === 0) {
-                     console.warn(`No se encontraron registros de vacaciones para la Cédula: ${cedula}`);
-                }
+                // 4. Reemplazar el área de carga por la tabla (manteniendo el detalle principal)
+                document.getElementById('vacation-loading-area').innerHTML = vacationTableHTML;
                 
-                // 3. Renderizar la tabla con los datos filtrados
-                buildVacationTable(filteredData);
 
             } catch (error) {
                 console.error("Fallo al obtener los datos de Vacaciones:", error);
-                
-                // 4. Mostrar mensaje de error en el contenedor de la tabla
-                container.innerHTML = `
-                    <div class="bg-red-800 p-3 rounded-lg shadow-md text-white">
-                        <p class="font-bold">Error de Carga:</p>
-                        <p class="text-sm">No se pudo cargar la hoja "Vacaciones". Detalles: ${error.message}</p>
+                // Mostrar error en el área de carga
+                document.getElementById('vacation-loading-area').innerHTML = `
+                    <div class="bg-red-800 p-2 rounded-lg shadow-lg text-white mt-4 text-xs">
+                        <strong class="font-bold">Error:</strong>
+                        <p class="mt-1">Fallo al cargar historial: ${error.message}</p>
                     </div>
                 `;
             } finally {
-                // 5. Ocultar spinner
-                loadingSpinner?.classList.add('hidden');
+                lucide.createIcons();
             }
         }
-
 
         // --- LÓGICA DE CARGA DE DATOS (CON CACHÉ) ---
         
