@@ -197,7 +197,7 @@
             border-right: 1px solid rgba(255, 255, 255, 0.2); /* Separador suave */
             font-weight: bold;
             text-align: center;
-            /* Se ha quitado el 'w-16' fijo de CSS para que JS controle el padding y el ancho. */
+            width: w-20;/* Se ha quitado el 'w-16' fijo de CSS para que JS controle el padding y el ancho. */
         }
 
         /* Combinación para la celda de la esquina superior izquierda (Header de ID) */
@@ -1152,8 +1152,7 @@
             // Columna ID (Fija y con color)
             const idHeader = document.createElement('th');
             idHeader.textContent = 'ID';
-            // CAMBIO CLAVE: Se elimina 'w-16' y se añade 'px-3' para reducir el ancho
-            idHeader.className = 'sticky-id-cell header text-xs uppercase tracking-wider shadow-sm text-center px-30'; 
+            idHeader.className = 'sticky-id-cell header text-xs uppercase tracking-wider shadow-sm text-center px-3'; 
             headerRow.appendChild(idHeader);
 
             // Resto de encabezados (Interactivos para ordenación)
