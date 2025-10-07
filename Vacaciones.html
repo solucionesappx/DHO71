@@ -52,7 +52,7 @@
         #app-container {
             max-width: 500px;
             margin: 0 auto;
-            min-height: 100vh;
+            min-height: 10vh;
             display: flex;
             flex-direction: column;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
@@ -558,8 +558,9 @@
             const formattedCedula = formatNumberWithDots(data.CEDULA);
             const formattedIngreso = formatDate(data.INGRESO);
 
+            // APLICACIÓN DEL CAMBIO 2: Fondo del worker-card a bg-[#2D59A1]
             infoContainer.innerHTML = `
-                <div id="worker-card" class="bg-blue-600/90 p-4 rounded-xl shadow-lg dark:bg-gray-800/90">
+                <div id="worker-card" class="bg-[#2D59A1] p-4 rounded-xl shadow-lg dark:bg-gray-800/90">
                     
                     <!-- 1RA GRID (2 Columnas: Nombre | Cédula y Fecha Ingreso) -->
                     <div class="grid grid-cols-2 gap-4 pb-4 mb-4 border-b border-blue-800 dark:border-gray-700">
@@ -597,7 +598,7 @@
                         </div>
                         
                         <!-- Columna 3: Total Días (Neto) -->
-                        <div class="p-3 rounded-lg bg-yellow-500/80 shadow-inner">
+                        <div class="p-3 rounded-lg bg-gray-500/80 shadow-inner">
                             <span class="text-xs font-medium text-white block">Total Días (Neto)</span>
                             <span class="text-2xl font-extrabold text-white">${totalDays}</span>
                         </div>
@@ -980,8 +981,9 @@
                         <div class="flex items-center space-x-2 mb-1"> 
                             
                             <!-- Contenedor del Checkbox -->
-                            <div class="flex items-center space-x-2 p-0 text-4x1">
-                                <input type="checkbox" id="filterByPeriodCheckbox" onchange="updateFilterPlaceholder()" class="text-2x1 rounded text-blue-500 light:bg-gray-200 dark:bg-gray-600 border-gray-400 focus:ring-blue-500">
+                            <div class="flex items-center space-x-2 p-0">
+                                <!-- APLICACIÓN DEL CAMBIO 1: Tamaño del checkbox a w-3 h-3 -->
+                                <input type="checkbox" id="filterByPeriodCheckbox" onchange="updateFilterPlaceholder()" class="w-4 h-4 rounded text-blue-500 light:bg-gray-200 dark:bg-gray-600 border-gray-400 focus:ring-blue-500">
                                 <label for="filterByPeriodCheckbox" class="text-2x1 text-white select-none">Filtrar por Periodo</label>
                             </div>
                         </div>      
@@ -1064,6 +1066,7 @@
             setActiveFooterButton(initialSection); 
 
             const footerButtons = document.querySelectorAll('.footer-btn');
+            // CORRECCIÓN DEL ERROR DE REFERENCIA: Uso correcto de forEach
             footerButtons.forEach(button => {
                 button.addEventListener('click', () => {
                     const section = button.getAttribute('data-section');
