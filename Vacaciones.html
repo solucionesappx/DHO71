@@ -247,6 +247,17 @@
             opacity: 0.5;
             cursor: not-allowed;
         }
+
+        .concepto-scroll {
+         /* 1. Evita que el texto se ajuste a la siguiente línea */
+        white-space: nowrap;
+
+        /* 2. Agrega una barra de desplazamiento horizontal si el contenido es demasiado largo */
+        overflow-x: auto;
+
+        /* 3. Se recomienda establecer un ancho máximo visible para que overflow-x se active */
+        max-width: 200px; /* Ajusta este valor según el ancho de columna deseado */
+}
         
     </style>
 </head>
@@ -280,6 +291,10 @@
             <button class="footer-btn active" data-section="Vacaciones">
                 <i data-lucide="calendar-days"> class="w-6 h-6"></i>
                 <span>Vacaciones</span>
+            </button>
+            <button class="footer-btn" data-section="Agregar">
+                <i data-lucide="calendar-plus" class="w-6 h-6"></i>
+                <span>Agregar</span>
             </button>
             <button class="footer-btn" data-section="Editar">
                 <i data-lucide="edit" class="w-6 h-6"></i>
@@ -401,10 +416,10 @@
          */
         function getEmployeeInfo() {
             const defaultInfo = {
-                CEDULA: 69666666, 
-                INGRESO: '31/01/1969',
-                NOMBRES: 'NOMBRE TRABAJADOR',
-                APELLIDOS: 'APELLIDO TRABAJADOR',
+                CEDULA: 13105322, 
+                INGRESO: '13/10/2015',
+                NOMBRES: 'YSABEL LUISANA',
+                APELLIDOS: 'OJEDA CASTILLO',
             };
             
             try {
@@ -598,6 +613,9 @@
                             <h3 class="text-xl font-extrabold text-white leading-tight">
                                 ${formattedName}
                             </h3>
+                            <button class="p-1" title="Ver Detalle de Vacaciones" onclick="showVacationDetailModal()">
+                                <i data-lucide="calendar-plus" class="w-6 h-6 text-yellow-400"></i>
+                            </button>
                         </div>
                         
                         <!-- Columna 2: Cédula y Fecha Ingreso (Alineado a la derecha) -->
@@ -613,23 +631,23 @@
                     <div class="grid grid-cols-3 gap-2 text-center">
                         
                         <!-- Columna 1: Asignación Beneficio (Días > 0) -->
-                        <div class="py-1 px-3 rounded-lg bg-green-500/80 shadow-inner flex flex-col items-center justify-center">
+                        <div class="p-3 rounded-lg bg-green-500/80 shadow-inner flex flex-col items-center justify-center">
                             <i data-lucide="calendar-arrow-up" class="w-6 h-6 text-white mb-1"></i>
-                            <span class="text-xs font-medium text-white block">Asignación</span>
+                            <span class="text-xs font-medium text-white block">Asignación Beneficio</span>
                             <span class="text-xl font-extrabold text-white">${diasAsignados}</span>
                         </div>
                         
                         <!-- Columna 2: Disfrutes Efectivos (Días < 0, valor absoluto) -->
-                        <div class="py-1 px-3 rounded-lg bg-red-500/80 shadow-inner flex flex-col items-center justify-center">
+                        <div class="p-3 rounded-lg bg-red-500/80 shadow-inner flex flex-col items-center justify-center">
                             <i data-lucide="calendar-arrow-down" class="w-6 h-6 text-white mb-1"></i>
-                            <span class="text-xs font-medium text-white block">Disfrute</span>
+                            <span class="text-xs font-medium text-white block">Disfrutes Efectivos</span>
                             <span class="text-xl font-extrabold text-white">${diasConsumidos}</span>
                         </div>
                         
                         <!-- Columna 3: Total Días (Neto) -->
-                        <div class="py-1 px-3 rounded-lg bg-gray-500/80 shadow-inner flex flex-col items-center justify-center">
+                        <div class="p-3 rounded-lg bg-gray-500/80 shadow-inner flex flex-col items-center justify-center">
                             <i data-lucide="calendar-check-2" class="w-6 h-6 text-white mb-1"></i>
-                            <span class="text-xs font-medium text-white block">Total Días</span>
+                            <span class="text-xs font-medium text-white block">Total Días (Neto)</span>
                             <span class="text-2xl font-extrabold text-white">${totalDays}</span>
                         </div>
                         
@@ -1033,6 +1051,11 @@
     
             if (section === 'Editar') {
                 window.location.href = 'EditarDat.html';
+                return;
+            }
+
+            if (section === 'Agregar') {
+                window.location.href = 'AgregarDat.html';
                 return;
             }
     
