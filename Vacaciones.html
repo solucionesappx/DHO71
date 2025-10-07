@@ -418,8 +418,8 @@
             const defaultInfo = {
                 CEDULA: 13105322, 
                 INGRESO: '13/10/2015',
-                NOMBRES: 'YSABEL LUISANA',
-                APELLIDOS: 'OJEDA CASTILLO',
+                NOMBRES: 'NOMBRE TRABAJADOR',
+                APELLIDOS: 'APELLIDO TRABAJADOR',
             };
             
             try {
@@ -613,7 +613,7 @@
                             <h3 class="text-xl font-extrabold text-white leading-tight">
                                 ${formattedName}
                             </h3>
-                            <button class="p-1" title="Ver Detalle de Vacaciones" onclick="showVacationDetailModal()">
+                            <button class="p-1" title="Ver Detalle de Absentismo" onclick="showVacationDetailModal()">
                                 <i data-lucide="calendar-plus" class="w-6 h-6 text-yellow-400"></i>
                             </button>
                         </div>
@@ -631,24 +631,24 @@
                     <div class="grid grid-cols-3 gap-2 text-center">
                         
                         <!-- Columna 1: Asignación Beneficio (Días > 0) -->
-                        <div class="p-3 rounded-lg bg-green-500/80 shadow-inner flex flex-col items-center justify-center">
+                        <div class="px-3 py-1 rounded-lg bg-green-500/80 shadow-inner flex flex-col items-center justify-center">
                             <i data-lucide="calendar-arrow-up" class="w-6 h-6 text-white mb-1"></i>
-                            <span class="text-xs font-medium text-white block">Asignación Beneficio</span>
-                            <span class="text-xl font-extrabold text-white">${diasAsignados}</span>
+                            <span class="text-xs font-medium text-white block">Asignación</span>
+                            <span class="text-xl font-bold text-white">${diasAsignados}</span>
                         </div>
                         
                         <!-- Columna 2: Disfrutes Efectivos (Días < 0, valor absoluto) -->
-                        <div class="p-3 rounded-lg bg-red-500/80 shadow-inner flex flex-col items-center justify-center">
+                        <div class="px-3 py-1 rounded-lg bg-red-500/90 shadow-inner flex flex-col items-center justify-center">
                             <i data-lucide="calendar-arrow-down" class="w-6 h-6 text-white mb-1"></i>
-                            <span class="text-xs font-medium text-white block">Disfrutes Efectivos</span>
-                            <span class="text-xl font-extrabold text-white">${diasConsumidos}</span>
+                            <span class="text-xs font-medium text-white block">Disfrute</span>
+                            <span class="text-xl font-bold text-white">${diasConsumidos}</span>
                         </div>
                         
                         <!-- Columna 3: Total Días (Neto) -->
-                        <div class="p-3 rounded-lg bg-gray-500/80 shadow-inner flex flex-col items-center justify-center">
+                        <div class="px-3 py-1 rounded-lg bg-gray-500/90 shadow-inner flex flex-col items-center justify-center">
                             <i data-lucide="calendar-check-2" class="w-6 h-6 text-white mb-1"></i>
-                            <span class="text-xs font-medium text-white block">Total Días (Neto)</span>
-                            <span class="text-2xl font-extrabold text-white">${totalDays}</span>
+                            <span class="text-xs font-medium text-white block">Total Días</span>
+                            <span class="text-xl font-extrabold text-white">${totalDays}</span>
                         </div>
                         
                     </div>
