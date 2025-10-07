@@ -878,10 +878,26 @@
             mainContent.innerHTML = ''; 
             
             if (section === 'Inicio') {
-                mainContent.innerHTML = `<div id="welcome-view-container" class="w-full flex flex-col items-center justify-center p-6 text-center"><i data-lucide="sun" class="w-16 h-16 text-yellow-500 mb-4"></i><h2 class="text-3xl font-extrabold text-white mb-2">¡Bienvenido!</h2><p class="text-lg text-gray-300 mb-6">Panel principal de gestión de recursos humanos.</p><div class="bg-gray-700 p-4 rounded-lg shadow-inner w-full max-w-xs text-sm text-gray-400"><p>Usa la barra de navegación inferior para acceder a las distintas herramientas.</p><p class="mt-2 text-yellow-400 font-semibold">Haz clic en "Vacaciones" para ver el registro de datos.</p></div></div>`;
-                currentSheet = section;
-            } 
-            else if (section === 'Vacaciones') {
+                window.location.href = 'Inicio.html';
+                return; // Importante: Detiene la ejecución aquí.
+            }
+    
+            if (section === 'Editar') {
+                window.location.href = 'EditarDat.html';
+                return;
+            }
+    
+            if (section === 'Perfil') {
+                window.location.href = 'PerfilUser.html';
+                return;
+            }
+    
+            if (section === 'Configuración') {
+                window.location.href = 'ConfigApp.html';
+                return;
+            }
+            
+            if (section === 'Vacaciones') {
                 
                 mainContent.innerHTML = `
                     <div id="data-view-container" class="w-full pb-4">
