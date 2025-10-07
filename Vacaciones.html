@@ -517,8 +517,7 @@
         }
 
         /**
-         * Renderiza la tarjeta de información del empleado, incluyendo el cálculo del Total Días
-         * basado en los datos actualmente filtrados (filteredEmployeeData).
+         * Renderiza la tarjeta de información del empleado con el nuevo diseño de 2x3 grids.
          */
         function renderEmployeeInfo() {
             const infoContainer = document.getElementById('employee-info-card');
@@ -531,6 +530,18 @@
                 const days = getNumericValue(row.DIAS_VACACIONES);
                 return sum + days;
             }, 0);
+            
+            // CÁLCULOS ADICIONALES PARA LA NUEVA ESTRUCTURA (Días Positivos/Negativos)
+            const diasAsignados = filteredEmployeeData.reduce((sum, row) => {
+                const days = getNumericValue(row.DIAS_VACACIONES);
+                return sum + (days > 0 ? days : 0); // Suma solo los días positivos (Asignaciones)
+            }, 0);
+
+            let diasConsumidos = filteredEmployeeData.reduce((sum, row) => {
+                const days = getNumericValue(row.DIAS_VACACIONES);
+                return sum + (days < 0 ? days : 0); // Suma solo los días negativos (Disfrutes)
+            }, 0);
+            // El campo Disfrutes Efectivos debe ser siempre negativo (ya está implementado aquí)
             
             let formattedName = 'Empleado Desconocido';
             if (data.NOMBRES && data.APELLIDOS) {
@@ -548,25 +559,49 @@
             const formattedIngreso = formatDate(data.INGRESO);
 
             infoContainer.innerHTML = `
-                <div id="worker-card" class="bg-blue-400/90 p-4 rounded-xl shadow-lg">
-                    <div class="flex items-center space-x-3 mb-4 border-b border-blue-800 pb-2">
-                        <i data-lucide="user-check" class="w-7 h-7 text-yellow-300"></i>
-                        <h3 class="text-lg font-extrabold text-white">${formattedName}</h3>
-                    </div>
+                <div id="worker-card" class="bg-blue-600/90 p-4 rounded-xl shadow-lg dark:bg-gray-800/90">
                     
-                    <div class="grid grid-cols-3 gap-4 text-sm">
-                        <div class="flex flex-col items-center justify-center py-2 bg-blue-300/50 rounded-lg -my-1 -mr-1">
-                            <span class="text-white font-medium text-xs">Cédula</span>
-                            <span class="font-bold text-blue-900 text-sm">${formattedCedula}</span>
+                    <!-- 1RA GRID (2 Columnas: Nombre | Cédula y Fecha Ingreso) -->
+                    <div class="grid grid-cols-2 gap-4 pb-4 mb-4 border-b border-blue-800 dark:border-gray-700">
+                        
+                        <!-- Columna 1: Nombre del Trabajador (Formato destacado) -->
+                        <div>
+                            <h3 class="text-xl font-extrabold text-white leading-tight">
+                                ${formattedName}
+                            </h3>
+                            <!-- Etiqueta 'Trabajador Activo' Eliminada -->
                         </div>
-                        <div class="flex flex-col items-center justify-center py-2 bg-blue-300/50 rounded-lg -my-1 -mr-1">
-                            <span class="text-white font-medium text-xs">Fecha Ingreso</span>
-                            <span class="font-bold text-blue-900 text-sm">${formattedIngreso}</span>
+                        
+                        <!-- Columna 2: Cédula y Fecha Ingreso (Alineado a la derecha) -->
+                        <div class="text-right">
+                            <div class="flex flex-col items-end">
+                                <span class="text-sm text-white font-semibold">Cédula: ${formattedCedula}</span>
+                                <span class="text-sm text-white font-semibold">Ingreso: ${formattedIngreso}</span>
+                            </div>
                         </div>
-                        <div class="flex flex-col items-center justify-center py-2 bg-gray-300/50 rounded-lg -my-1 -mr-1">
-                            <span class="text-white font-medium text-sm">Total Días</span>
-                            <span class="font-bold text-blue-900 text-xl">${totalDays}</span>
+                    </div>
+
+                    <!-- 2DA GRID (3 Columnas: Asignación | Disfrutes | Total Días) -->
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        
+                        <!-- Columna 1: Asignación Beneficio (Días > 0) -->
+                        <div class="p-3 rounded-lg bg-green-500/80 shadow-inner">
+                            <span class="text-xs font-medium text-white block">Asignación Beneficio</span>
+                            <span class="text-xl font-extrabold text-white">${diasAsignados}</span>
                         </div>
+                        
+                        <!-- Columna 2: Disfrutes Efectivos (Días < 0, valor absoluto) -->
+                        <div class="p-3 rounded-lg bg-red-500/80 shadow-inner">
+                            <span class="text-xs font-medium text-white block">Disfrutes Efectivos</span>
+                            <span class="text-xl font-extrabold text-white">${diasConsumidos}</span>
+                        </div>
+                        
+                        <!-- Columna 3: Total Días (Neto) -->
+                        <div class="p-3 rounded-lg bg-yellow-500/80 shadow-inner">
+                            <span class="text-xs font-medium text-white block">Total Días (Neto)</span>
+                            <span class="text-2xl font-extrabold text-white">${totalDays}</span>
+                        </div>
+                        
                     </div>
                 </div>
             `;
@@ -673,12 +708,12 @@
             const searchInput = document.getElementById('search-input');
             const checkbox = document.getElementById('filterByPeriodCheckbox');
             
-            if (checkbox && searchInput) {
-                if (checkbox.checked) {
-                    searchInput.placeholder = "Solo Periodo";
-                } else {
-                    searchInput.placeholder = "Periodo o Concepto";
-                }
+            if (!searchInput || !checkbox) return; // Asegurar que los elementos existan
+
+            if (checkbox.checked) {
+                searchInput.placeholder = "Solo Periodo";
+            } else {
+                searchInput.placeholder = "Periodo o Concepto";
             }
             // Re-aplicar el filtro inmediatamente después del cambio de modo
             applyAllFilters(); 
@@ -940,13 +975,20 @@
                 mainContent.innerHTML = `
                     <div id="data-view-container" class="w-full pb-2">
                         <div id="employee-info-card" class="mb-4"></div>
-                        <!-- Checkbox de Filtrado por Periodo (SIN BACKGROUND NI BORDE) -->
-                            <div class="flex items-center space-x-2 p-0">
-                                <input type="checkbox" id="filterByPeriodCheckbox" onchange="updateFilterPlaceholder()" class="text-2x1rounded text-blue-500 light:bg-gray-200 dark:bg-gray-600 border-gray-400 focus:ring-blue-500">
-                                <label for="filterByPeriodCheckbox" class="text-2x1 font-medium text-white-700 dark:text-gray-200 select-none">Filtrar por Periodo</label>
+                        
+                        <!-- FILA 1: Checkbox de Filtrado por Periodo (Mantenido separado) -->
+                        <div class="flex items-center space-x-2 mb-1"> 
+                            
+                            <!-- Contenedor del Checkbox -->
+                            <div class="flex items-center space-x-2 p-0 text-4x1">
+                                <input type="checkbox" id="filterByPeriodCheckbox" onchange="updateFilterPlaceholder()" class="text-2x1 rounded text-blue-500 light:bg-gray-200 dark:bg-gray-600 border-gray-400 focus:ring-blue-500">
+                                <label for="filterByPeriodCheckbox" class="text-2x1 text-white select-none">Filtrar por Periodo</label>
                             </div>
-                        <!-- Controles de Filtro y Recarga (Actualizado con el checkbox) -->
-                        <div class="flex items-center space-x-2 mb-4">                           
+                        </div>      
+
+                        <!-- FILA 2: Input de Búsqueda y Botones -->
+                        <div class="flex items-center space-x-2 mb-4"> 
+                            
                             <!-- Input de Búsqueda -->
                             <div class="relative flex-grow rounded-xl"> 
                                 <input type="text" id="search-input" 
@@ -957,7 +999,8 @@
                                            placeholder-gray-400 border light:border-gray-300 dark:border-gray-600 
                                            focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     onkeyup="applyAllFilters()"> 
-                                <i data-lucide="search" class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-red-900"></i> 
+                                <!-- Icono de búsqueda con buen contraste -->
+                                <i data-lucide="search" class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 light:text-gray-500 dark:text-gray-300"></i> 
                             </div> 
                             
                             <!-- Botones de Limpiar y Recargar -->
