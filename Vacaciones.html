@@ -374,6 +374,10 @@
         // Simulación de la URL de la API de Google Apps Script
         const BASE_GAS_API_URL = 'https://script.google.com/macros/s/AKfycbx87WvxA9ca1KyGMA1wsw1npZw5vPtjoItomhF823BICXScNrWGFh5m0Dj6Veb24CtHXQ/exec';
         
+        // Constantes ajustadas para tu nueva función loadData:
+        const CACHE_KEY = 'vacacionesDataCache';
+        const CACHE_EXPIRATION_MS = 900000; // 15 minutos   
+
         const VACACIONES_COLUMNS = [
             { key: 'PERIODO', label: 'Período', sortable: true },
             { key: 'DESCRIPCION_CONCEPTO', label: 'Concepto', sortable: true },
@@ -546,18 +550,18 @@
                         <h3 class="text-lg font-extrabold text-white">${formattedName}</h3>
                     </div>
                     
-                    <div class="grid grid-cols-3 gap-3 text-sm">
-                        <div class="flex flex-col py-2 text-left">
+                    <div class="grid grid-cols-3 gap-4 text-sm">
+                        <div class="flex flex-col items-center justify-center py-2 bg-blue-300/50 rounded-lg -my-2 -mr-2">
                             <span class="text-white font-medium text-xs">Cédula</span>
                             <span class="font-bold text-blue-900 text-sm">${formattedCedula}</span>
                         </div>
-                        <div class="flex flex-col py-2 text-left">
+                        <div class="flex flex-col items-center justify-center py-2 bg-blue-300/50 rounded-lg -my-2 -mr-2">
                             <span class="text-white font-medium text-xs">Fecha Ingreso</span>
                             <span class="font-bold text-blue-900 text-sm">${formattedIngreso}</span>
                         </div>
-                        <div class="flex flex-col items-center justify-center py-2 bg-blue-300/50 rounded-lg -my-2 -mr-2">
-                            <span class="text-blue-900 font-medium text-xs">Total Días Pendientes</span>
-                            <span class="text-xl font-black text-blue-950 mt-1">${totalDays}</span>
+                        <div class="flex flex-col items-center justify-center py-2 bg-gray-300/50 rounded-lg -my-2 -mr-2">
+                            <span class="text-white font-medium text-sm">Total Días</span>
+                            <span class="font-bold text-blue-900 text-xl">${totalDays}</span>
                         </div>
                     </div>
                 </div>
@@ -608,10 +612,47 @@
                 lucide.createIcons(); 
             }
 
-            // 2. Intentar cargar desde el Caché (omito el código de caché para mantener el foco en la función)
-            // ... (Lógica de caché omitida para brevedad en esta respuesta)
-            
-            // 3. Cargar desde la API de GAS
+            // ... dentro de loadData(forceRefresh = false) ...
+
+            // 2. Intentar cargar desde el Caché
+            if (!forceRefresh) {
+                try {
+                    const cachedItem = localStorage.getItem(CACHE_KEY);
+                    if (cachedItem) {
+                        const cache = JSON.parse(cachedItem);
+                        const now = new Date().getTime();
+
+                        // Verificar si el dato existe y no ha expirado
+                        if (cache.data && cache.timestamp && (now - cache.timestamp) < CACHE_DURATION_MS) {
+                            console.log(`Cargando datos de "${currentSheet}" desde caché (válido).`);
+                
+                            // 4. Almacenar datos brutos (desde caché)
+                           allEmployeeData = cache.data;
+                
+                           // 5. Aplicar FILTRO por TARGET_CEDULA (El cambio principal)
+                           // ... (el mismo código de filtrado que ya tienes)
+                
+                           // 6. Renderizar y finalizar (desde caché)
+                            renderEmployeeInfo();
+                            if (statusElement) statusElement.style.display = 'none';
+                            if (tableScrollWrapper) tableScrollWrapper.style.display = 'block';
+                            currentSortColumn = 'CEDULA';
+                            sortOrder = 'asc';
+                            sortData(currentSortColumn);
+                
+                            return; // Detener la ejecución si se usó la caché
+                        } else {
+                            console.log(`Caché para "${currentSheet}" expirada o inválida.`);
+                            localStorage.removeItem(CACHE_KEY); // Limpiar caché expirada
+                        }
+                }
+                } catch (e) {
+                    console.error("Error al leer la caché:", e);
+                    localStorage.removeItem(CACHE_KEY); 
+                }
+            }
+            // ----------------------------------------------------------------------
+            // 3. Cargar desde la API de GAS (solo si la caché falló o se forzó la recarga)
             try {
                 const apiUrl = buildGasApiUrl(currentSheet); 
                 
@@ -660,18 +701,18 @@
                 renderEmployeeInfo();
 
 
-                if (filteredEmployeeData.length === 0) {
-                    if (statusElement) {
-                        statusElement.innerHTML = `
-                            <div class="text-center py-8 text-gray-400">
-                                No se encontraron registros de vacaciones para la Cédula ${formatNumberWithDots(TARGET_CEDULA)}.
-                            </div>
-                        `;
-                        statusElement.style.display = 'block';
+                if (filteredEmployeeData.length > 0) {
+                    // AHORA: Guardar en caché
+                    try {
+                        const cache = {
+                            timestamp: new Date().getTime(),
+                            data: allEmployeeData // Guardar los datos brutos, no solo los filtrados
+                        };
+                        localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+                        console.log("Datos de la hoja guardados en caché.");
+                    } catch (e) {
+                        console.error("Fallo al guardar en caché:", e);
                     }
-                    if (tableScrollWrapper) tableScrollWrapper.style.display = 'none';
-                } else {
-                    // Guardar en caché (Lógica omitida)
                     
                     // Ocultar estado de carga y mostrar tabla
                     if (statusElement) statusElement.style.display = 'none';
