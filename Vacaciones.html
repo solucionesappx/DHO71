@@ -185,7 +185,7 @@
         .sticky-id-cell.header {
             top: 0;
             z-index: 20; 
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1); 
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); 
         }
         
         .sortable-header {
@@ -298,7 +298,6 @@
         
         <!-- MODAL DE DETALLE DE VACACIONES -->
         <div id="VacationDetailModal" class="modal-overlay" onclick="closeVacationModal(event)">
-            <!-- El 'wrapper' de contenido ahora controla la posición absoluta dentro del overlay fijo -->
             <div id="vacation-modal-content-wrapper" 
                  class="mx-auto" 
                  onclick="event.stopPropagation()">
@@ -401,14 +400,15 @@
         };
 
         let TARGET_CEDULA = MOCK_EMPLOYEE_INFO.CEDULA; // Cédula del trabajador actual
-        let filteredEmployeeData = []; // Datos que se muestran en la tabla (ya filtrados por cédula)
+        let filteredEmployeeData = []; // Datos que se muestran en la tabla (filtrados por cédula y búsqueda)
+        let userBaseData = []; // Base de datos del usuario filtrada por Cédula (para aplicar filtros).
         let currentSheet = 'Vacaciones'; 
 
         // Variables de estado para el ordenamiento
         let currentSortColumn = null; 
         let sortOrder = 'asc'; 
         
-        // Variable de estado para el modal de detalle
+        // Variables de estado para el modal de detalle
         let currentRecordIndex = -1; // Índice del registro actual en filteredEmployeeData
 
         // --- FUNCIONES AYUDANTES DE FORMATO ---
@@ -516,13 +516,17 @@
             }
         }
 
+        /**
+         * Renderiza la tarjeta de información del empleado, incluyendo el cálculo del Total Días
+         * basado en los datos actualmente filtrados (filteredEmployeeData).
+         */
         function renderEmployeeInfo() {
             const infoContainer = document.getElementById('employee-info-card');
-            // Usamos MOCK_EMPLOYEE_INFO ya que la info del trabajador no viene en la tabla de vacaciones
             const data = MOCK_EMPLOYEE_INFO; 
             
             if (!infoContainer || !data) return;
 
+            // EL CÁLCULO CLAVE: CALCULAR EL TOTAL DÍAS CON LOS DATOS FILTRADOS
             const totalDays = filteredEmployeeData.reduce((sum, row) => {
                 const days = getNumericValue(row.DIAS_VACACIONES);
                 return sum + days;
@@ -551,15 +555,15 @@
                     </div>
                     
                     <div class="grid grid-cols-3 gap-4 text-sm">
-                        <div class="flex flex-col items-center justify-center py-2 bg-blue-300/50 rounded-lg -my-2 -mr-2">
+                        <div class="flex flex-col items-center justify-center py-2 bg-blue-300/50 rounded-lg -my-1 -mr-1">
                             <span class="text-white font-medium text-xs">Cédula</span>
                             <span class="font-bold text-blue-900 text-sm">${formattedCedula}</span>
                         </div>
-                        <div class="flex flex-col items-center justify-center py-2 bg-blue-300/50 rounded-lg -my-2 -mr-2">
+                        <div class="flex flex-col items-center justify-center py-2 bg-blue-300/50 rounded-lg -my-1 -mr-1">
                             <span class="text-white font-medium text-xs">Fecha Ingreso</span>
                             <span class="font-bold text-blue-900 text-sm">${formattedIngreso}</span>
                         </div>
-                        <div class="flex flex-col items-center justify-center py-2 bg-gray-300/50 rounded-lg -my-2 -mr-2">
+                        <div class="flex flex-col items-center justify-center py-2 bg-gray-300/50 rounded-lg -my-1 -mr-1">
                             <span class="text-white font-medium text-sm">Total Días</span>
                             <span class="font-bold text-blue-900 text-xl">${totalDays}</span>
                         </div>
@@ -572,11 +576,10 @@
             }
         }
 
-        // --- FUNCIONES PRINCIPALES DE DATOS Y RENDERIZADO (MODIFICADAS) ---
+        // --- FUNCIONES PRINCIPALES DE DATOS Y FILTRADO ---
 
         /**
          * Carga los datos de la hoja activa desde la URL de Google Apps Script y aplica el filtro por Cédula.
-         * @param {boolean} forceRefresh - Si es true, omite el caché.
          */
         async function loadData(forceRefresh = false) {
             
@@ -590,7 +593,6 @@
             const tableScrollWrapper = document.getElementById('table-scroll-wrapper');
             const tableContainer = document.getElementById(config.tableContainerId);
 
-            // 1. Mostrar estado de carga (Spinner)
             if (statusElement) {
                 statusElement.innerHTML = `
                     <div class="text-center py-10">
@@ -612,50 +614,11 @@
                 lucide.createIcons(); 
             }
 
-            // ... dentro de loadData(forceRefresh = false) ...
+            let allEmployeeData = [];
 
-            // 2. Intentar cargar desde el Caché
-            if (!forceRefresh) {
-                try {
-                    const cachedItem = localStorage.getItem(CACHE_KEY);
-                    if (cachedItem) {
-                        const cache = JSON.parse(cachedItem);
-                        const now = new Date().getTime();
-
-                        // Verificar si el dato existe y no ha expirado
-                        if (cache.data && cache.timestamp && (now - cache.timestamp) < CACHE_DURATION_MS) {
-                            console.log(`Cargando datos de "${currentSheet}" desde caché (válido).`);
-                
-                            // 4. Almacenar datos brutos (desde caché)
-                           allEmployeeData = cache.data;
-                
-                           // 5. Aplicar FILTRO por TARGET_CEDULA (El cambio principal)
-                           // ... (el mismo código de filtrado que ya tienes)
-                
-                           // 6. Renderizar y finalizar (desde caché)
-                            renderEmployeeInfo();
-                            if (statusElement) statusElement.style.display = 'none';
-                            if (tableScrollWrapper) tableScrollWrapper.style.display = 'block';
-                            currentSortColumn = 'CEDULA';
-                            sortOrder = 'asc';
-                            sortData(currentSortColumn);
-                
-                            return; // Detener la ejecución si se usó la caché
-                        } else {
-                            console.log(`Caché para "${currentSheet}" expirada o inválida.`);
-                            localStorage.removeItem(CACHE_KEY); // Limpiar caché expirada
-                        }
-                }
-                } catch (e) {
-                    console.error("Error al leer la caché:", e);
-                    localStorage.removeItem(CACHE_KEY); 
-                }
-            }
-            // ----------------------------------------------------------------------
-            // 3. Cargar desde la API de GAS (solo si la caché falló o se forzó la recarga)
+            // 3. Cargar desde la API de GAS
             try {
                 const apiUrl = buildGasApiUrl(currentSheet); 
-                
                 const response = await fetch(apiUrl, { method: 'GET' });
 
                 if (!response.ok) {
@@ -671,77 +634,117 @@
                     throw new Error("Formato de datos no válido.");
                 }
                 
-                // 4. Almacenar datos brutos
                 allEmployeeData = data;
                 
-                // 5. Aplicar FILTRO por TARGET_CEDULA (El cambio principal)
+                // 5. Aplicar FILTRO por TARGET_CEDULA
                 if (TARGET_CEDULA !== null) {
-                    console.log(`Filtrando datos para la Cédula: ${TARGET_CEDULA}`);
-                    // Asegurar que tanto el valor del JSON como el valor de la columna sean del mismo tipo (String o Number) 
-                    // o parsear explícitamente a Number. Usaremos Number para asegurar una comparación precisa.
                     const targetNum = Number(TARGET_CEDULA);
-                    
-                    filteredEmployeeData = allEmployeeData.filter(row => {
+                    userBaseData = allEmployeeData.filter(row => {
                         const rowCedula = Number(row.CEDULA);
                         return rowCedula === targetNum;
                     });
-
-                    if (filteredEmployeeData.length === 0) {
-                        console.warn(`No se encontraron registros de vacaciones para la Cédula: ${TARGET_CEDULA}`);
-                    }
                 } else {
-                    // Si no hay cédula de destino, mostrar todos los datos (modo de desarrollo)
-                    console.warn('TARGET_CEDULA es nulo. Mostrando todos los registros.');
-                    filteredEmployeeData = [...allEmployeeData];
+                    userBaseData = [...allEmployeeData];
                 }
-
                 
-                // 6. Renderizar información del empleado ANTES de la tabla
-                // Esto solo se hará si hay datos filtrados (y por ende un TARGET_CEDULA)
+                // 6. Renderizar Info y Tabla
                 renderEmployeeInfo();
+                
+                if (statusElement) statusElement.style.display = 'none';
+                if (tableScrollWrapper) tableScrollWrapper.style.display = 'block';
 
-
-                if (filteredEmployeeData.length > 0) {
-                    // AHORA: Guardar en caché
-                    try {
-                        const cache = {
-                            timestamp: new Date().getTime(),
-                            data: allEmployeeData // Guardar los datos brutos, no solo los filtrados
-                        };
-                        localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
-                        console.log("Datos de la hoja guardados en caché.");
-                    } catch (e) {
-                        console.error("Fallo al guardar en caché:", e);
-                    }
-                    
-                    // Ocultar estado de carga y mostrar tabla
-                    if (statusElement) statusElement.style.display = 'none';
-                    if (tableScrollWrapper) tableScrollWrapper.style.display = 'block';
-                    
-                    // Inicializar y aplicar ordenamiento después de la carga
-                    // Usar 'CEDULA' como clave de ordenamiento inicial para activar el orden multi-criterio.
-                    currentSortColumn = 'CEDULA';
-                    sortOrder = 'asc'; // El orden ascendente es el que rige la Cédula (primer criterio)
-
-                    sortData(currentSortColumn);
-                }
+                // Inicializar placeholder y aplicar filtros
+                updateFilterPlaceholder();
+                currentSortColumn = 'CEDULA';
+                sortOrder = 'asc';
+                applyAllFilters();
+                
 
             } catch (error) {
                 console.error(`Fallo al obtener los datos de ${currentSheet}:`, error);
-                
-                // Mostrar mensaje de error (Lógica omitida)
-                
                 if (tableScrollWrapper) tableScrollWrapper.style.display = 'none';
             }
         }
+        
+        /**
+         * Actualiza el placeholder del input de búsqueda y llama a aplicar filtros.
+         */
+        function updateFilterPlaceholder() {
+            const searchInput = document.getElementById('search-input');
+            const checkbox = document.getElementById('filterByPeriodCheckbox');
+            
+            if (checkbox && searchInput) {
+                if (checkbox.checked) {
+                    searchInput.placeholder = "Solo Periodo";
+                } else {
+                    searchInput.placeholder = "Periodo o Concepto";
+                }
+            }
+            // Re-aplicar el filtro inmediatamente después del cambio de modo
+            applyAllFilters(); 
+        }
 
         /**
-         * Renderiza la tabla en el contenedor, utilizando las columnas de la configuración actual.
-         * @param {Array<Object>} data Los datos a mostrar.
-         * @param {Array<Object>} columnsConfig La configuración de las columnas a usar.
+         * Aplica todos los filtros (Búsqueda por Texto) a userBaseData y 
+         * actualiza la interfaz (Total Días y Tabla).
          */
-        // --- RENDERIZADO DE TABLA Y DETALLE (INCLUYENDO DBLCLICK) ---
+        function applyAllFilters() {
+            const searchInput = document.getElementById('search-input');
+            const checkbox = document.getElementById('filterByPeriodCheckbox');
+            
+            if (!searchInput || !checkbox) return; // Asegurar que los elementos existan
 
+            const query = (searchInput.value || '').toLowerCase().trim();
+            const filterByPeriodOnly = checkbox.checked;
+            
+            let tempFilteredData = [...userBaseData];
+            
+            // 1. Filtrar por Búsqueda de Texto
+            if (query.length > 0) {
+                tempFilteredData = tempFilteredData.filter(row => {
+                    const periodo = String(row.PERIODO || '').toLowerCase();
+                    const concepto = String(row.DESCRIPCION_CONCEPTO || '').toLowerCase();
+                    
+                    if (filterByPeriodOnly) {
+                        // Filtrar SOLO por PERIODO
+                        return periodo.includes(query);
+                    } else {
+                        // Filtrar por PERIODO O CONCEPTO
+                        return periodo.includes(query) || concepto.includes(query);
+                    }
+                });
+            }
+
+            filteredEmployeeData = tempFilteredData;
+
+            // 2. Renderizar componentes afectados
+            renderEmployeeInfo(); // Actualiza el total de días (basado en filteredEmployeeData)
+            sortData(currentSortColumn); // Re-ordena y renderiza la tabla
+        }
+
+        /**
+         * Restaura los datos originales del usuario, limpia el campo de búsqueda y 
+         * desactiva el filtro por periodo.
+         */
+        function clearSearchFilter() {
+            const searchInput = document.getElementById('search-input');
+            const checkbox = document.getElementById('filterByPeriodCheckbox');
+            
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            
+            if (checkbox) {
+                checkbox.checked = false; // Desactivar el filtro de periodo
+            }
+
+            updateFilterPlaceholder(); // Esto llama a applyAllFilters
+        }
+
+
+        /**
+         * Renderiza la tabla en el contenedor.
+         */
         function renderTable(data, columnsConfig) {
             
             const config = SECTION_CONFIG[currentSheet];
@@ -749,7 +752,7 @@
             
             if (!container) return;
             if (data.length === 0) {
-                container.innerHTML = `<p class="text-center py-4 text-gray-400">No se encontraron registros que coincidan.</p>`;
+                container.innerHTML = `<p class="text-center py-4 text-gray-400">No se encontraron registros que coincidan con los filtros aplicados.</p>`;
                 return;
             }
             
@@ -827,7 +830,7 @@
             });
         }
         
-        // --- LÓGICA DEL MODAL DE DETALLE DE VACACIONES (NUEVA FUNCIONALIDAD) ---
+        // --- LÓGICA DEL MODAL DE DETALLE DE VACACIONES ---
         
         /** Cierra el modal de detalle de vacaciones. */
         function closeVacationModal(event) {
@@ -858,20 +861,16 @@
             document.getElementById('detail-periodo').textContent = record.PERIODO || 'N/A';
             document.getElementById('detail-concepto').textContent = record.DESCRIPCION_CONCEPTO || 'N/A';
             document.getElementById('detail-dias').textContent = `${record.DIAS_VACACIONES || 0}`;
-            // El campo solicitado es BONO, usar el valor de BONO_VACACIONAL
             document.getElementById('detail-bono').textContent = record.BONO_VACACIONAL;
 
             // 2. Posicionar el Modal (Clave: Debajo de la tarjeta del trabajador)
             if (workerCard) {
-                // Obtener la posición inferior absoluta de la Tarjeta del Trabajador
                 const cardRect = workerCard.getBoundingClientRect();
                 const cardBottomPosition = cardRect.bottom + window.scrollY; 
                 
-                // Aplicar el 'top' al wrapper para que aparezca debajo de la tarjeta (+ 20px de margen)
                 modalContentWrapper.style.top = `${cardBottomPosition + 20}px`; 
                 modalContentWrapper.style.position = 'absolute';
             } else {
-                // Fallback de posicionamiento si la tarjeta no se encuentra
                 modalContentWrapper.style.top = '100px'; 
             }
             
@@ -881,7 +880,6 @@
             // 4. Mostrar el Modal
             modal.style.display = 'flex';
             
-            // Re-ejecutar Lucide Icons
             if (typeof lucide !== 'undefined' && lucide.createIcons) {
                 lucide.createIcons();
             }
@@ -896,7 +894,7 @@
 
             if (newIndex >= 0 && newIndex < filteredEmployeeData.length) {
                 currentRecordIndex = newIndex;
-                showVacationDetailModal(); // Llama a mostrar el modal con el nuevo índice
+                showVacationDetailModal(); 
             }
         }
 
@@ -920,7 +918,7 @@
             
             if (section === 'Inicio') {
                 window.location.href = 'Inicio.html';
-                return; // Importante: Detiene la ejecución aquí.
+                return; 
             }
     
             if (section === 'Editar') {
@@ -940,13 +938,42 @@
             else if (section === 'Vacaciones') {
                 
                 mainContent.innerHTML = `
-                    <div id="data-view-container" class="w-full pb-4">
+                    <div id="data-view-container" class="w-full pb-2">
                         <div id="employee-info-card" class="mb-4"></div>
-                        <div class="flex justify-between items-start mb-4"> 
-                            <div><h2 class="text-2xl font-bold text-blue-400">Registros de Vacaciones</h2></div>
-                            <button id="reload-icon" class="p-2 rounded-full text-blue-400 hover:bg-gray-700 transition duration-150" title="Recargar Datos (Omitir Caché)">
-                                <i data-lucide="refresh-cw" class="w-6 h-6"></i>
+                        <!-- Checkbox de Filtrado por Periodo (SIN BACKGROUND NI BORDE) -->
+                            <div class="flex items-center space-x-2 p-0">
+                                <input type="checkbox" id="filterByPeriodCheckbox" onchange="updateFilterPlaceholder()" class="text-2x1rounded text-blue-500 light:bg-gray-200 dark:bg-gray-600 border-gray-400 focus:ring-blue-500">
+                                <label for="filterByPeriodCheckbox" class="text-2x1 font-medium text-white-700 dark:text-gray-200 select-none">Filtrar por Periodo</label>
+                            </div>
+                        <!-- Controles de Filtro y Recarga (Actualizado con el checkbox) -->
+                        <div class="flex items-center space-x-2 mb-4">                           
+                            <!-- Input de Búsqueda -->
+                            <div class="relative flex-grow rounded-xl"> 
+                                <input type="text" id="search-input" 
+                                    placeholder="Periodo o Concepto" 
+                                    class="w-full pl-10 pr-4 py-2 rounded-xl shadow-inner 
+                                           light:bg-white dark:bg-gray-700 
+                                           text-gray-900 dark:text-gray-100 
+                                           placeholder-gray-400 border light:border-gray-300 dark:border-gray-600 
+                                           focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    onkeyup="applyAllFilters()"> 
+                                <i data-lucide="search" class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-red-900"></i> 
+                            </div> 
+                            
+                            <!-- Botones de Limpiar y Recargar -->
+                            <button id="clear-search-btn" 
+                                    class="p-2.5 rounded-full light:bg-white dark:bg-gray-700 shadow-md transition-colors duration-200 text-red-500 dark:text-red-400 font-bold" 
+                                    title="Reiniciar Filtros"
+                                    onclick="clearSearchFilter()"> 
+                                <i data-lucide="x-circle" class="w-7 h-7"></i> 
                             </button>
+                            <button id="reload-icon" class="p-2 rounded-full text-blue-400 hover:bg-gray-700 transition duration-150" title="Recargar Datos (Omitir Caché)">
+                                    <i data-lucide="refresh-cw" class="w-6 h-6"></i>
+                            </button> 
+                        </div>      
+                        
+                        <div class="flex justify-between items-start mt-1 mb-2"> 
+                            <div><h2 class="text-2xl font-bold text-blue-400">Registros de Vacaciones</h2></div>                        
                         </div>
                         <div id="table-loading-status" class="text-center py-10" style="display: none;"></div>
                         <div id="table-scroll-wrapper" class="table-scroll-container">
@@ -989,12 +1016,10 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             
-            // Carga la vista inicial: 'Vacaciones'
             const initialSection = 'Vacaciones';
             loadContent(initialSection); 
             setActiveFooterButton(initialSection); 
 
-            // Configurar botones del footer para la navegación dinámica
             const footerButtons = document.querySelectorAll('.footer-btn');
             footerButtons.forEach(button => {
                 button.addEventListener('click', () => {
@@ -1004,7 +1029,6 @@
                 });
             });
             
-            // Manejar cierre de modal con la tecla ESC
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape' && document.getElementById('VacationDetailModal').style.display === 'flex') {
                     closeVacationModal();
@@ -1015,4 +1039,3 @@
     </script>
 </body>
 </html>
-
