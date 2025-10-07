@@ -373,8 +373,8 @@
         // Simulación de la URL de la API de Google Apps Script
         const BASE_GAS_API_URL = 'https://script.google.com/macros/s/AKfycbx87WvxA9ca1KyGMA1wsw1npZw5vPtjoItomhF823BICXScNrWGFh5m0Dj6Veb24CtHXQ/exec';
         
-        // Constantes ajustadas para tu nueva función loadData:
-        const CACHE_KEY = 'vacacionesDataCache';
+        // Constantes ajustadas para la función loadData:
+        const CACHE_VAC_KEY = 'vacacionesDataCache';
         const CACHE_EXPIRATION_MS = 900000; // 15 minutos   
 
         const VACACIONES_COLUMNS = [
@@ -563,14 +563,13 @@
                 <div id="worker-card" class="bg-[#2D59A1] p-4 rounded-xl shadow-lg dark:bg-gray-800/90">
                     
                     <!-- 1RA GRID (2 Columnas: Nombre | Cédula y Fecha Ingreso) -->
-                    <div class="grid grid-cols-2 gap-4 pb-4 mb-4 border-b border-blue-800 dark:border-gray-700">
+                    <div class="grid grid-cols-2 gap-4 pb-2 mb-2 border-b border-blue-800 dark:border-gray-700">
                         
                         <!-- Columna 1: Nombre del Trabajador (Formato destacado) -->
                         <div>
                             <h3 class="text-xl font-extrabold text-white leading-tight">
                                 ${formattedName}
                             </h3>
-                            <!-- Etiqueta 'Trabajador Activo' Eliminada -->
                         </div>
                         
                         <!-- Columna 2: Cédula y Fecha Ingreso (Alineado a la derecha) -->
@@ -616,6 +615,7 @@
 
         /**
          * Carga los datos de la hoja activa desde la URL de Google Apps Script y aplica el filtro por Cédula.
+         * @param {boolean} forceRefresh - Si es true, omite el caché.
          */
         async function loadData(forceRefresh = false) {
             
@@ -651,55 +651,98 @@
             }
 
             let allEmployeeData = [];
+            let isDataCached = false;
 
-            // 3. Cargar desde la API de GAS
-            try {
-                const apiUrl = buildGasApiUrl(currentSheet); 
-                const response = await fetch(apiUrl, { method: 'GET' });
 
-                if (!response.ok) {
-                    throw new Error(`Error de red: ${response.status} ${response.statusText || 'Error desconocido'}`);
+            // --- 1. LECTURA Y VALIDACIÓN DEL CACHÉ (Solo para Vacaciones) ---
+            if (currentSheet === 'Vacaciones' && !forceRefresh) {
+                try {
+                    const cachedData = localStorage.getItem(CACHE_VAC_KEY);
+                    if (cachedData) {
+                        const cache = JSON.parse(cachedData);
+                        const now = new Date().getTime();
+                        
+                        if (now < cache.timestamp + CACHE_EXPIRATION_MS) {
+                            allEmployeeData = cache.data;
+                            isDataCached = true;
+                            console.log("Datos de Vacaciones cargados desde el caché.");
+                        } else {
+                            console.log("Caché de Vacaciones expirado.");
+                            localStorage.removeItem(CACHE_VAC_KEY);
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error al leer o parsear el caché:", e);
+                    localStorage.removeItem(CACHE_VAC_KEY);
                 }
-
-                const result = await response.json();
-                let data = result;
-
-                if (result && result.data && Array.isArray(result.data)) {
-                    data = result.data;
-                } else if (!Array.isArray(result)) {
-                    throw new Error("Formato de datos no válido.");
-                }
-                
-                allEmployeeData = data;
-                
-                // 5. Aplicar FILTRO por TARGET_CEDULA
-                if (TARGET_CEDULA !== null) {
-                    const targetNum = Number(TARGET_CEDULA);
-                    userBaseData = allEmployeeData.filter(row => {
-                        const rowCedula = Number(row.CEDULA);
-                        return rowCedula === targetNum;
-                    });
-                } else {
-                    userBaseData = [...allEmployeeData];
-                }
-                
-                // 6. Renderizar Info y Tabla
-                renderEmployeeInfo();
-                
-                if (statusElement) statusElement.style.display = 'none';
-                if (tableScrollWrapper) tableScrollWrapper.style.display = 'block';
-
-                // Inicializar placeholder y aplicar filtros
-                updateFilterPlaceholder();
-                currentSortColumn = 'CEDULA';
-                sortOrder = 'asc';
-                applyAllFilters();
-                
-
-            } catch (error) {
-                console.error(`Fallo al obtener los datos de ${currentSheet}:`, error);
-                if (tableScrollWrapper) tableScrollWrapper.style.display = 'none';
             }
+
+
+            // --- 2. CARGA DESDE LA API (Si el caché no es válido) ---
+            if (!isDataCached) {
+                try {
+                    const apiUrl = buildGasApiUrl(currentSheet); 
+                    // Se usa fetch simple según solicitud.
+                    const response = await fetch(apiUrl, { method: 'GET' }); 
+
+                    if (!response.ok) {
+                        throw new Error(`Error de red: ${response.status} ${response.statusText || 'Error desconocido'}`);
+                    }
+
+                    const result = await response.json();
+                    let data = result;
+
+                    if (result && result.data && Array.isArray(result.data)) {
+                        data = result.data;
+                    } else if (!Array.isArray(result)) {
+                        throw new Error("Formato de datos no válido.");
+                    }
+                    
+                    allEmployeeData = data;
+
+                    // --- 3. ESCRITURA EN EL CACHÉ (Solo para Vacaciones) ---
+                    if (currentSheet === 'Vacaciones') {
+                        const cacheEntry = {
+                            data: allEmployeeData,
+                            timestamp: new Date().getTime()
+                        };
+                        localStorage.setItem(CACHE_VAC_KEY, JSON.stringify(cacheEntry));
+                        console.log("Nuevos datos de Vacaciones guardados en caché.");
+                    }
+                    // --- FIN ESCRITURA EN EL CACHÉ ---
+                    
+                } catch (error) {
+                    console.error(`Fallo al obtener los datos de ${currentSheet}:`, error);
+                    if (statusElement) statusElement.style.display = 'none';
+                    if (tableScrollWrapper) tableScrollWrapper.style.display = 'none';
+                    return; // Salir si la API falló y no había datos en caché para usar
+                }
+            }
+
+            // --- 4. PROCESAR Y RENDERIZAR DATOS (Tanto si vienen de caché como de la API) ---
+
+            // 5. Aplicar FILTRO por TARGET_CEDULA
+            if (TARGET_CEDULA !== null) {
+                const targetNum = Number(TARGET_CEDULA);
+                userBaseData = allEmployeeData.filter(row => {
+                    const rowCedula = Number(row.CEDULA);
+                    return rowCedula === targetNum;
+                });
+            } else {
+                userBaseData = [...allEmployeeData];
+            }
+            
+            // 6. Renderizar Info y Tabla
+            renderEmployeeInfo();
+            
+            if (statusElement) statusElement.style.display = 'none';
+            if (tableScrollWrapper) tableScrollWrapper.style.display = 'block';
+
+            // Inicializar placeholder y aplicar filtros
+            updateFilterPlaceholder();
+            currentSortColumn = 'CEDULA';
+            sortOrder = 'asc';
+            applyAllFilters();
         }
         
         /**
@@ -989,7 +1032,7 @@
                         </div>      
 
                         <!-- FILA 2: Input de Búsqueda y Botones -->
-                        <div class="flex items-center space-x-2 mb-4"> 
+                        <div class="flex items-center space-x-2 mb-2"> 
                             
                             <!-- Input de Búsqueda -->
                             <div class="relative flex-grow rounded-xl"> 
@@ -1017,7 +1060,7 @@
                             </button> 
                         </div>      
                         
-                        <div class="flex justify-between items-start mt-1 mb-2"> 
+                        <div class="flex justify-between items-start mt-1 mb-1"> 
                             <div><h2 class="text-2xl font-bold text-blue-400">Registros de Vacaciones</h2></div>                        
                         </div>
                         <div id="table-loading-status" class="text-center py-10" style="display: none;"></div>
