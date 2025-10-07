@@ -1121,6 +1121,26 @@
         function loadContent(section) {
             console.log("Navegando a la sección:", section);
             const mainContent = document.getElementById('main-content');
+
+    if (section === 'Vacaciones') {
+        window.location.href = 'Vacaciones.html';
+        return; // Importante: Detiene la ejecución aquí.
+    }
+    
+    if (section === 'Editar') {
+        window.location.href = 'EditarDat.html';
+        return;
+    }
+    
+    if (section === 'Perfil') {
+        window.location.href = 'PerfilUser.html';
+        return;
+    }
+    
+    if (section === 'Configuración') {
+        window.location.href = 'ConfigApp.html';
+        return;
+    }
             
             // 1. Renderizar contenido
             if (section === 'Inicio') {
