@@ -1122,6 +1122,37 @@
             const mainContent = document.getElementById('main-content');
             
             // 1. Renderizar contenido
+        function loadContent(section) {
+    
+            // --- LÓGICA DE REDIRECCIÓN COMPLETA (Navegación Externa) ---
+    
+            if (section === 'Inicio') {
+                window.location.href = 'Inicio.html';
+                return; // Importante: Detiene la ejecución aquí.
+            }
+    
+            if (section === 'Editar') {
+                window.location.href = 'EditarDat.html';
+                return;
+            }
+    
+            if (section === 'Perfil') {
+                window.location.href = 'PerfilUser.html';
+                return;
+            }
+    
+            if (section === 'Configuración') {
+                window.location.href = 'ConfigApp.html';
+                return;
+            }
+
+            // ----------------------------------------------------------------------
+            // --- LÓGICA DE NAVEGACIÓN INTERNA (Single Page Application - SPA) ---
+            // Solo si la sección no es ninguna de las anteriores, continuamos con el contenido interno.
+    
+            const mainContent = document.getElementById('main-content');
+            mainContent.innerHTML = ''; 
+          
             if (section === 'Inicio') {
                 mainContent.innerHTML = `
                     <div id="data-view-container" class="w-full">
