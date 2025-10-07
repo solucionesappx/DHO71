@@ -392,14 +392,43 @@
             },
         };
        
-        const MOCK_EMPLOYEE_INFO = {
-            CEDULA: 13105322, 
-            INGRESO: '13/10/2015',
-            NOMBRES: 'YSABEL LUISANA',
-            APELLIDOS: 'OJEDA CASTILLO',
-        };
+        // --- LÓGICA DE CARGA DE DATOS DEL EMPLEADO (LOCALSTORAGE/MOCK) ---
+        const EMPLOYEE_TRANSFER_KEY = 'userInfoToEdit';
 
+        /**
+         * Carga la información del empleado desde localStorage (si existe y es válida) 
+         * o usa la información mock por defecto.
+         */
+        function getEmployeeInfo() {
+            const defaultInfo = {
+                CEDULA: 13105322, 
+                INGRESO: '13/10/2015',
+                NOMBRES: 'YSABEL LUISANA',
+                APELLIDOS: 'OJEDA CASTILLO',
+            };
+            
+            try {
+                const cachedData = localStorage.getItem(EMPLOYEE_TRANSFER_KEY);
+                if (cachedData) {
+                    const employeeInfo = JSON.parse(cachedData);
+                    console.log("✅ Datos del empleado cargados desde localStorage:", employeeInfo);
+                    // Asegurar que usamos al menos la cédula, y combinar con el mock en caso de faltar datos
+                    if (employeeInfo && employeeInfo.CEDULA) {
+                        return { ...defaultInfo, ...employeeInfo }; 
+                    }
+                }
+            } catch (error) {
+                // Si hay un error de parseo o lectura, caemos al valor por defecto
+                console.error("Error al parsear los datos del empleado desde localStorage, usando mock:", error);
+            }
+            
+            console.log("❌ Usando datos mock por defecto.");
+            return defaultInfo;
+        }
+
+        const MOCK_EMPLOYEE_INFO = getEmployeeInfo();
         let TARGET_CEDULA = MOCK_EMPLOYEE_INFO.CEDULA; // Cédula del trabajador actual
+        
         let filteredEmployeeData = []; // Datos que se muestran en la tabla (filtrados por cédula y búsqueda)
         let userBaseData = []; // Base de datos del usuario filtrada por Cédula (para aplicar filtros).
         let currentSheet = 'Vacaciones'; 
