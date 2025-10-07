@@ -1133,7 +1133,12 @@
             window.location.href = 'Vacaciones.html';
             return; // Importante: Detiene la ejecución aquí.
         }
-    
+
+        if (section === 'Agregar') {
+                window.location.href = 'AgregarDat.html';
+                return;
+        }
+            
         if (section === 'Editar') {
             window.location.href = 'EditarDat.html';
             return;
