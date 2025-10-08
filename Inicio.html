@@ -430,6 +430,12 @@
         const BASE_GAS_API_URL = 'https://script.google.com/macros/s/AKfycbx87WvxA9ca1KyGMA1wsw1npZw5vPtjoItomhF823BICXScNrWGFh5m0Dj6Veb24CtHXQ/exec';
         const TARGET_SHEET_NAME = 'BD_Personal2'; // Nombre de la hoja de datos
 
+        const usuarioTienda = localStorage.getItem('Usuario_Tienda');
+        const usuarioNombre = localStorage.getItem('Usuario_Nombre');
+        const usuarioPerfil = localStorage.getItem('Usuario_Perfil');
+        const usuarioIdx = localStorage.getItem('Usuario_Idx');
+        const usuarioprimerNombre = localStorage.getItem('Usuario_Primer_Nombre');
+
         // Constantes ajustadas para tu nueva función loadData:
         const CACHE_KEY = 'employeeDataCache';
         const CACHE_EXPIRATION_MS = 900000; // 15 minutos
