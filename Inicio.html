@@ -474,7 +474,7 @@
             { key: 'NACIMIENTO', label: 'F. Nacimiento', editable: false, format: (v) => v ? formatDate(v) : 'N/A' },
             
             // Días y Notas son editables
-            { key: 'CTRL2', label: 'D. Vacaciones', editable: false, type: 'text', format: (v) => v || '0' },
+            { key: 'CTRL2', label: 'Días Vacaciones', editable: false, type: 'text', format: (v) => v || '0' },
             { key: 'CTRL1', label: 'Nota', editable: true, type: 'text', format: (v) => v || 'Sin nota' }, 
         ];
         
@@ -782,14 +782,14 @@
                 
                 // Estilo para la nota de advertencia (CTRL1)
                 const isWarningField = field.key === 'CTRL1' && _globalSelectedWorkerData.CTRL1 && String(_globalSelectedWorkerData.CTRL1).trim() !== '';
-
+                
                 // Estilo para evitar truncar/truncate campo por longitud
                 contentHtml += `
-                    <div class="overflow-x-auto flex justify-between items-start py-1 border-b border-gray-700 last:border-b-0">
+                    <div class="flex justify-between items-start py-1 border-b border-gray-700 last:border-b-0">
                         <span class="font-semibold text-gray-300 w-1/3">${field.label}:</span>
                         <!-- El valor es un SPAN con data-key para fácil identificación en modo edición -->
                         <span id="field-${field.key}" data-key="${field.key}" 
-                              class="w-2/3 text-right whitespace-nowrap ${isWarningField ? 'text-red-400 font-bold' : 'text-white'}">
+                              class="w-2/3 overflow-x-auto text-right whitespace-nowrap ${isWarningField ? 'text-red-400 font-bold' : 'text-white'}">
                             ${formattedValue}
                         </span>
                     </div>
@@ -824,7 +824,7 @@
                 const displayValue = field.editable && field.type !== 'number' ? rawValue : (field.format ? field.format(rawValue) : rawValue);
                 
                 // CAMBIO CLAVE: Se añade 'text-gray-900' para asegurar color de fuente negro en los inputs editables
-                const commonClasses = "w-2/3 px-2 py-1 text-right rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400";
+                const commonClasses = "w-2/3 overflow-x-auto px-2 py-1 text-right justify-center rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400";
                 
                 let fieldElement;
 
@@ -835,23 +835,23 @@
                                id="edit-${field.key}" 
                                data-key="${field.key}" 
                                value="${rawValue}" 
-                               class="${commonClasses} font-bold bg-transparent text-gray-300"
+                               class="${commonClasses} justify-center font-bold bg-transparent text-gray-300"
                                ${field.type === 'number' ? 'min="0"' : ''}
                                oninput="updateDraftData(this.getAttribute('data-key'), this.value)"
                         >`;
                 } else {
                      // Campo no editable: SPAN (mantiene el mismo diseño de input, pero no es interactivo)
                     fieldElement = `
-                        <span class="${commonClasses} !text-gray-500 cursor-not-allowed" 
+                        <span class="${commonClasses} !text-gray-500 cursor-not-allowed whitespace-nowrap" 
                               style="padding-top: 0.35rem; padding-bottom: 0.35rem; line-height: 1.25;">
                             ${displayValue}
                         </span>
                     `;
                 }
-
+                
                 contentHtml += `
-                    <div class="flex justify-between items-start py-0 border-b border-gray-700 last:border-b-0">
-                        <label for="edit-${field.key}" class="font-semibold text-gray-300 w-1/3">${field.label}:</label>
+                    <div class="flex justify-between items-start py-0.75rem border-b border-gray-700 last:border-b-0">
+                        <label for="edit-${field.key}" class="whitespace-nowrap justify-center font-semibold text-gray-300 w-1/3">${field.label}:</label>
                         ${fieldElement}
                     </div>
                 `;
