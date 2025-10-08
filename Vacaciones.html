@@ -1184,34 +1184,5 @@
         });
         
     </script>
-
-
-
-
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            
-            const initialSection = 'Vacaciones';
-            loadContent(initialSection); 
-            setActiveFooterButton(initialSection); 
-
-            const footerButtons = document.querySelectorAll('.footer-btn');
-            // CORRECCIÓN DEL ERROR DE REFERENCIA: Uso correcto de forEach
-            footerButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    const section = button.getAttribute('data-section');
-                    setActiveFooterButton(section);
-                    loadContent(section); 
-                });
-            });
-            
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && document.getElementById('VacationDetailModal').style.display === 'flex') {
-                    closeVacationModal();
-                }
-            });
-        });
-
-    </script>
 </body>
 </html>
