@@ -1261,21 +1261,15 @@
             }
 
             // Agregar event listeners a los botones del footer
-           
             const footerButtons = document.querySelectorAll('.footer-btn');
             footerButtons.forEach(button => {
                 button.addEventListener('click', () => {
                     const section = button.getAttribute('data-section');
                     loadContent(section);
                 });
-            });
-            
+            });            
             loadContent('Inicio'); 
         });
-
-            // 2. Establecer 'Sección X' como activo si no hay redirección inicial
-           // setActiveFooterButton('Inicio');
-        //});
         
     </script>
 </body>
