@@ -782,7 +782,8 @@
                 
                 // Estilo para la nota de advertencia (CTRL1)
                 const isWarningField = field.key === 'CTRL1' && _globalSelectedWorkerData.CTRL1 && String(_globalSelectedWorkerData.CTRL1).trim() !== '';
-                
+
+                // Estilo para evitar truncar/truncate campo por longitud
                 contentHtml += `
                     <div class="overflow-x-auto flex justify-between items-start py-1 border-b border-gray-700 last:border-b-0">
                         <span class="font-semibold text-gray-300 w-1/3">${field.label}:</span>
