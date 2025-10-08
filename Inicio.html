@@ -961,15 +961,26 @@
 
             if (workerData) {
                 const formattedIngreso = formatDate(workerData.INGRESO);
-                const requiredJson = {
+            
+           // Construir el JSON requerido
+              const requiredJson = {
                     CEDULA: workerData.CEDULA,
+                    // Usar el valor formateado
                     INGRESO: formattedIngreso, 
                     NOMBRES: workerData.NOMBRES,
                     APELLIDOS: workerData.APELLIDOS,
                 };
-                console.log("Datos de la fila clickeada (BD_Personal2):", requiredJson);
+
+                // Mostrar el JSON en la consola
+                console.log("Datos de la fila clickeada (BD_Personal2):");
+                console.log(requiredJson);
+
+                const EMPLOYEE_TRANSFER_KEY = 'userInfoToEdit';
+                const employeeDataJSON = JSON.stringify(requiredJson);
+                localStorage.setItem(EMPLOYEE_TRANSFER_KEY, employeeDataJSON);
+                
             } else {
-                console.error("No se encontraron datos del trabajador.");
+                console.error("No se encontraron datos del trabajador para la fila clickeada (Índice:", rowIndex, ").");
             }
         }
 
