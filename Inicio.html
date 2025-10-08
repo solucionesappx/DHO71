@@ -285,7 +285,7 @@
         <header id="app-header" class="fixed top-0 w-full h-14 border-b border-gray-700 dark:border-gray-500 flex items-center justify-between px-4">
             
             <!-- Título que redirige a inicio.html -->
-            <h1 class="text-xl font-bold cursor-pointer hover:opacity-80 transition-opacity" onclick="window.location.href = 'inicio.html'">
+            <h1 class="text-xl font-bold cursor-pointer hover:opacity-80 transition-opacity" onclick="window.location.href = 'Inicio.html'">
                 Mi Aplicación Móvil DHO
             </h1>
             
@@ -951,19 +951,21 @@
             modal.style.display = 'flex';
         }
         
+        // FUNCIÓN CLAVE MODIFICADA: Aplica formatDate al campo INGRESO
         function handleRowClick(event) {
             const row = event.target.closest('.worker-row');
             if (!row) return;
 
-            const nomina = row.getAttribute('data-nomina');
-            // Usamos String() para asegurar comparación correcta
-            const workerData = allEmployeeData.find(w => String(w.NOMINA) === String(nomina)); 
-
-            if (workerData) {
-                const formattedIngreso = formatDate(workerData.INGRESO);
+            // Obtener el índice de la fila (asumiendo que está sincronizado con filteredEmployeeData)
+            const rowIndex = Array.from(row.parentNode.children).indexOf(row);
+            const workerData = filteredEmployeeData[rowIndex]; 
             
-           // Construir el JSON requerido
-              const requiredJson = {
+            if (workerData) {
+                // Formatear el campo INGRESO
+                const formattedIngreso = formatDate(workerData.INGRESO);
+                
+                // Construir el JSON requerido
+                const requiredJson = {
                     CEDULA: workerData.CEDULA,
                     // Usar el valor formateado
                     INGRESO: formattedIngreso, 
