@@ -281,21 +281,17 @@
 <body class="dark transition-colors duration-300">
 
     <div id="app-container" class="shadow-xl">
-        
         <header id="app-header" class="fixed top-0 w-full h-14 border-b border-gray-700 dark:border-gray-500 flex items-center justify-between px-4">
-            
-            <!-- Título que redirige a inicio.html -->
-            <h1 class="text-xl font-bold cursor-pointer hover:opacity-80 transition-opacity" onclick="window.location.href = 'Inicio.html'">
-                Mi Aplicación Móvil DHO
-            </h1>
-            
-            <div class="flex space-x-3">
-                
-                <!-- Botón de Cerrar Sesión con redirección a index.html -->
+             <!-- Título que redirige a inicio.html -->
+             <h1 class="text-xl font-bold cursor-pointer hover:opacity-80 transition-opacity" onclick="window.location.href = 'Inicio.html'">
+                 Mi Aplicación Móvil DHO
+             </h1>
+             <div class="flex space-x-3">
+                  <!-- Botón de Cerrar Sesión con redirección a index.html -->
                 <button class="p-2 rounded-full hover:opacity-80 transition-opacity" onclick="window.location.href = 'index.html'">
                     <i data-lucide="log-out" class="w-6 h-6 text-red-400 dark:text-red-300"></i>
                 </button>
-            </div>
+             </div>
         </header>
 
         <main id="main-content" class="pb-4 flex flex-col space-y-4 pt-[76px]">
@@ -1247,18 +1243,35 @@
             }
         }
         
+        // --- INICIALIZACIÓN DE LA APLICACIÓN ---
         document.addEventListener('DOMContentLoaded', () => {
-            const footerButtons = document.querySelectorAll('.footer-btn');
-            footerButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    const section = button.getAttribute('data-section');
+            const usuarioTienda = localStorage.getItem('Usuario_Tienda');
+            const usuarioNombre = localStorage.getItem('Usuario_Nombre');
+            const usuarioPerfil = localStorage.getItem('Usuario_Perfil');
+            const usuarioIdx = localStorage.getItem('Usuario_Idx');
+            const diasIniInput = document.getElementById('field-dias-ini-vacation-add'); 
+            const diasFinInput = document.getElementById('field-dias-fin-vacation-add'); 
+            const diasVacacionesInput = document.getElementById('field-dias-vacaciones-vacation-add'); 
+        
+            // Extraer el primer nombre
+            let primerNombre = '';
+            if (usuarioNombre) {
+                primerNombre = usuarioNombre.trim().split(' ')[0];
+                document.querySelector('.text-xl.font-bold').textContent = `¡Hola, ${primerNombre}!`;
+            }
+
+            // Agregar event listeners a los botones del footer
+            document.querySelectorAll('#app-footer .footer-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const section = e.currentTarget.getAttribute('data-section');
                     loadContent(section);
                 });
             });
-            
-            loadContent('Inicio'); 
-        });
 
+            // 2. Establecer 'Sección X' como activo si no hay redirección inicial
+            setActiveFooterButton('Inicio');
+        });
+        
     </script>
 </body>
 </html>
