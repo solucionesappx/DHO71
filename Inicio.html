@@ -13,7 +13,7 @@
             -webkit-tap-highlight-color: transparent; /* Mejor experiencia táctil */
         }
 
-        /* Definición de colores base para modo claro y oscuro  */
+        /* Definición de colores base para modo claro y oscuro */
         :root {
             --color-bg-light: #f9fafb;
             --color-text-light: #1f2937;
@@ -276,52 +276,6 @@
              max-width: 450px !important;
         }
         
-        /* --- ESTILOS DEL TOGGLE SWITCH DE PANTALLA COMPLETA --- */
-        .toggle-switch-container {
-            position: relative;
-            display: inline-block;
-            width: 50px; /* Ancho total */
-            height: 28px; /* Altura total */
-        }
-
-        .toggle-switch-container input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #374151; /* Color Negro/Gris Oscuro (off) */
-            transition: .4s;
-            border-radius: 34px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 20px;
-            width: 20px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider {
-            background-color: var(--color-header); /* #2D59A1 (on) */
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(22px); /* Mueve el círculo a la derecha (50 - 20 - 4*2 = 22) */
-        }
-        
     </style>
 </head>
 <body class="dark transition-colors duration-300">
@@ -331,7 +285,7 @@
         <header id="app-header" class="fixed top-0 w-full h-14 border-b border-gray-700 dark:border-gray-500 flex items-center justify-between px-4">
             
             <!-- Título que redirige a inicio.html -->
-            <h1 class="text-xl font-bold cursor-pointer hover:opacity-80 transition-opacity" onclick="window.location.href = 'Inicio.html'">
+            <h1 class="text-xl font-bold cursor-pointer hover:opacity-80 transition-opacity" onclick="window.location.href = 'inicio.html'">
                 Mi Aplicación Móvil DHO
             </h1>
             
@@ -345,7 +299,8 @@
         </header>
 
         <main id="main-content" class="pb-4 flex flex-col space-y-4 pt-[76px]">
-            </main>
+            <!-- El contenido se inyecta aquí por loadContent('Inicio') -->
+        </main>
 
         <footer id="app-footer" class="fixed bottom-0 w-full h-18 border-t border-gray-700 dark:border-gray-500 flex items-center justify-around py-2">
             
@@ -354,15 +309,18 @@
                 <span>Inicio</span>
             </button>
             
-            <!-- Nuevo botón de Vacaciones -->
+            <!-- Botón de Vacaciones -->
             <button class="footer-btn" data-section="Vacaciones">
-                <i data-lucide="calendar-days"> class="w-6 h-6"></i>
+                <i data-lucide="calendar" class="w-6 h-6"></i>
                 <span>Vacaciones</span>
             </button>
+
+            <!-- Botón de Agregar -->
             <button class="footer-btn" data-section="Agregar">
                 <i data-lucide="calendar-plus" class="w-6 h-6"></i>
                 <span>Agregar</span>
             </button>
+            
             <button class="footer-btn" data-section="Editar">
                 <i data-lucide="edit" class="w-6 h-6"></i>
                 <span>Editar</span>
@@ -388,11 +346,11 @@
                     <div class="flex justify-between items-center pb-3 border-b border-gray-600 mb-4">
                         
                         <div class="flex items-center space-x-2">
-                            <h3 class="text-xl font-bold text-blue-400">Detalle Trabajador</h3>
+                            <h3 class="text-xl font-bold text-blue-400" id="modal-title">Detalle Trabajador</h3>
                             
                             <!-- Botón para ver detalle de Vacaciones (Funcionalidad de navegación eliminada, ahora muestra alerta dummy) -->
                             <button class="p-1" title="Ver Detalle de Vacaciones" onclick="showVacationDetailModal()">
-                                <i data-lucide="calendar-clock" class="w-6 h-6 text-yellow-400"></i>
+                                <i data-lucide="calendar" class="w-6 h-6 text-yellow-400"></i>
                             </button>
                         </div>
                         
@@ -402,16 +360,15 @@
                         </button>
                     </div>
                     
+                    <!-- Contenedor del contenido (será reemplazado por <span> o <input>) -->
                     <div id="modalBodyContent" class="grid grid-cols-1 gap-2 text-left text-sm">
                         <p class="text-gray-400">Cargando...</p>
                     </div>
                     
-                    <!-- Botón de Editar Registro -->
-                    <button class="mt-6 w-full py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors shadow-md"
-                            onclick="closeModal(); loadContent('Editar');">
-                        <i data-lucide="edit-3" class="w-4 h-4 inline-block mr-2"></i>
-                        Editar Registro
-                    </button>
+                    <!-- Contenedor dinámico de botones del footer del modal -->
+                    <div id="modal-footer-buttons" class="mt-6">
+                        <!-- Botones se inyectarán aquí por JS -->
+                    </div>
                 </div>
             </div>
             
@@ -460,16 +417,19 @@
         let allEmployeeData = []; // Almacena el dataset completo sin filtrar
         let filteredEmployeeData = []; // Almacena el dataset filtrado para la tabla
         let debounceTimer; // Para controlar la frecuencia de búsqueda
-        let _globalSelectedWorkerData = null; // Almacena los datos del trabajador seleccionado
+        let _globalSelectedWorkerData = null; // Almacena los datos del trabajador seleccionado (Copia de trabajo para edición)
         let _globalSelectedRowElement = null; // Almacena la fila HTML seleccionada
+        let isModalInEditMode = false; // NUEVO: Estado para saber si el modal está en modo edición
         
         // Estado de ordenación:
         let currentSortColumn = null; 
         let sortOrder = 'asc'; // 'asc' (ascendente), 'desc' (descendente)
         
         // --- CONSTANTES ---
+        // URL de implementación de Google Apps Script proporcionada por el usuario (OBLIGATORIA)
         const BASE_GAS_API_URL = 'https://script.google.com/macros/s/AKfycbx87WvxA9ca1KyGMA1wsw1npZw5vPtjoItomhF823BICXScNrWGFh5m0Dj6Veb24CtHXQ/exec';
-        
+        const TARGET_SHEET_NAME = 'BD_Personal2'; // Nombre de la hoja de datos
+
         // Constantes ajustadas para tu nueva función loadData:
         const CACHE_KEY = 'employeeDataCache';
         const CACHE_EXPIRATION_MS = 900000; // 15 minutos
@@ -499,30 +459,33 @@
         
         // Mapeos para el contenido del MODAL DetalleTrabajadorModal
         const MODAL_FIELD_MAP = [
-            { key: 'NOMBRES', label: 'Nombres', format: (v) => v || 'N/A' },
-            { key: 'APELLIDOS', label: 'Apellidos', format: (v) => v || 'N/A' },
-            // APLICACIÓN DE FORMATO: CEDULA debe mostrar puntos
-            { key: 'CEDULA', label: 'Cédula', format: (v) => v ? formatNumberWithDots(v) : 'N/A' },
-            { key: 'CARGO', label: 'Cargo', format: (v) => v || 'N/A' },
-            { key: 'EMPRESA', label: 'Empresa', format: (v) => v || 'N/A' },
-            { key: 'SECTOR', label: 'Sector', format: (v) => v || 'N/A' },
-            { key: 'NOMINA', label: 'Nómina', format: (v) => v || 'N/A' },
-            { key: 'PERFIL', label: 'Perfil', format: (v) => v || 'N/A' },
-            { key: 'INGRESO', label: 'Ingreso', format: (v) => v ? formatDate(v) : 'N/A' }, // CAMBIO: Fecha Ingreso -> Ingreso
-            { key: 'NACIMIENTO', label: 'F. Nacimiento', format: (v) => v ? formatDate(v) : 'N/A' }, // CAMBIO: Fecha Nacimiento -> F. Nacimiento
-            // Mapeo de CTRL2 con etiqueta Días Vacaciones
-            { key: 'CTRL2', label: 'D. Vacaciones', format: (v) => v || '0' },
-            { key: 'CTRL1', label: 'Nota', format: (v) => v || 'Sin nota' }, // CAMBIO: Nota/Comentario -> Nota
+            { key: 'NOMBRES', label: 'Nombres', editable: false, type: 'text', format: (v) => v || 'N/A' },
+            { key: 'APELLIDOS', label: 'Apellidos', editable: false, type: 'text', format: (v) => v || 'N/A' },
+            // CÉDULA no debe ser editables (se usa como clave)
+            { key: 'CEDULA', label: 'Cédula', editable: false, format: (v) => v ? formatNumberWithDots(v) : 'N/A' },
+            { key: 'NOMINA', label: 'Nómina', editable: true, format: (v) => v || 'N/A' },
+            
+            { key: 'CARGO', label: 'Cargo', editable: false, type: 'text', format: (v) => v || 'N/A' },
+            { key: 'EMPRESA', label: 'Empresa', editable: true, type: 'text', format: (v) => v || 'N/A' },
+            { key: 'SECTOR', label: 'Sector', editable: true, type: 'text', format: (v) => v || 'N/A' },
+            { key: 'PERFIL', label: 'Perfil', editable: true, type: 'text', format: (v) => v || 'N/A' },
+            // Fechas no editables por simplicidad, pero podrían ser de tipo 'date'
+            { key: 'INGRESO', label: 'Ingreso', editable: false, format: (v) => v ? formatDate(v) : 'N/A' }, 
+            { key: 'NACIMIENTO', label: 'F. Nacimiento', editable: false, format: (v) => v ? formatDate(v) : 'N/A' },
+            
+            // Días y Notas son editables
+            { key: 'CTRL2', label: 'Días Vacaciones', editable: false, type: 'text', format: (v) => v || '0' },
+            { key: 'CTRL1', label: 'Nota', editable: true, type: 'text', format: (v) => v || 'Sin nota' }, 
         ];
         
         // Claves de columna a considerar para la búsqueda (excluye 'ID' que no es parte de TABLE_COLUMNS)
         const SEARCHABLE_KEYS = TABLE_COLUMNS.map(col => col.key);
         
-        // Mapeo de navegación (Actualizado para usar 'Vacaciones')
+        // Mapeo de navegación
         const NAV_MAP = {
             'Inicio': 'inicio.html',
             'Vacaciones': 'Vacaciones.html',
-            'Agregar': 'AgregarDat.html',
+            'Agregar': 'Agregar.html', 
             'Editar': 'EditarReg.html',
             'Perfil': 'PerfilUsuario.html',
             'Configuración': 'ConfigApp.html'
@@ -662,154 +625,68 @@
             }
         }
         
-        // Función principal para la lógica de búsqueda
         function filterEmployees(searchTerm) {
-            // Asegura que el término es un string y está en minúsculas para la búsqueda sin distinción de mayúsculas
-            const lowerCaseSearchTerm = String(searchTerm || '').trim().toLowerCase();
+             const lowerCaseSearchTerm = String(searchTerm || '').trim().toLowerCase();
+             if (!lowerCaseSearchTerm) {
+                 filteredEmployeeData = [...allEmployeeData];
+             } else {
+                 filteredEmployeeData = allEmployeeData.filter(employee => {
+                     return SEARCHABLE_KEYS.some(key => {
+                         const value = String(employee[key] || '').toLowerCase();
+                         return value.includes(lowerCaseSearchTerm);
+                     });
+                 });
+             }
+             if (currentSortColumn) {
+                sortData(currentSortColumn, true);
+             } else {
+                 renderTable(filteredEmployeeData);
+             }
+             updateMetrics(filteredEmployeeData);
+         }
+ 
+         function sortData(key, keepOrder = false) {
+             if (currentSortColumn === key) {
+                 if (!keepOrder) {
+                     sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+                 }
+             } else {
+                 currentSortColumn = key;
+                 sortOrder = 'asc';
+             }
+             filteredEmployeeData.sort((a, b) => {
+                 let valA = a[key] !== undefined ? a[key] : '';
+                 let valB = b[key] !== undefined ? b[key] : '';
+                 const numA = Number(valA);
+                 const numB = Number(valB);
+ 
+                 if (!isNaN(numA) && !isNaN(numB) && valA !== '' && valB !== '') {
+                     if (sortOrder === 'asc') { return numA - numB; } else { return numB - numA; }
+                 } else {
+                     valA = String(valA).toLowerCase();
+                     valB = String(valB).toLowerCase();
+                     let comparison = 0;
+                     if (valA > valB) { comparison = 1; } else if (valA < valB) { comparison = -1; }
+                     if (sortOrder === 'desc') { comparison = comparison * -1; }
+                     return comparison;
+                 }
+             });
+             renderTable(filteredEmployeeData);
+         }
+ 
+         function updateMetrics(data) {
+             const totalRecordsEl = document.querySelector('[data-metric="total"]');
+             const ctrl1WarningEl = document.querySelector('[data-metric="ctrl1_warning"]');
+             if (!totalRecordsEl || !ctrl1WarningEl) return;
+             
+             const currentRecords = data.length;
+             const ctrl1WarningCount = data.filter(row => row.CTRL1 && String(row.CTRL1).trim() !== '').length;
+ 
+             totalRecordsEl.textContent = currentRecords;
+             ctrl1WarningEl.textContent = ctrl1WarningCount;
+         }
 
-            if (!lowerCaseSearchTerm) {
-                // Si el término está vacío, muestra todos los datos originales.
-                filteredEmployeeData = [...allEmployeeData];
-            } else {
-                filteredEmployeeData = allEmployeeData.filter(employee => {
-                    // Itera sobre las claves de columna que hemos definido como buscables
-                    return SEARCHABLE_KEYS.some(key => {
-                        const value = String(employee[key] || '').toLowerCase();
-                        // Realiza la comparación simple de inclusión de subcadena
-                        return value.includes(lowerCaseSearchTerm);
-                    });
-                });
-            }
-            
-            // Aplicar ordenación actual a los resultados filtrados
-            if (currentSortColumn) {
-               sortData(currentSortColumn, true); // True para no alternar el orden
-            } else {
-               // Si no hay ordenación, solo renderiza
-               renderTable(filteredEmployeeData);
-            }
-            
-            // ACTUALIZACIÓN CLAVE: Llama a updateMetrics con el nuevo conjunto de datos filtrado
-            updateMetrics(filteredEmployeeData);
-        }
-
-        // NUEVA FUNCIÓN: Implementa la lógica de ordenación
-        function sortData(key, keepOrder = false) {
-            
-            // 1. Determinar el nuevo orden
-            if (currentSortColumn === key) {
-                // Si se hace clic en la columna ya ordenada, alterna el orden
-                if (!keepOrder) {
-                    sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
-                }
-            } else {
-                // Si es una columna nueva, establece el orden a ascendente
-                currentSortColumn = key;
-                sortOrder = 'asc';
-            }
-
-            // 2. Ordenar los datos filtrados
-            filteredEmployeeData.sort((a, b) => {
-                let valA = a[key] !== undefined ? a[key] : '';
-                let valB = b[key] !== undefined ? b[key] : '';
-
-                // Intentar la conversión a número para ordenación numérica (ej: NOMINA, CTRL2)
-                const numA = Number(valA);
-                const numB = Number(valB);
-
-                if (!isNaN(numA) && !isNaN(numB) && valA !== '' && valB !== '') {
-                    // Ordenación numérica
-                    if (sortOrder === 'asc') {
-                        return numA - numB;
-                    } else {
-                        return numB - numA;
-                    }
-                } else {
-                    // Ordenación alfabética (String)
-                    valA = String(valA).toLowerCase();
-                    valB = String(valB).toLowerCase();
-                    
-                    let comparison = 0;
-                    if (valA > valB) {
-                        comparison = 1;
-                    } else if (valA < valB) {
-                        comparison = -1;
-                    }
-                    
-                    if (sortOrder === 'desc') {
-                        comparison = comparison * -1;
-                    }
-                    return comparison;
-                }
-            });
-
-            // 3. Renderizar la tabla con los datos ordenados
-            renderTable(filteredEmployeeData);
-        }
-
-        // NUEVA FUNCIÓN: Resetea el campo de búsqueda, el ordenamiento y la tabla
-        function clearSearch() {
-            const searchInput = document.getElementById('search-input');
-            if (searchInput) {
-                // 1. Limpia el campo de búsqueda
-                searchInput.value = '';
-                
-                // 2. Reinicia el estado de ordenación
-                currentSortColumn = null; 
-                sortOrder = 'asc'; 
-                
-                // 3. Aplica el filtro (con el término vacío y ordenamiento reiniciado)
-                filterEmployees(''); 
-            }
-        }
-        
-        // NUEVA FUNCIÓN: Inicializa los event listeners de la sección "Inicio"
-        function initializeHomeListeners() {
-            const searchInput = document.getElementById('search-input');
-            const clearBtn = document.getElementById('clear-search-btn');
-
-            if (searchInput) {
-                // 1. Manejador de entrada con debounce para optimizar el rendimiento
-                searchInput.addEventListener('input', () => {
-                    clearTimeout(debounceTimer);
-                    debounceTimer = setTimeout(() => {
-                        filterEmployees(searchInput.value);
-                    }, 300); // Espera 300ms antes de buscar
-                });
-            }
-
-            if (clearBtn) {
-                // 2. Manejador del botón de limpiar
-                clearBtn.addEventListener('click', clearSearch);
-            }
-            
-            // 3. Manejador de clics en los encabezados y doble clic en filas
-            initializeTableListeners(); 
-        }
-
-        // Función que calcula y muestra las métricas basadas en el conjunto de datos PROPORCIONADO
-        function updateMetrics(data) {
-            const totalRecordsEl = document.querySelector('[data-metric="total"]');
-            const ctrl1WarningEl = document.querySelector('[data-metric="ctrl1_warning"]');
-            
-            if (!totalRecordsEl || !ctrl1WarningEl) {
-                // Si los elementos no están presentes (por ejemplo, si no estamos en la sección Inicio)
-                return;
-            }
-            
-            // 1. Cálculo del total de registros en el conjunto actual (filtrado o completo)
-            const currentRecords = data.length;
-            
-            // 2. Cálculo de advertencias (CTRL1 no vacío) en el conjunto actual
-            const ctrl1WarningCount = data.filter(row => row.CTRL1 && String(row.CTRL1).trim() !== '').length;
-
-            // 3. Actualización de la interfaz
-            totalRecordsEl.textContent = currentRecords;
-            ctrl1WarningEl.textContent = ctrl1WarningCount;
-        }
-
-
-        function renderTable(data) { // Renombrado de buildTable a renderTable para ser consistente
+        function renderTable(data) { 
             const container = document.getElementById('employee-table-container');
             if (!container) return;
             
@@ -818,74 +695,57 @@
                 return;
             }
             
-            // Define el ancho estrecho deseado para la columna ID (ej. 30px)
             const narrowIdWidth = "30px";
             
-            // Inicia la estructura de la tabla
             let tableHtml = `
                 <table class="w-full border-collapse">
                     <thead>
                         <tr>
-                            <!-- Columna ID: No es sortable -->
                             <th class="sticky-id-cell header p-3 text-sm" style="width: ${narrowIdWidth};">ID</th>
                             ${TABLE_COLUMNS.map(col => {
-                                // Determinar el icono de ordenación
                                 let sortIcon = '';
                                 if (currentSortColumn === col.key) {
                                     const iconName = sortOrder === 'asc' ? 'arrow-up' : 'arrow-down';
-                                    // Se usa 'arrow-up' o 'arrow-down' de Lucide
                                     sortIcon = `<i data-lucide="${iconName}" class="w-4 h-4 text-white"></i>`;
                                 }
-                                
-                                return `
-                                    <th class="sortable-header text-sm" data-key="${col.key}">
-                                        <div class="header-content">
-                                            <span>${col.label}</span>
-                                            ${sortIcon}
-                                        </div>
-                                    </th>
-                                `;
+                                return `<th class="sortable-header text-sm" data-key="${col.key}">
+                                            <div class="header-content">
+                                                <span>${col.label}</span>
+                                                ${sortIcon}
+                                            </div>
+                                        </th>`;
                             }).join('')}
                         </tr>
                     </thead>
                     <tbody>
             `;
             
-            // Genera las filas de datos
             data.forEach((row, index) => {
-                // Se asume que el ID es la columna ID o el índice + 1
-                const rowId = row.ID || (index + 1); 
-                // Verifica si la columna CTRL1 tiene contenido para aplicar estilo de advertencia
+                // Intenta usar ID, si no existe, usa el índice + 1
+                const rowId = row.ID !== undefined && row.ID !== null ? row.ID : (index + 1); 
                 const hasWarning = row.CTRL1 && String(row.CTRL1).trim() !== '';
 
                 tableHtml += `
-                    <tr class="worker-row ${hasWarning ? 'row-warning-text' : ''}" data-index="${index}">
-                        <!-- Celda ID: Fija y con ancho estrecho. Se usa el índice para la recuperación simple -->
+                    <tr class="worker-row ${hasWarning ? 'row-warning-text' : ''}" data-index="${index}" data-nomina="${row.NOMINA}">
                         <td class="table-data-cell sticky-id-cell px-1 py-0 text-xs" style="width: ${narrowIdWidth};">${rowId}</td>
                         ${TABLE_COLUMNS.map(col => {
                             const value = row[col.key] || '';
-                            // Asume justificación izquierda por defecto, pero aplica formato
                             let formattedValue = String(value); 
                             
                             if (col.key === 'CEDULA') {
                                 formattedValue = formatNumberWithDots(value);
                             } else if (col.key === 'INGRESO' || col.key === 'NACIMIENTO') {
                                 formattedValue = formatDate(value);
-                            } else if (col.key === 'CTRL2') {
-                                formattedValue = String(value); 
                             }
                             
-                            // INICIO DE MODIFICACIÓN DE ALINEACIÓN
                             let alignmentClass;
                             if (['EMPRESA', 'APELLIDOS', 'NOMBRES', 'CARGO', 'SECTOR', 'PERFIL'].includes(col.key)) {
                                 alignmentClass = 'text-left';
-                            } else if (col.key === 'CTRL2') { // REGLA: Justificación Derecha para Días Vacaciones
+                            } else if (col.key === 'CTRL2') { 
                                 alignmentClass = 'text-right';
                             } else {
-                                // Por defecto: Centrado (NOMINA, CÉDULA, INGRESO)
                                 alignmentClass = 'text-center';
                             }
-                            // FIN DE MODIFICACIÓN DE ALINEACIÓN
                             
                             return `<td class="table-data-cell ${alignmentClass} px-4">${formattedValue}</td>`;
                         }).join('')}
@@ -896,88 +756,223 @@
             tableHtml += `</tbody></table>`;
             container.innerHTML = tableHtml;
             
-            // Es crucial re-crear los iconos de Lucide después de inyectar el HTML
             lucide.createIcons();
             
-            // Re-adjuntar listeners de la tabla para que funcione la ordenación, el clic y el doble clic
             initializeTableListeners();
         }
+
+
+        // --- LÓGICA DEL MODAL DE DETALLE Y EDICIÓN ---
+
+        /**
+         * Renders the modal content in view (read-only) mode using <span> tags.
+         */
+        function renderViewMode() {
+            const modalBody = document.getElementById('modalBodyContent');
+            const footerButtons = document.getElementById('modal-footer-buttons');
+            let contentHtml = '';
+            
+            // Si no hay datos seleccionados, no se puede renderizar
+            if (!_globalSelectedWorkerData) return; 
+
+            // 1. Generar Contenido (solo lectura)
+            MODAL_FIELD_MAP.forEach(field => {
+                const value = _globalSelectedWorkerData[field.key];
+                const formattedValue = field.format ? field.format(value) : (value || 'N/A');
+                
+                // Estilo para la nota de advertencia (CTRL1)
+                const isWarningField = field.key === 'CTRL1' && _globalSelectedWorkerData.CTRL1 && String(_globalSelectedWorkerData.CTRL1).trim() !== '';
+                
+                contentHtml += `
+                    <div class="flex justify-between items-start py-1 border-b border-gray-700 last:border-b-0">
+                        <span class="font-semibold text-gray-300 w-1/3">${field.label}:</span>
+                        <!-- El valor es un SPAN con data-key para fácil identificación en modo edición -->
+                        <span id="field-${field.key}" data-key="${field.key}" 
+                              class="w-2/3 text-right truncate ${isWarningField ? 'text-red-400 font-bold' : 'text-white'}">
+                            ${formattedValue}
+                        </span>
+                    </div>
+                `;
+            });
+            modalBody.innerHTML = contentHtml;
+
+            // 2. Generar Botones (Modo Ver)
+            footerButtons.innerHTML = `
+                <button class="w-full justify-center py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors shadow-md"
+                        onclick="toggleEditMode(true)">
+                    <i data-lucide="edit-3" class="w-6 h-6 inline-block mr-2"></i>
+                    Editar
+                </button>
+            `;
+            lucide.createIcons();
+        }
+
+        /** 
+         * Renders the modal content in edit mode, replacing spans with inputs.
+         * Esta es la lógica clave para el "flip" de etiqueta a input.
+         */
+        function renderEditMode() {
+            const modalBody = document.getElementById('modalBodyContent');
+            const footerButtons = document.getElementById('modal-footer-buttons');
+            
+            // 1. Generar Contenido (Editable)
+            let contentHtml = '';
+            MODAL_FIELD_MAP.forEach(field => {
+                const rawValue = _globalSelectedWorkerData[field.key] || '';
+                // Para campos no editables, mostramos el valor formateado
+                const displayValue = field.editable && field.type !== 'number' ? rawValue : (field.format ? field.format(rawValue) : rawValue);
+                
+                // CAMBIO CLAVE: Se añade 'text-gray-900' para asegurar color de fuente negro en los inputs editables
+                const commonClasses = "w-2/3 px-2 py-1 text-right rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400";
+                
+                let fieldElement;
+
+                if (field.editable) {
+                     // Campo editable: INPUT
+                    fieldElement = `
+                        <input type="${field.type}" 
+                               id="edit-${field.key}" 
+                               data-key="${field.key}" 
+                               value="${rawValue}" 
+                               class="${commonClasses} font-bold bg-transparent text-gray-300"
+                               ${field.type === 'number' ? 'min="0"' : ''}
+                               oninput="updateDraftData(this.getAttribute('data-key'), this.value)"
+                        >`;
+                } else {
+                     // Campo no editable: SPAN (mantiene el mismo diseño de input, pero no es interactivo)
+                    fieldElement = `
+                        <span class="${commonClasses} !text-gray-500 cursor-not-allowed" 
+                              style="padding-top: 0.35rem; padding-bottom: 0.35rem; line-height: 1.25;">
+                            ${displayValue}
+                        </span>
+                    `;
+                }
+
+                contentHtml += `
+                    <div class="flex justify-between items-start py-1 border-b border-gray-700 last:border-b-0">
+                        <label for="edit-${field.key}" class="font-semibold text-gray-300 w-1/3">${field.label}:</label>
+                        ${fieldElement}
+                    </div>
+                `;
+            });
+            modalBody.innerHTML = contentHtml;
+            
+            // 2. Generar Botones (Modo Editar: Guardar/Cancelar)
+            footerButtons.innerHTML = `
+                <div class="w-full flex justify-center">
+                    <button class="py-2 px-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors shadow-md"
+                            onclick="saveWorkerDetails()">
+                        <i data-lucide="circle-check-big" class="w-6 h-6 inline-block mr-2"></i>
+                        Guardar
+                    </button>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+
+        /**
+         * Alterna entre el modo de visualización y el modo de edición.
+         * @param {boolean} isEditing - True para entrar en modo edición, False para salir.
+         * @param {boolean} isCanceled - True si se está saliendo por cancelación (ignora cambios).
+         */
+        function toggleEditMode(isEditing, isCanceled = false) {
+            isModalInEditMode = isEditing;
+            
+            if (isCanceled) {
+                // Si se cancela, reinicia el borrador al estado original
+                if (_globalSelectedWorkerData && _globalSelectedRowElement) {
+                    const nomina = _globalSelectedRowElement.getAttribute('data-nomina');
+                    // Busca los datos originales en allEmployeeData
+                    const originalData = allEmployeeData.find(w => String(w.NOMINA) === String(nomina)); 
+                    // Restaura la copia de trabajo con los datos de la fuente original
+                    _globalSelectedWorkerData = JSON.parse(JSON.stringify(originalData)); 
+                }
+            }
+
+            if (isEditing) {
+                // Entrar en modo edición
+                document.getElementById('modal-title').textContent = 'Editar Trabajador';
+                renderEditMode();
+            } else {
+                // Salir del modo edición (volver a ver)
+                document.getElementById('modal-title').textContent = 'Detalle Trabajador';
+                renderViewMode();
+            }
+        }
         
-        // Función para mostrar el modal de detalles del trabajador
+        /**
+         * Actualiza el objeto de borrador (_globalSelectedWorkerData) mientras el usuario escribe.
+         * @param {string} key - La clave del campo a actualizar.
+         * @param {string} value - El nuevo valor.
+         */
+        function updateDraftData(key, value) {
+            if (_globalSelectedWorkerData) {
+                // Actualiza la copia de trabajo con el nuevo valor
+                _globalSelectedWorkerData[key] = value;
+            }
+        }
+
+        /**
+         * Simula el guardado de los cambios en los arrays globales (no a la API).
+         */
+        function saveWorkerDetails() {
+            if (!_globalSelectedWorkerData) {
+                showCustomAlert("Error: No hay datos para guardar.");
+                return;
+            }
+
+            // Salir del modo edición y notificar
+            showCustomAlert(`¡Registro guardado (simulado) exitosamente!`);
+            toggleEditMode(false); // Vuelve a modo vista con los datos actualizados
+            closeModal(); 
+            
+            console.log("Datos listos para enviar a la API de GUARDADO:", updatedData);
+        }
+
+        // --- FUNCIONES DE MANEJO DE MODAL Y UTILIDAD ---
+
         function showWorkerDetailsModal(workerData, rowElement) {
-            // 1. Limpiar estado anterior
+            // Limpiar estado anterior
             if (_globalSelectedRowElement) {
                 _globalSelectedRowElement.classList.remove('selected-row');
             }
 
-            // 2. Establecer nuevo estado
-            _globalSelectedWorkerData = workerData;
+            // Establecer nuevo estado (crea una copia profunda para el borrador de edición)
+            _globalSelectedWorkerData = JSON.parse(JSON.stringify(workerData)); 
             _globalSelectedRowElement = rowElement;
             rowElement.classList.add('selected-row');
 
-            const modalBody = document.getElementById('modalBodyContent');
             const modal = document.getElementById('DetalleTrabajadorModal');
-            let contentHtml = '';
-
-            // 3. Generar contenido del modal
-            MODAL_FIELD_MAP.forEach(field => {
-                const value = workerData[field.key];
-                // Aplicar formato si existe
-                const formattedValue = field.format ? field.format(value) : (value || 'N/A');
-                
-                // Estilo para la nota de advertencia (CTRL1)
-                const isWarningField = field.key === 'CTRL1' && workerData.CTRL1 && String(workerData.CTRL1).trim() !== '';
-                
-                contentHtml += `
-                    <div class="flex justify-between items-start py-1 border-b border-gray-700 last:border-b-0">
-                        <!-- ANCHO DE ETIQUETA REDUCIDO A 1/3 -->
-                        <span class="font-semibold text-gray-300 w-1/3">${field.label}:</span>
-                        <!-- ANCHO DE VALOR AUMENTADO A 2/3 y TRUNCADO -->
-                        <span class="w-2/3 text-right ${isWarningField ? 'text-red-400 font-bold' : 'text-white'}">${formattedValue}</span>
-                    </div>
-                `;
-            });
-
-            // 4. Inyectar y mostrar
-            modalBody.innerHTML = contentHtml;
+            
+            // Asegura que el modal inicie en modo de visualización
+            toggleEditMode(false); 
+            
             modal.style.display = 'flex';
         }
         
-        // FUNCIÓN CLAVE MODIFICADA: Aplica formatDate al campo INGRESO
         function handleRowClick(event) {
             const row = event.target.closest('.worker-row');
             if (!row) return;
 
-            // Obtener el índice de la fila (asumiendo que está sincronizado con filteredEmployeeData)
-            const rowIndex = Array.from(row.parentNode.children).indexOf(row);
-            const workerData = filteredEmployeeData[rowIndex]; 
-            
+            const nomina = row.getAttribute('data-nomina');
+            // Usamos String() para asegurar comparación correcta
+            const workerData = allEmployeeData.find(w => String(w.NOMINA) === String(nomina)); 
+
             if (workerData) {
-                // Formatear el campo INGRESO
                 const formattedIngreso = formatDate(workerData.INGRESO);
-                
-                // Construir el JSON requerido
                 const requiredJson = {
                     CEDULA: workerData.CEDULA,
-                    // Usar el valor formateado
                     INGRESO: formattedIngreso, 
                     NOMBRES: workerData.NOMBRES,
                     APELLIDOS: workerData.APELLIDOS,
                 };
-
-                // Mostrar el JSON en la consola
-                console.log("Datos de la fila clickeada (BD_Personal2):");
-                console.log(requiredJson);
-
-                const EMPLOYEE_TRANSFER_KEY = 'userInfoToEdit';
-                const employeeDataJSON = JSON.stringify(requiredJson);
-                localStorage.setItem(EMPLOYEE_TRANSFER_KEY, employeeDataJSON);
-                
+                console.log("Datos de la fila clickeada (BD_Personal2):", requiredJson);
             } else {
-                console.error("No se encontraron datos del trabajador para la fila clickeada (Índice:", rowIndex, ").");
+                console.error("No se encontraron datos del trabajador.");
             }
         }
-        
+
         // Manejador del evento de doble clic en una fila
         function handleRowDoubleClick(event) {
             const row = event.target.closest('.worker-row');
@@ -994,91 +989,75 @@
                 console.error("No se encontraron datos del trabajador para la fila doble-clicada (Índice:", rowIndex, ").");
                 showCustomAlert("Error: No se pudo cargar la información completa del trabajador.");
             }
-        }
+        }    
         
-        // NUEVA FUNCIÓN: Adjunta los listeners de la tabla (separada de initializeHomeListeners)
         function initializeTableListeners() {
-            // 3. Manejador de clics en los encabezados para ordenar la tabla
             const tableHeaders = document.querySelectorAll('#employee-table-container th.sortable-header');
             tableHeaders.forEach(header => {
                 const key = header.getAttribute('data-key');
-                // IMPORTANTE: El event listener solo se adjunta si la columna tiene una 'key'
                 if (key) { 
-                    header.addEventListener('click', () => {
-                        sortData(key);
-                    });
+                    header.removeEventListener('click', () => { sortData(key); }); // Limpia por si acaso
+                    header.addEventListener('click', () => { sortData(key); });
                 }
             });
             
-            // 4. Manejador de eventos en filas (click simple y doble click)
             const tableRows = document.querySelectorAll('#employee-table-container tr.worker-row');
             tableRows.forEach(row => {
-                // Evento de DOBLE CLICK (Muestra el modal)
-                row.addEventListener('dblclick', handleRowDoubleClick);
+                row.removeEventListener('dblclick', handleRowDoubleClick);
+                row.removeEventListener('click', handleRowClick);
                 
-                // Evento de CLICK SIMPLE (NUEVO: Muestra el JSON en consola)
+                row.addEventListener('dblclick', handleRowDoubleClick);
                 row.addEventListener('click', handleRowClick);
             });
         }
-
-
-        // --- FUNCIONES DE UTILIDAD (Mantengo las funciones del Canvas original) ---
         
         function formatNumberWithDots(numStr) {
             if (!numStr) return '';
-            // Asegura que es un string y elimina cualquier punto/coma existente (si viniera con formato)
             const cleanStr = String(numStr).replace(/[.,]/g, ''); 
-            // Agrega puntos como separador de miles
             return cleanStr.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
         }
 
         function formatDate(dateStr) {
             if (!dateStr) return '';
             try {
-                // Intenta interpretar la fecha. Asume formato dd/mm/yyyy o similar compatible.
+                // Intenta coincidir con formato DD/MM/YYYY
                 const parts = dateStr.split('/');
                 if (parts.length === 3) {
-                    // Si el formato es dd/mm/yyyy, lo devuelve tal cual
                     return dateStr;
                 }
-                // Si falla o no tiene el formato esperado, intenta crear un objeto Date directamente
+                // Intenta parsear como fecha
                 const date = new Date(dateStr);
                 if (isNaN(date)) {
-                    return dateStr; // Retorna la cadena original si no es una fecha válida
+                    return dateStr;
                 }
-                // Formato final dd/mm/yyyy para fechas válidas
                 const day = String(date.getDate()).padStart(2, '0');
                 const month = String(date.getMonth() + 1).padStart(2, '0');
                 const year = date.getFullYear();
                 return `${day}/${month}/${year}`;
             } catch (e) {
-                console.error("Error al formatear fecha:", e);
                 return dateStr;
             }
         }
         
-        // Implementación de showCustomAlert para evitar errores al eliminar el botón
         function showCustomAlert(message) {
             const alertModal = document.getElementById('custom-alert-modal');
             let alertContent = document.getElementById('alert-content-wrapper');
 
-            // Crear el wrapper si no existe
             if (!alertContent) {
                 alertContent = document.createElement('div');
                 alertContent.id = 'alert-content-wrapper';
-                alertContent.className = 'mx-auto'; // Centrado
+                alertContent.className = 'mx-auto'; 
                 alertModal.appendChild(alertContent);
             }
             
             alertContent.innerHTML = `
-                <div class="bg-red-600 p-4 rounded-xl shadow-lg w-full max-w-sm text-center">
+                <div class="bg-blue-600 p-4 rounded-xl shadow-lg w-full max-w-sm text-center">
                     <p class="text-white font-semibold">${message}</p>
                 </div>
             `;
             alertModal.style.display = 'flex';
-            
-            // Ocultar automáticamente después de 3 segundos
-            setTimeout(closeCustomAlert, 3000);
+            // Duración mensaje Alerta
+            setTimeout(closeCustomAlert, 1000);
         }
         
         function closeCustomAlert() {
@@ -1088,11 +1067,11 @@
              }
         }
 
-        // Implementación de closeModal
         function closeModal() {
             const modal = document.getElementById('DetalleTrabajadorModal');
             if (modal) {
                 modal.style.display = 'none';
+                isModalInEditMode = false; // Asegura que al cerrar el modal, el modo edición se reinicie
                 if (_globalSelectedRowElement) {
                     _globalSelectedRowElement.classList.remove('selected-row');
                     _globalSelectedRowElement = null;
@@ -1101,7 +1080,7 @@
             }
         }
 
-        // Implementación de showVacationDetailModal (ahora llamada desde el botón)
+         // Implementación de showVacationDetailModal (ahora llamada desde el botón)
         function showVacationDetailModal() {
              // Muestra la alerta de que la funcionalidad no está lista (dummy)
              // showCustomAlert("Funcionalidad de detalle de vacaciones aún no implementada.");
@@ -1117,7 +1096,6 @@
              */
         }
 
-        // Implementación dummy de closeVacationModal
         function closeVacationModal() {
             const modal = document.getElementById('VacationDetailModal');
             if (modal) {
@@ -1125,6 +1103,36 @@
             }
         }
         
+        function initializeHomeListeners() {
+            const searchInput = document.getElementById('search-input');
+            const clearBtn = document.getElementById('clear-search-btn');
+
+            if (searchInput) {
+                searchInput.addEventListener('input', () => {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => {
+                        filterEmployees(searchInput.value);
+                    }, 300);
+                });
+            }
+
+            if (clearBtn) {
+                clearBtn.addEventListener('click', clearSearch);
+            }
+            
+            initializeTableListeners(); 
+        }
+
+        function clearSearch() {
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                searchInput.value = '';
+                currentSortColumn = null; 
+                sortOrder = 'asc'; 
+                filterEmployees(''); 
+            }
+        }
+
         // Función principal para cargar el contenido de la sección
         function loadContent(section) {
             console.log("Navegando a la sección:", section);
@@ -1155,16 +1163,11 @@
             return;
         }
             
-            // 1. Renderizar contenido
             if (section === 'Inicio') {
                 mainContent.innerHTML = `
                     <div id="data-view-container" class="w-full">
-                        
                         <h2 class="text-2xl font-bold text-blue-400 mb-4">BD Personal</h2>
-                        
-                        <!-- ELEMENTOS DE MÉTRICAS Y BÚSQUEDA -->
                         <div class="flex justify-between space-x-2 mb-4"> 
-                            <!-- Métrica: Total Empleados -->
                             <div id="metric-total-records" 
                                 class="w-1/2 p-1.5 rounded-xl shadow-2xl transition-all duration-300 light:bg-white dark:bg-gray-700 flex items-center space-x-2"> 
                                 <i data-lucide="users" class="w-6 h-6 text-green-500 flex-shrink-0"></i> 
@@ -1173,8 +1176,6 @@
                                     <span class="text-xs light:text-gray-500 dark:text-gray-300 whitespace-nowrap">Total Empleados</span> 
                                 </div> 
                             </div> 
-
-                            <!-- Métrica: Con Notas/Alerta (CTRL1) -->
                             <div class="w-1/2 p-1.5 rounded-xl shadow-2xl transition-all duration-300 light:bg-white dark:bg-gray-700 flex items-center space-x-2"> 
                                 <i data-lucide="alert-triangle" class="w-6 h-6 text-red-500 flex-shrink-0"></i> 
                                 <div class="flex flex-col leading-tight"> 
@@ -1183,8 +1184,6 @@
                                 </div> 
                             </div> 
                         </div> 
-
-                        <!-- Buscador y Botón de Limpiar -->
                         <div class="flex items-center space-x-2 mb-4 text-red-900"> 
                             <div class="relative flex-grow rounded-xl"> 
                                 <input type="text" id="search-input" placeholder="Buscar por Nombre, Cédula, Cargo..." 
@@ -1193,38 +1192,21 @@
                                                  text-gray-900 dark:text-gray-100 
                                                  placeholder-gray-400 border light:border-gray-300 dark:border-gray-600 
                                                  focus:outline-none focus:ring-2 focus:ring-blue-500"> 
-                                
                                 <i data-lucide="search" class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 light:text-gray-500 dark:text-gray-300"></i> 
                             </div> 
-
                             <button id="clear-search-btn" class="p-2.5 rounded-full light:bg-white dark:bg-gray-700 shadow-md transition-colors duration-200 text-red-500 dark:text-red-400 font-bold" title="Reiniciar Filtros"> 
                                 <i data-lucide="x-circle" class="w-7 h-7"></i> 
                             </button> 
                         </div>
-                        <!-- FIN DE ELEMENTOS -->
-
-
-                        <!-- Contenedor para el estado de carga/error -->
-                        <div id="table-loading-status" class="text-center py-8">
-                             <!-- Contenido inicial de carga, será reemplazado por la tabla -->
-                        </div>
-                        <!-- Contenedor de la tabla -->
-                        <div id="employee-table-container" class="table-scroll-container">
-                            <!-- Aquí se inyectará la tabla -->
-                        </div>
+                        <div id="table-loading-status" class="text-center py-8"></div>
+                        <div id="employee-table-container" class="table-scroll-container"></div>
                     </div>
                 `;
-                // Re-initialize Lucide icons for the new content
                 lucide.createIcons();
-                
-                // 2. Iniciar la carga de datos
                 loadData();
-                
-                // 3. Inicializar listeners de búsqueda y limpieza después de cargar el contenido
                 initializeHomeListeners();
-                
+            
             } else {
-                // Contenido de simulación para otras secciones
                 mainContent.innerHTML = `
                     <div class="p-6 bg-gray-700 rounded-xl shadow-lg">
                         <h2 class="text-2xl font-bold text-blue-400">Contenido de ${section}</h2>
@@ -1233,7 +1215,6 @@
                 `;
             }
             
-            // 4. Actualizar botón activo en el footer
             document.querySelectorAll('.footer-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
@@ -1243,7 +1224,6 @@
             }
         }
         
-        // Event Listeners para el footer
         document.addEventListener('DOMContentLoaded', () => {
             const footerButtons = document.querySelectorAll('.footer-btn');
             footerButtons.forEach(button => {
@@ -1253,7 +1233,6 @@
                 });
             });
             
-            // Carga la sección de inicio al cargar la página por primera vez
             loadContent('Inicio'); 
         });
 
