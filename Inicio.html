@@ -784,11 +784,11 @@
                 const isWarningField = field.key === 'CTRL1' && _globalSelectedWorkerData.CTRL1 && String(_globalSelectedWorkerData.CTRL1).trim() !== '';
                 
                 contentHtml += `
-                    <div class="flex justify-between items-start py-1 border-b border-gray-700 last:border-b-0">
+                    <div class="overflow-x-auto flex justify-between items-start py-1 border-b border-gray-700 last:border-b-0">
                         <span class="font-semibold text-gray-300 w-1/3">${field.label}:</span>
                         <!-- El valor es un SPAN con data-key para fácil identificación en modo edición -->
                         <span id="field-${field.key}" data-key="${field.key}" 
-                              class="w-2/3 text-right truncate ${isWarningField ? 'text-red-400 font-bold' : 'text-white'}">
+                              class="w-2/3 text-right whitespace-nowrap ${isWarningField ? 'text-red-400 font-bold' : 'text-white'}">
                             ${formattedValue}
                         </span>
                     </div>
