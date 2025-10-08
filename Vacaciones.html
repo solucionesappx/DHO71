@@ -1155,18 +1155,40 @@
             }
         }
         
-        // --- INICIALIZACIÓN ---
+        // --- INICIALIZACIÓN DE LA APLICACIÓN ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const usuarioTienda = localStorage.getItem('Usuario_Tienda');
+            const usuarioNombre = localStorage.getItem('Usuario_Nombre');
+            const usuarioPerfil = localStorage.getItem('Usuario_Perfil');
+            const usuarioIdx = localStorage.getItem('Usuario_Idx');
+            const diasIniInput = document.getElementById('field-dias-ini-vacation-add'); 
+            const diasFinInput = document.getElementById('field-dias-fin-vacation-add'); 
+            const diasVacacionesInput = document.getElementById('field-dias-vacaciones-vacation-add'); 
+        
+            // Extraer el primer nombre
+            let primerNombre = '';
+            if (usuarioNombre) {
+                primerNombre = usuarioNombre.trim().split(' ')[0];
+                document.querySelector('.text-xl.font-bold').textContent = `¡Hola, ${primerNombre}!`;
+            }
 
-        function setActiveFooterButton(section) {
+            // Agregar event listeners a los botones del footer
             const footerButtons = document.querySelectorAll('.footer-btn');
-            footerButtons.forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.getAttribute('data-section') === section) {
-                    btn.classList.add('active');
-                }
-            });
-        }
+            footerButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const section = button.getAttribute('data-section');
+                    loadContent(section);
+                });
+            });            
+            loadContent('Vacaciones'); 
+        });
+        
+    </script>
 
+
+
+
+        
         document.addEventListener('DOMContentLoaded', () => {
             
             const initialSection = 'Vacaciones';
