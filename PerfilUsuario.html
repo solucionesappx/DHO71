@@ -178,7 +178,7 @@
             <div class="bg-gray-800 p-6 rounded-xl shadow-2xl w-full transition-all duration-300 transform scale-100 dark:bg-gray-700 relative">
                 
                 <!-- Botón de Cerrar Modal (Posición Absoluta) -->
-                <button onclick="closePerfilModal()" class="profile-close-btn text-red-400 hover:text-red-300 transition duration-150 p-1" title="Cerrar">
+                <button onclick="closePerfilModal()" class="profile-close-btn text-red-400 hover:text-red-300 transition duration-150 p-1" onclick="window.location.href = 'Inicio.html'">
                     <i data-lucide="x" class="w-6 h-6"></i> 		
                 </button>
                 
@@ -200,11 +200,11 @@
     <script>
         lucide.createIcons();
 
-        // Mapeo de navegación (Actualizado para referencia)
+        // Mapeo de navegación (Actualizado para referencia) - Ya no se usa para navegación, pero se mantiene como referencia
         const NAV_MAP = {
-            'Inicio': 'inicio.html',
+            'Inicio': 'Inicio.html',
             'Vacaciones': 'Vacaciones.html',
-            'Editar': 'EditarReg.html',
+            'Editar': 'EditarDat.html', // Actualizado a 'EditarDat.html'
             'Perfil': 'PerfilUsuario.html',
             'Configuración': 'ConfigApp.html'
         };
@@ -241,14 +241,15 @@
                 { label: 'Nombre Completo', value: usuarioNombre },
                 { label: 'App Tienda', value: usuarioTienda },
                 { label: 'Perfil', value: usuarioPerfil },
-                { label: 'Clave Especial (IDX)', value: usuarioIdx }
+                { label: 'Índice de Usuario (IDX)', value: usuarioIdx }
             ];
 
             // 2. Construir el contenido del modal
             const contentHtml = profileFields
                 .map(field => {
                     const displayValue = field.value || 'No definido';
-                    const isImportant = field.label === 'Nombre Completo' || field.label === 'Perfil / Rol';
+                    // Mantener la clase de importancia para Nombre y Perfil
+                    const isImportant = field.label === 'Nombre Completo' || field.label === 'Perfil'; 
                     const valueClass = isImportant ? 'text-lg font-bold text-blue-300' : 'text-base font-medium text-gray-100';
                     
                     return `
@@ -285,8 +286,9 @@
         // Función principal para cargar el contenido de la sección
         function loadContent(section) {
             console.log("Navegando a la sección:", section);
+            const mainContent = document.getElementById('main-content');
             
-            // 1. Manejo especial para Perfil (muestra modal)
+            // 1. Manejo especial para Perfil (muestra modal) - PRIORIDAD
             if (section === 'Perfil') {
                 // Primero, limpia cualquier modal abierto
                 closePerfilModal();
@@ -297,8 +299,7 @@
                 // Mantiene el botón 'Perfil' activo
                 setActiveFooterButton(section);
                 
-                // Opcional: Asegura que el main content tenga algo de fondo
-                const mainContent = document.getElementById('main-content');
+                // Asegura que el main content tenga contenido de fondo
                 if (mainContent) {
                     mainContent.innerHTML = `<div class="p-6 text-center mt-4 dark:bg-gray-800 rounded-xl shadow-lg">
                         <i data-lucide="user" class="w-8 h-8 mx-auto mb-3 text-blue-400"></i>
@@ -311,17 +312,47 @@
                 return;
             }
             
-            // 2. Redirección para otras secciones
-            let targetUrl = NAV_MAP[section];
+            // 2. Redirección directa para las apps asociadas al proyecto
+            // Se utiliza lógica explícita para garantizar la correcta navegación entre archivos.
             
-            if (targetUrl) {
-                // Cierra el modal de perfil si estaba abierto antes de redirigir
+            if (section === 'Vacaciones') {
                 closePerfilModal(); 
                 setActiveFooterButton(section);
-                window.location.href = targetUrl;
-            } else {
-                console.error(`Redirección desconocida para la sección: ${section}`);
+                window.location.href = 'Vacaciones.html';
+                return; 
             }
+
+            // Nota: 'Agregar' no está en el footer, pero se incluye la lógica si se llama desde otro sitio.
+            if (section === 'Agregar') {
+                closePerfilModal(); 
+                setActiveFooterButton(section);
+                window.location.href = 'AgregarDat.html';
+                return;
+            }
+            
+            if (section === 'Editar') {
+                closePerfilModal(); 
+                setActiveFooterButton(section);
+                window.location.href = 'EditarDat.html';
+                return;
+            }
+        
+            if (section === 'Inicio') {
+                closePerfilModal(); 
+                setActiveFooterButton(section);
+                window.location.href = 'Inicio.html';
+                return;
+            }
+        
+            if (section === 'Configuración') {
+                closePerfilModal(); 
+                setActiveFooterButton(section);
+                window.location.href = 'ConfigApp.html';
+                return;
+            }
+            
+            // 3. Fallback para secciones desconocidas
+            console.error(`Redirección desconocida para la sección: ${section}`);
         }
 
         // --- INICIALIZACIÓN DE LA APLICACIÓN ---
