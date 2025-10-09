@@ -743,7 +743,12 @@
                 const hasWarning = row.CTRL1 && String(row.CTRL1).trim() !== '';
                 const hasAlert = row.PERFIL && String(row.PERFIL).trim() === 'DADO DE BAJA';
 
-                let classToAdd = hasWarning ? 'row-warning-text' : (hasAlert ? 'row-alert-text' : '');
+                let classToAdd = '';
+                    if (hasWarning) {
+                        classToAdd = 'row-warning-text';
+                    } else if (hasAlert) {
+                        classToAdd = 'row-alert-text';
+                    }
                 tableHtml += `
                     <tr class="worker-row ${classToAdd}" data-index="${index}" data-nomina="${row.NOMINA}">
                         <!-- Celdas de la tabla (<td>) -->
