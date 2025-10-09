@@ -681,13 +681,16 @@
          function updateMetrics(data) {
              const totalRecordsEl = document.querySelector('[data-metric="total"]');
              const ctrl1WarningEl = document.querySelector('[data-metric="ctrl1_warning"]');
-             if (!totalRecordsEl || !ctrl1WarningEl) return;
+             const perfildadosbajaEl = document.querySelector('[data-metric=""perfil_dados_baja"]');
+             if (!totalRecordsEl || !ctrl1WarningEl || !perfildadosbajaEl) return;
              
              const currentRecords = data.length;
              const ctrl1WarningCount = data.filter(row => row.CTRL1 && String(row.CTRL1).trim() !== '').length;
- 
+             const perfildadosbajaCount = data.filter(row => row.PERFIL && String(row.PERFIL).trim() !== '').length;
+             
              totalRecordsEl.textContent = currentRecords;
              ctrl1WarningEl.textContent = ctrl1WarningCount;
+             perfildadosbajaEl.textContent = perfildadosbajaCount; 
          }
 
         function renderTable(data) { 
@@ -1190,17 +1193,24 @@
                         <h2 class="text-2xl font-bold text-blue-400 mb-4">BD Personal</h2>
                         <div class="flex justify-between space-x-2 mb-4"> 
                             <div id="metric-total-records" 
-                                class="w-1/2 p-1.5 rounded-xl shadow-2xl transition-all duration-300 light:bg-white dark:bg-gray-700 flex items-center space-x-2"> 
+                                class="w-1/3 p-1.5 rounded-xl shadow-2xl transition-all duration-300 light:bg-white dark:bg-gray-700 flex items-center space-x-2"> 
                                 <i data-lucide="users" class="w-6 h-6 text-green-500 flex-shrink-0"></i> 
                                 <div class="flex flex-col leading-tight"> 
                                     <span class="text-xl font-extrabold text-green-500" data-metric="total">0</span> 
                                     <span class="text-xs light:text-gray-500 dark:text-gray-300 whitespace-nowrap">Total Empleados</span> 
                                 </div> 
                             </div> 
-                            <div class="w-1/2 p-1.5 rounded-xl shadow-2xl transition-all duration-300 light:bg-white dark:bg-gray-700 flex items-center space-x-2"> 
-                                <i data-lucide="alert-triangle" class="w-6 h-6 text-red-500 flex-shrink-0"></i> 
+                            <div class="w-1/3 p-1.5 rounded-xl shadow-2xl transition-all duration-300 light:bg-white dark:bg-gray-700 flex items-center space-x-2"> 
+                                <i data-lucide="user-minus" class="w-6 h-6 text-red-500 flex-shrink-0"></i> 
                                 <div class="flex flex-col leading-tight"> 
-                                    <span class="text-xl font-extrabold text-red-500" data-metric="ctrl1_warning">0</span> 
+                                    <span class="text-xl font-extrabold text-red-500" data-metric="perfil_dados_baja">0</span> 
+                                    <span class="text-xs light:text-gray-500 dark:text-gray-300 whitespace-nowrap">Dados de Baja</span> 
+                                </div> 
+                            </div> 
+                            <div class="w-1/3 p-1.5 rounded-xl shadow-2xl transition-all duration-300 light:bg-white dark:bg-gray-700 flex items-center space-x-2"> 
+                                <i data-lucide="alert-triangle" class="w-6 h-6 text-yellow-500 flex-shrink-0"></i> 
+                                <div class="flex flex-col leading-tight"> 
+                                    <span class="text-xl font-extrabold text-yellow-500" data-metric="ctrl1_warning">0</span> 
                                     <span class="text-xs light:text-gray-500 dark:text-gray-300 whitespace-nowrap">Con Notas/Alerta</span> 
                                 </div> 
                             </div> 
