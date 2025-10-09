@@ -745,9 +745,9 @@
 
                 let classToAdd = '';
                     if (hasWarning) {
-                        classToAdd = 'row-warning-text';
-                    } else if (hasAlert) {
                         classToAdd = 'row-alert-text';
+                    } else if (hasAlert) {
+                        classToAdd = 'row-warning-text';
                     }
                 tableHtml += `
                     <tr class="worker-row ${classToAdd}" data-index="${index}" data-nomina="${row.NOMINA}">
