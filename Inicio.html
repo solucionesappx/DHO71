@@ -747,9 +747,7 @@
                 tableHtml += `
                     <tr class="worker-row ${classToAdd}" data-index="${index}" data-nomina="${row.NOMINA}">
                         <!-- Celdas de la tabla (<td>) -->
-                    </tr>
-                `;
-                    <td class="table-data-cell sticky-id-cell px-1 py-0 text-xs" style="width: ${narrowIdWidth};">${rowId}</td>
+                        <td class="table-data-cell sticky-id-cell px-1 py-0 text-xs" style="width: ${narrowIdWidth};">${rowId}</td>
                         ${TABLE_COLUMNS.map(col => {
                             const value = row[col.key] || '';
                             let formattedValue = String(value); 
