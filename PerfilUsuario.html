@@ -178,7 +178,7 @@
             <div class="bg-gray-800 p-6 rounded-xl shadow-2xl w-full transition-all duration-300 transform scale-100 dark:bg-gray-700 relative">
                 
                 <!-- Botón de Cerrar Modal (Posición Absoluta) -->
-                <button onclick="closePerfilModal()" class="profile-close-btn text-red-400 hover:text-red-300 transition duration-150 p-1" title="Cerrar">
+                <button onclick="closePerfilModalWithTimerAndRedirect()" class="profile-close-btn text-red-400 hover:text-red-300 transition duration-150 p-1" title="Cerrar">
                     <i data-lucide="x" class="w-6 h-6"></i> 		
                 </button>
                 
@@ -212,16 +212,29 @@
         // --- FUNCIONES DEL MODAL DE PERFIL ---
 
         /**
-         * Oculta el modal de detalle del perfil y redirige a Inicio.html.
-         * MODIFICADO: Ahora incluye redirección a Inicio.html.
+         * Oculta el modal de detalle del perfil sin forzar la navegación.
+         * Se usa para llamadas programáticas donde no queremos redirigir.
          */
-        function closePerfilModal() {
+        function hidePerfilModal() {
             const modal = document.getElementById('DetallePerfilModal');
             if (modal) {
                 modal.style.display = 'none';
             }
-            // Redirigir siempre a Inicio.html al cerrar el modal
-            window.location.href = 'Inicio.html';
+        }
+        
+        /**
+         * Oculta el modal y espera 3 segundos antes de redirigir a Inicio.html.
+         * Se usa en el botón de cerrar (acción manual del usuario).
+         * @param {number} delay - El tiempo de espera en milisegundos (default 3000ms).
+         */
+        function closePerfilModalWithTimerAndRedirect(delay = 3000) {
+            hidePerfilModal();
+            console.log(`Modal de Perfil cerrado. Redireccionando a Inicio.html en ${delay / 1000} segundos...`);
+            
+            // Usamos un temporizador (3 segundos) para dar feedback visual antes de la redirección.
+            setTimeout(() => {
+                window.location.href = 'Inicio.html';
+            }, delay);
         }
         
         /**
@@ -293,10 +306,8 @@
             
             // 1. Manejo especial para Perfil (muestra modal) - PRIORIDAD
             if (section === 'Perfil') {
-                // Primero, limpia cualquier modal abierto
-                //closePerfilModal(); // Nota: Esto ahora redirigirá a Inicio.html, lo que podría interrumpir la visualización inmediata del modal.
-                                    // Para que funcione correctamente en esta página, la redirección debe estar *solo* en el botón de cerrar.
-                                    // Sin embargo, mantendré la lógica de redirección aquí como fue solicitada.
+                
+                // Antes: closePerfilModal(); // <-- Esta línea causaba la redirección inmediata
                 
                 // Muestra el modal de perfil
                 showUserProfileModal();
@@ -318,10 +329,10 @@
             }
             
             // 2. Redirección directa para las apps asociadas al proyecto
-            // Se utiliza lógica explícita para garantizar la correcta navegación entre archivos.
+            // Usamos hidePerfilModal() aquí para cerrar el modal si estaba abierto, sin generar un loop de redirección.
             
             if (section === 'Vacaciones') {
-                closePerfilModal(); 
+                hidePerfilModal(); 
                 setActiveFooterButton(section);
                 window.location.href = 'Vacaciones.html';
                 return; 
@@ -329,28 +340,28 @@
 
             // Nota: 'Agregar' no está en el footer, pero se incluye la lógica si se llama desde otro sitio.
             if (section === 'Agregar') {
-                closePerfilModal(); 
+                hidePerfilModal(); 
                 setActiveFooterButton(section);
                 window.location.href = 'AgregarDat.html';
                 return;
             }
             
             if (section === 'Editar') {
-                closePerfilModal(); 
+                hidePerfilModal(); 
                 setActiveFooterButton(section);
                 window.location.href = 'EditarDat.html';
                 return;
             }
         
             if (section === 'Inicio') {
-                closePerfilModal(); 
+                hidePerfilModal(); 
                 setActiveFooterButton(section);
                 window.location.href = 'Inicio.html';
                 return;
             }
         
             if (section === 'Configuración') {
-                closePerfilModal(); 
+                hidePerfilModal(); 
                 setActiveFooterButton(section);
                 window.location.href = 'ConfigApp.html';
                 return;
