@@ -443,6 +443,7 @@
             { key: 'APELLIDOS', label: 'APELLIDOS' },
             { key: 'NOMBRES', label: 'NOMBRES' },
             { key: 'CEDULA', label: 'CÉDULA' }, // Se aplicará formato aquí
+            { key: 'UNIDAD', label: 'UNIDAD' },
             { key: 'CARGO', label: 'CARGO' },
             { key: 'INGRESO', label: 'Ingreso' }, // CAMBIO: Fecha Ingreso -> Ingreso
             { key: 'SECTOR', label: 'SECTOR' },
@@ -467,8 +468,9 @@
             { key: 'CEDULA', label: 'Cédula', editable: false, format: (v) => v ? formatNumberWithDots(v) : 'N/A' },
             { key: 'NOMINA', label: 'Nómina', editable: true, format: (v) => v || 'N/A' },
             
+            { key: 'UNIDAD', label: 'Unidad', editable: false, type: 'text', format: (v) => v || 'N/A' },
             { key: 'CARGO', label: 'Cargo', editable: false, type: 'text', format: (v) => v || 'N/A' },
-            { key: 'EMPRESA', label: 'Empresa', editable: true, type: 'text', format: (v) => v || 'N/A' },
+            { key: 'EMPRESA', label: 'Empresa', editable: false, type: 'text', format: (v) => v || 'N/A' },
             { key: 'SECTOR', label: 'Sector', editable: true, type: 'text', format: (v) => v || 'N/A' },
             { key: 'PERFIL', label: 'Perfil', editable: true, type: 'text', format: (v) => v || 'N/A' },
             // Fechas no editables por simplicidad, pero podrían ser de tipo 'date'
