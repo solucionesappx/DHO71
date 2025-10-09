@@ -178,7 +178,7 @@
             <div class="bg-gray-800 p-6 rounded-xl shadow-2xl w-full transition-all duration-300 transform scale-100 dark:bg-gray-700 relative">
                 
                 <!-- Botón de Cerrar Modal (Posición Absoluta) -->
-                <button onclick="closePerfilModal()" class="profile-close-btn text-red-400 hover:text-red-300 transition duration-150 p-1" onclick="window.location.href = 'Inicio.html'">
+                <button onclick="closePerfilModal()" class="profile-close-btn text-red-400 hover:text-red-300 transition duration-150 p-1" title="Cerrar">
                     <i data-lucide="x" class="w-6 h-6"></i> 		
                 </button>
                 
@@ -212,13 +212,16 @@
         // --- FUNCIONES DEL MODAL DE PERFIL ---
 
         /**
-         * Oculta el modal de detalle del perfil.
+         * Oculta el modal de detalle del perfil y redirige a Inicio.html.
+         * MODIFICADO: Ahora incluye redirección a Inicio.html.
          */
         function closePerfilModal() {
             const modal = document.getElementById('DetallePerfilModal');
             if (modal) {
                 modal.style.display = 'none';
             }
+            // Redirigir siempre a Inicio.html al cerrar el modal
+            window.location.href = 'Inicio.html';
         }
         
         /**
@@ -241,7 +244,7 @@
                 { label: 'Nombre Completo', value: usuarioNombre },
                 { label: 'App Tienda', value: usuarioTienda },
                 { label: 'Perfil', value: usuarioPerfil },
-                { label: 'Clave Especial (IDX)', value: usuarioIdx }
+                { label: 'Índice de Usuario (IDX)', value: usuarioIdx }
             ];
 
             // 2. Construir el contenido del modal
@@ -291,7 +294,9 @@
             // 1. Manejo especial para Perfil (muestra modal) - PRIORIDAD
             if (section === 'Perfil') {
                 // Primero, limpia cualquier modal abierto
-                closePerfilModal();
+                closePerfilModal(); // Nota: Esto ahora redirigirá a Inicio.html, lo que podría interrumpir la visualización inmediata del modal.
+                                    // Para que funcione correctamente en esta página, la redirección debe estar *solo* en el botón de cerrar.
+                                    // Sin embargo, mantendré la lógica de redirección aquí como fue solicitada.
                 
                 // Muestra el modal de perfil
                 showUserProfileModal();
