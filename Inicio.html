@@ -1148,6 +1148,7 @@
         function initializeHomeListeners() {
             const searchInput = document.getElementById('search-input');
             const clearBtn = document.getElementById('clear-search-btn');
+            const reloadBtn = document.getElementById('reload-icon');
 
             if (searchInput) {
                 searchInput.addEventListener('input', () => {
@@ -1161,9 +1162,84 @@
             if (clearBtn) {
                 clearBtn.addEventListener('click', clearSearch);
             }
+
+            if (reloadBtn) {
+                reloadBtn.addEventListener('click', reloadData);
+            }
             
             initializeTableListeners(); 
         }
+
+        async function reloadData() {
+            const statusElement = document.getElementById('table-loading-status');
+            const tableContainer = document.getElementById('employee-table-container');
+            
+                console.log("Cargando datos...");
+                if (statusElement) {
+                statusElement.innerHTML = `
+                    <i data-lucide="loader-circle" class="w-8 h-8 mx-auto animate-spin text-blue-500"></i> 
+                    <p class="mt-2 text-sm text-gray-400">Cargando datos de la hoja "BD_Personal2"...</p>
+                `;
+                statusElement.style.display = 'block';
+            }
+            if (tableContainer) {
+                tableContainer.innerHTML = '';
+                tableContainer.style.display = 'none';
+            }
+            lucide.createIcons(); // Vuelve a crear el icono de carga
+                
+               const apiUrl = buildGasApiUrl('BD_Personal2'); // Carga la hoja principal
+                
+                const response = await fetch(apiUrl, {
+                    method: 'GET',
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error de red: ${response.status} ${response.statusText || 'Error desconocido'}`);
+                }
+
+                const result = await response.json();
+                let data = result;
+
+                if (result && result.data && Array.isArray(result.data)) {
+                    data = result.data;
+                } else if (!Array.isArray(result)) {
+                    // Si no es un array y no tiene la propiedad 'data' que es un array, es un error de formato.
+                    throw new Error("Formato de datos no válido. Se esperaba un array JSON o un objeto con la propiedad 'data' (array).");
+                }
+                
+                if (data.length === 0) {
+                    if (statusElement) {
+                        statusElement.innerHTML = '<div class="text-center py-8 text-gray-500 dark:text-gray-400">No se encontraron registros.</div>';
+                        statusElement.style.display = 'block';
+                    }
+                    if (tableContainer) tableContainer.style.display = 'none';
+                    
+                    // ACTUALIZAR MÉTRICAS con 0 registros
+                    updateMetrics([]);
+                    
+                } else {
+                    allEmployeeData = data;
+                    filteredEmployeeData = [...data]; // Inicialmente, todos los datos son filtrados
+
+                    const expiry = new Date().getTime() + CACHE_EXPIRATION_MS;
+                    const cacheObject = { data: data, expiry: expiry };
+                    localStorage.setItem(CACHE_KEY, JSON.stringify(cacheObject));
+                    console.log("Datos reload function reloadData guardados en caché (expira en 15 minutos).");
+                    
+                    // Oculta el estado de carga y muestra el contenedor de la tabla
+                    if (statusElement) statusElement.style.display = 'none';
+                    if (tableContainer) tableContainer.style.display = 'block';
+                    
+                    // Renderizar la tabla con los datos frescos
+                    renderTable(filteredEmployeeData); 
+                    
+                    // ACTUALIZAR MÉTRICAS con los datos filtrados (todos)
+                    updateMetrics(filteredEmployeeData);
+                }
+
+            }
+
 
         function clearSearch() {
             const searchInput = document.getElementById('search-input');
@@ -1247,6 +1323,9 @@
                             <button id="clear-search-btn" class="p-2.5 rounded-full light:bg-white dark:bg-gray-700 shadow-md transition-colors duration-200 text-red-500 dark:text-red-400 font-bold" title="Reiniciar Filtros"> 
                                 <i data-lucide="x-circle" class="w-7 h-7"></i> 
                             </button> 
+                            <button id="reload-icon" class="p-2 rounded-full text-blue-400 hover:bg-gray-700 transition duration-150" title="Recargar Datos (Omitir Caché)">
+                                <i data-lucide="refresh-cw" class="w-6 h-6"></i>
+                            </button>
                         </div>
                         <div id="table-loading-status" class="text-center py-8"></div>
                         <div id="employee-table-container" class="table-scroll-container"></div>
@@ -1282,7 +1361,7 @@
             const usuarioIdx = localStorage.getItem('Usuario_Idx');
             const diasIniInput = document.getElementById('field-dias-ini-vacation-add'); 
             const diasFinInput = document.getElementById('field-dias-fin-vacation-add'); 
-            const diasVacacionesInput = document.getElementById('field-dias-vacaciones-vacation-add'); 
+            const diasVacacionesInput = document.getElementById('field-dias-vacaciones-vacation-add');
         
             // Extraer el primer nombre
             let primerNombre = '';
