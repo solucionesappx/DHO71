@@ -43,9 +43,9 @@
             /* Color de selección simple (ligeramente más claro que el hover para diferenciación) */
             --color-row-selected: #1e8749; /* Verde intermedio */
             
-            /* Color de advertencia para filas con CTRL1 (rojo sin negritas) */
+            /* Color de advertencia para filas con CTRL1 y PERFIL (amarillo o rojo sin negritas) */
             --color-warning: #F5CC27; /* Tailwind yellow-500 */
-            --color-warning2: #ef4444; /* Tailwind red-500 */
+            --color-alert: #ef4444; /* Tailwind red-500 */
         }
         
         /* Estilos del cuerpo en modo claro */
@@ -181,6 +181,15 @@
             color: var(--color-warning) !important;
         }
         .row-warning-text:hover td {
+            /* Asegura que el color rojo se mantenga visible sobre el hover verde, pero el hover tiene prioridad */
+            color: #ffffff !important; 
+        }
+
+        /* NUEVO: Estilo para filas con alarma (PERFIL dado de baja) */
+        .row-alert-text td {
+            color: var(--color-alert) !important;
+        }
+        .row-alert-text:hover td {
             /* Asegura que el color rojo se mantenga visible sobre el hover verde, pero el hover tiene prioridad */
             color: #ffffff !important; 
         }
@@ -465,9 +474,9 @@
         const MODAL_FIELD_MAP = [
             { key: 'NOMBRES', label: 'Nombres', editable: false, type: 'text', format: (v) => v || 'N/A' },
             { key: 'APELLIDOS', label: 'Apellidos', editable: false, type: 'text', format: (v) => v || 'N/A' },
-            // CÉDULA no debe ser editables (se usa como clave)
+            // CEDULA y NOMINA no deben ser editables (se usan como clave. - Nómina para colores Alert -)
             { key: 'CEDULA', label: 'Cédula', editable: false, format: (v) => v ? formatNumberWithDots(v) : 'N/A' },
-            { key: 'NOMINA', label: 'Nómina', editable: true, format: (v) => v || 'N/A' },
+            { key: 'NOMINA', label: 'Nómina', editable: false, format: (v) => v || 'N/A' },
             
             { key: 'UNIDAD', label: 'Unidad', editable: false, type: 'text', format: (v) => v || 'N/A' },
             { key: 'CARGO', label: 'Cargo', editable: false, type: 'text', format: (v) => v || 'N/A' },
@@ -732,9 +741,11 @@
                 // Intenta usar ID, si no existe, usa el índice + 1
                 const rowId = row.ID !== undefined && row.ID !== null ? row.ID : (index + 1); 
                 const hasWarning = row.CTRL1 && String(row.CTRL1).trim() !== '';
+                const hasAlert = row.PERFIL && String(row.PERFIL).trim() === 'DADO DE BAJA';
 
                 tableHtml += `
                     <tr class="worker-row ${hasWarning ? 'row-warning-text' : ''}" data-index="${index}" data-nomina="${row.NOMINA}">
+                    <tr class="worker-row ${hasAlert ? 'row-alert-text' : ''}" data-index="${index}" data-nomina="${row.NOMINA}">
                         <td class="table-data-cell sticky-id-cell px-1 py-0 text-xs" style="width: ${narrowIdWidth};">${rowId}</td>
                         ${TABLE_COLUMNS.map(col => {
                             const value = row[col.key] || '';
