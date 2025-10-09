@@ -686,7 +686,7 @@
              
              const currentRecords = data.length;
              const ctrl1WarningCount = data.filter(row => row.CTRL1 && String(row.CTRL1).trim() !== '').length;
-             const perfildadosbajaCount = data.filter(row => row.PERFIL && String(row.PERFIL).trim() !== '').length;
+             const perfildadosbajaCount = data.filter(row => row.PERFIL && String(row.PERFIL).trim() !== 'DADO DE BAJA').length;
              
              totalRecordsEl.textContent = currentRecords;
              ctrl1WarningEl.textContent = ctrl1WarningCount;
