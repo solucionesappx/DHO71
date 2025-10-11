@@ -446,13 +446,13 @@
                             <label for="form-dias" class="text-xs font-medium uppercase text-gray-400 mb-1">Días Vacaciones</label>
                             <input type="text" id="form-dias" placeholder="0" value="0"
                                    class="p-2 rounded-lg bg-gray-600 border border-gray-500 text-white focus:ring-blue-500 focus:border-blue-500" readonly>
-                            <p class="text-xs text-gray-400 mt-1">Días hábiles calculados.</p>
+                            <p class="text-xs text-gray-400 mt-1">Calculado automáticamente (días hábiles).</p>
                         </div>
                         
                         <!-- 6. Bono -->
                         <div class="flex flex-col">
                             <label for="form-bono" class="text-xs font-medium uppercase text-gray-400 mb-1">Bono Vacacional</label>
-                            <input type="text" id="form-bono" placeholder="0"
+                            <input type="text" id="form-bono" placeholder="Ej: Sí/No"
                                    class="p-2 rounded-lg bg-gray-600 border border-gray-500 text-white focus:ring-green-500 focus:border-green-500">
                         </div>
 
@@ -546,7 +546,22 @@
         // Variables de estado para el modal de detalle
         let currentRecordIndex = -1; // Índice del registro actual en filteredEmployeeData
 
-        // --- FUNCIONES AYUDANTES DE FORMATO ---
+        // --- FUNCIONES AYUDANTES DE FORMATO Y FECHA ---
+
+        /**
+         * Función para obtener la fecha actual en formato 'YYYY-MM-DD',
+         * el formato estándar requerido por el input type="date".
+         * @returns {string} Fecha actual en formato 'YYYY-MM-DD'.
+         */
+        function obtenerFechaActual() {
+            const hoy = new Date();
+            const year = hoy.getFullYear();
+            // Los meses en JS van de 0 (Enero) a 11 (Diciembre), por eso sumamos 1.
+            const month = String(hoy.getMonth() + 1).padStart(2, '0');
+            const day = String(hoy.getDate()).padStart(2, '0');
+
+            return `${year}-${month}-${day}`;
+        }
 
         function buildGasApiUrl(sheetName) {
             const url = new URL(BASE_GAS_API_URL);
@@ -1205,7 +1220,8 @@
             }
         }
         
-        /** * Abre el formulario para un nuevo registro. (Solo estructura por ahora)
+        /** * Abre el formulario para un nuevo registro. 
+         * IMPORTANTE: Aquí inicializamos DIA_INI con la fecha actual.
          */
         function openNewVacationForm() {
             const modal = document.getElementById('VacationAddEditModal');
@@ -1226,7 +1242,10 @@
             document.getElementById('form-modal-title').textContent = 'Añadir Nuevo Evento';
             document.getElementById('form-periodo').value = ''; 
             document.getElementById('form-concepto').value = '';
-            document.getElementById('form-dia-ini').value = ''; 
+            
+            // === LÓGICA PARA ASIGNAR LA FECHA ACTUAL AL DÍA INICIO ===
+            document.getElementById('form-dia-ini').value = obtenerFechaActual(); 
+            
             document.getElementById('form-dia-fin').value = ''; 
             document.getElementById('form-dias').value = 0; 
             document.getElementById('form-bono').value = '';
@@ -1234,7 +1253,7 @@
             // 3. Mostrar el Modal
             modal.style.display = 'flex';
             
-            // 4. Asegurarse de que el cálculo se ejecute si hay fechas prellenadas (aunque aquí limpiamos)
+            // 4. Asegurarse de que el cálculo se ejecute (debe dar 0 si DIA_FIN está vacío)
             updateDaysField(); 
 
             if (typeof lucide !== 'undefined' && lucide.createIcons) {
@@ -1260,7 +1279,9 @@
             }
 
             if (section === 'Agregar') {
-                window.location.href = 'AgregarDat.html';
+                // Si pulsa el botón 'Agregar' del footer, abre el modal
+                openNewVacationForm();
+                // Y retorna sin recargar el contenido principal
                 return;
             }
     
@@ -1389,7 +1410,7 @@
                 }
             });
             
-            // --- NUEVA LÓGICA DE CÁLCULO DE DÍAS HÁBILES ---
+            // --- Lógica de CÁLCULO DE DÍAS HÁBILES: Listeners en inputs del modal ---
             const iniInput = document.getElementById('form-dia-ini');
             const finInput = document.getElementById('form-dia-fin');
             const formDias = document.getElementById('form-dias');
@@ -1399,13 +1420,11 @@
                 formDias.readOnly = true; 
                 
                 // Adjuntamos la función de cálculo al cambiar cualquiera de las fechas
-                // Usamos 'change' para inputs tipo date, que es más robusto al usar el selector.
                 iniInput.addEventListener('change', updateDaysField);
                 finInput.addEventListener('change', updateDaysField);
             } else {
                 console.warn("No se encontraron todos los campos de fecha ('form-dia-ini', 'form-dia-fin') o el campo de días ('form-dias').");
             }
-            // --- FIN NUEVA LÓGICA ---
         });
 
     </script>
