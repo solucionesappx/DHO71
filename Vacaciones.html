@@ -234,7 +234,7 @@
         }
         
         /* Contenedor del modal */
-        #vacation-modal-content-wrapper {
+        #vacation-modal-content-wrapper, #vacation-add-edit-content-wrapper {
             position: absolute; 
             width: 90%; 
             max-width: 450px; /* Ancho máximo para el detalle */
@@ -268,7 +268,7 @@
         <!-- Encabezado Fijo -->
         <header id="app-header" class="fixed top-0 w-full h-14 border-b border-gray-700 dark:border-gray-500 flex items-center justify-between px-4">
             <h1 class="text-xl font-bold cursor-pointer hover:opacity-80 transition-opacity" onclick="window.location.href = 'inicio.html'">
-                Mi Aplicación Móvil DHO
+                Mi Aplicación Móvil
             </h1>
             <div class="flex space-x-3">
                 <button class="p-2 rounded-full hover:opacity-80 transition-opacity" onclick="window.location.href = 'index.html'">
@@ -311,7 +311,7 @@
         </footer>
 
         
-        <!-- MODAL DE DETALLE DE VACACIONES -->
+        <!-- MODAL DE DETALLE DE VACACIONES (READ-ONLY) -->
         <div id="VacationDetailModal" class="modal-overlay" onclick="closeVacationModal(event)">
             <div id="vacation-modal-content-wrapper" 
                  class="mx-auto" 
@@ -324,7 +324,7 @@
                         <h3 class="text-xl font-bold text-yellow-400">Detalle de Vacaciones</h3>
                         <!-- Botón de Cierre -->
                         <button onclick="closeVacationModal()" class="p-1 rounded-full text-red-400 hover:text-red-600 transition duration-150">
-                            <i data-lucide="x" class="w-6 h-6 icon-x relative -mt-8 -mr-6"></i> 	
+                            <i data-lucide="x" class="w-6 h-6 icon-x relative -mt-8 -mr-6"></i> 		
                         </button>
                     </div>
                     
@@ -346,7 +346,7 @@
                         </button>
                     </div>
 
-                    <!-- Campos de Detalle del Registro -->
+                    <!-- Campos de Detalle del Registro (ACTUALIZADO CON DIA_INI y DIA_FIN) -->
                     <div class="grid grid-cols-2 gap-x-4 gap-y-3 p-4 bg-gray-700 rounded-lg text-sm">
                         
                         <!-- 1. Período -->
@@ -356,19 +356,32 @@
                         </div>
                         
                         <!-- 2. Concepto -->
-                        <div class="col-span-2 flex flex-col">
+                        <div class="col-span-2 flex flex-col mb-2">
                             <span class="text-xs font-medium uppercase text-gray-400">Concepto</span>
                             <span id="detail-concepto" class="text-base font-semibold text-white"></span>
                         </div>
-                        
-                        <!-- 3. Días -->
+
+                        <!-- 3. DÍA INICIO -->
                         <div class="flex flex-col border-r border-gray-600 pr-4">
+                            <span class="text-xs font-medium uppercase text-gray-400">Día de Inicio</span>
+                            <span id="detail-dia-ini" class="text-base font-semibold text-white"></span>
+                        </div>
+                        
+                        <!-- 4. DÍA FIN -->
+                        <div class="flex flex-col">
+                            <span class="text-xs font-medium uppercase text-gray-400">Día de Fin</span>
+                            <span id="detail-dia-fin" class="text-base font-semibold text-white"></span>
+                        </div>
+                        
+                        <!-- 5. Días -->
+                        <div class="flex flex-col border-r border-gray-600 pr-4 mt-3 pt-3 border-t">
                             <span class="text-xs font-medium uppercase text-gray-400">Días Vacaciones</span>
+                            <!-- Este es un span, no un input, pero mantiene la consistencia -->
                             <span id="detail-dias" class="text-base font-semibold text-white"></span>
                         </div>
                         
-                        <!-- 4. Bono -->
-                        <div class="flex flex-col">
+                        <!-- 6. Bono -->
+                        <div class="flex flex-col mt-3 pt-3 border-t border-gray-600">
                             <span class="text-xs font-medium uppercase text-gray-400">Bono Vacacional</span>
                             <span id="detail-bono" class="text-base font-semibold text-green-400"></span>
                         </div>
@@ -379,6 +392,84 @@
             </div>
         </div>
         <!-- Fin MODAL DE DETALLE DE VACACIONES -->
+
+        <!-- MODAL DE AÑADIR/EDITAR VACACIONES (NUEVO FORMULARIO EDITABLE) -->
+        <div id="VacationAddEditModal" class="modal-overlay" onclick="closeVacationAddEditModal(event)" style="display: none;">
+            <div id="vacation-add-edit-content-wrapper" 
+                 class="mx-auto" 
+                 onclick="event.stopPropagation()">
+                
+                <div class="bg-gray-800 p-6 rounded-xl shadow-2xl w-full dark:bg-gray-700">
+                    
+                    <!-- Encabezado del Modal -->
+                    <div class="flex justify-between items-center pb-3 mb-4">
+                        <h3 id="form-modal-title" class="text-xl font-bold text-yellow-400">Añadir Nuevo Evento</h3>
+                        <!-- Botón de Cierre -->
+                        <button onclick="closeVacationAddEditModal()" class="p-1 rounded-full text-red-400 hover:text-red-600 transition duration-150">
+                            <i data-lucide="x" class="w-6 h-6 icon-x relative -mt-8 -mr-6"></i> 		
+                        </button>
+                    </div>
+                    
+                    <!-- Campos de Formulario Editables -->
+                    <form id="vacation-form" class="grid grid-cols-2 gap-x-4 gap-y-4 p-4 bg-gray-700 rounded-lg text-sm">
+                        
+                        <!-- 1. Período -->
+                        <div class="col-span-2 flex flex-col">
+                            <label for="form-periodo" class="text-xs font-medium uppercase text-gray-400 mb-1">Período</label>
+                            <input type="text" id="form-periodo" placeholder="Ej: 2024"
+                                   class="p-2 rounded-lg bg-gray-600 border border-gray-500 text-white focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        
+                        <!-- 2. Concepto -->
+                        <div class="col-span-2 flex flex-col">
+                            <label for="form-concepto" class="text-xs font-medium uppercase text-gray-400 mb-1">Concepto</label>
+                            <textarea id="form-concepto" rows="2" placeholder="Ej: Asignación anual de días"
+                                      class="p-2 rounded-lg bg-gray-600 border border-gray-500 text-white focus:ring-blue-500 focus:border-blue-500"></textarea>
+                        </div>
+
+                        <!-- 3. DÍA INICIO (tipo date) -->
+                        <div class="flex flex-col">
+                            <label for="form-dia-ini" class="text-xs font-medium uppercase text-gray-400 mb-1">Día de Inicio</label>
+                            <input type="date" id="form-dia-ini" 
+                                   class="p-2 rounded-lg bg-gray-600 border border-gray-500 text-white focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+
+                        <!-- 4. DÍA FIN (tipo date) -->
+                        <div class="flex flex-col">
+                            <label for="form-dia-fin" class="text-xs font-medium uppercase text-gray-400 mb-1">Día de Fin</label>
+                            <input type="date" id="form-dia-fin" 
+                                   class="p-2 rounded-lg bg-gray-600 border border-gray-500 text-white focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        
+                        <!-- 5. Días (tipo text, para evitar los spin buttons) -->
+                        <div class="flex flex-col">
+                            <label for="form-dias" class="text-xs font-medium uppercase text-gray-400 mb-1">Días Vacaciones</label>
+                            <input type="text" id="form-dias" placeholder="0" value="0"
+                                   class="p-2 rounded-lg bg-gray-600 border border-gray-500 text-white focus:ring-blue-500 focus:border-blue-500" readonly>
+                            <p class="text-xs text-gray-400 mt-1">Días hábiles calculados.</p>
+                        </div>
+                        
+                        <!-- 6. Bono -->
+                        <div class="flex flex-col">
+                            <label for="form-bono" class="text-xs font-medium uppercase text-gray-400 mb-1">Bono Vacacional</label>
+                            <input type="text" id="form-bono" placeholder="0"
+                                   class="p-2 rounded-lg bg-gray-600 border border-gray-500 text-white focus:ring-green-500 focus:border-green-500">
+                        </div>
+
+                        <!-- Botón de Guardar (Placeholder) -->
+                        <div class="col-span-2 pt-4">
+                            <button type="submit" 
+                                    class="w-full p-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold transition duration-150 shadow-lg">
+                                Guardar Registro (Pendiente de Lógica)
+                            </button>
+                        </div>
+                        
+                    </form>
+                    
+                </div>
+            </div>
+        </div>
+        <!-- Fin MODAL DE AÑADIR/EDITAR VACACIONES -->
 
     </div>
 
@@ -398,16 +489,6 @@
             { key: 'DIAS_VACACIONES', label: 'Días', sortable: true },
             { key: 'BONO_VACACIONAL', label: 'Bono', sortable: true },
         ];
-
-        // Mapeo de navegación (Actualizado para usar 'Vacaciones')
-        const NAV_MAP = {
-            'Inicio': 'inicio.html',
-            'Vacaciones': 'Vacaciones.html',
-            'Agregar': 'AgregarDat.html',
-            'Editar': 'EditarReg.html',
-            'Perfil': 'PerfilUsuario.html',
-            'Configuración': 'ConfigApp.html'
-        };
         
         const SECTION_CONFIG = {
             'Vacaciones': { 
@@ -428,8 +509,8 @@
             const defaultInfo = {
                 CEDULA: 13105322, 
                 INGRESO: '13/10/2015',
-                NOMBRES: 'NOMBRE TRABAJADOR',
-                APELLIDOS: 'APELLIDO TRABAJADOR',
+                NOMBRES: 'YSABEL LUISANA',
+                APELLIDOS: 'OJEDA CASTILLO',
             };
             
             try {
@@ -479,7 +560,7 @@
             let numStr;
             const number = Number(value);
             if (!isNaN(number)) {
-                numStr = String(Math.round(number));
+                numStr = String(number).replace(/\D/g, '');
             } else {
                 numStr = String(value).replace(/\D/g, ''); 
             }
@@ -487,10 +568,67 @@
         }
         
         function formatDate(value) {
-            if (!value) return '';
+            // Asume que el valor es un string de fecha (ej: 'YYYY-MM-DD')
+            if (!value) return 'N/A';
+            // Simplemente devuelve el string, ya que el formato de input type="date" es 'YYYY-MM-DD'
             return String(value); 
         }
 
+        // --- LÓGICA DE CÁLCULO DE DÍAS HÁBILES ---
+
+        /**
+         * Calcula el número de días hábiles (laborables) entre dos fechas (inclusive).
+         * Excluye Sábados (6) y Domingos (0).
+         * @param {string} startDateString - Fecha de inicio (YYYY-MM-DD).
+         * @param {string} endDateString - Fecha de fin (YYYY-MM-DD).
+         * @returns {number} Número de días hábiles. Retorna 0 si las fechas son inválidas o la fecha de inicio es posterior a la de fin.
+         */
+        function calculateWorkingDays(startDateString, endDateString) {
+            // Aseguramos que la fecha se interprete como local (UTC medianoche) para evitar desfases de zona horaria.
+            const startDate = new Date(startDateString + 'T00:00:00'); 
+            const endDate = new Date(endDateString + 'T00:00:00');
+
+            // Validación básica de fechas
+            if (isNaN(startDate) || isNaN(endDate) || startDate > endDate) {
+                return 0;
+            }
+
+            let workingDays = 0;
+            let currentDate = new Date(startDate); // Creamos una copia para la iteración
+
+            // Iterar día por día
+            while (currentDate <= endDate) {
+                const dayOfWeek = currentDate.getDay(); // 0 = Domingo, 6 = Sábado
+
+                // Si no es Sábado (6) ni Domingo (0), es un día hábil
+                if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                    workingDays++;
+                }
+
+                // Avanzar al siguiente día
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+
+            return workingDays;
+        }
+
+        /**
+         * Lee las fechas de inicio y fin, calcula los días hábiles y actualiza el campo form-dias.
+         */
+        function updateDaysField() {
+            const diaIni = document.getElementById('form-dia-ini')?.value;
+            const diaFin = document.getElementById('form-dia-fin')?.value;
+            const formDias = document.getElementById('form-dias');
+
+            if (diaIni && diaFin && formDias) {
+                const workingDays = calculateWorkingDays(diaIni, diaFin);
+                formDias.value = workingDays;
+            } else if (formDias) {
+                // Limpiar el campo si una de las fechas no está seleccionada
+                formDias.value = '';
+            }
+        }
+        
         // --- LÓGICA DE ORDENAMIENTO Y COMPARACIÓN ---
 
         function getNumericValue(value) {
@@ -623,7 +761,8 @@
                             <h3 class="text-xl font-extrabold text-white leading-tight">
                                 ${formattedName}
                             </h3>
-                            <button class="p-1" title="Ver Detalle de Vacaciones" onclick="showVacationDetailModal()">
+                            <!-- BOTÓN DE AÑADIR NUEVO REGISTRO -->
+                            <button class="p-1" title="Añadir Nuevo Registro" onclick="openNewVacationForm()">
                                 <i data-lucide="calendar-plus" class="w-6 h-6 text-yellow-400"></i>
                             </button>
                         </div>
@@ -641,24 +780,24 @@
                     <div class="grid grid-cols-3 gap-2 text-center">
                         
                         <!-- Columna 1: Asignación Beneficio (Días > 0) -->
-                        <div class="px-3 py-1 rounded-lg bg-green-500/80 shadow-inner flex flex-col items-center justify-center">
+                        <div class="p-3 rounded-lg bg-green-500/80 shadow-inner flex flex-col items-center justify-center">
                             <i data-lucide="calendar-arrow-up" class="w-6 h-6 text-white mb-1"></i>
-                            <span class="text-xs font-medium text-white block">Asignación</span>
-                            <span class="text-xl font-bold text-white">${diasAsignados}</span>
+                            <span class="text-xs font-medium text-white block">Asignación Beneficio</span>
+                            <span class="text-xl font-extrabold text-white">${diasAsignados}</span>
                         </div>
                         
                         <!-- Columna 2: Disfrutes Efectivos (Días < 0, valor absoluto) -->
-                        <div class="px-3 py-1 rounded-lg bg-red-500/90 shadow-inner flex flex-col items-center justify-center">
+                        <div class="p-3 rounded-lg bg-red-500/80 shadow-inner flex flex-col items-center justify-center">
                             <i data-lucide="calendar-arrow-down" class="w-6 h-6 text-white mb-1"></i>
-                            <span class="text-xs font-medium text-white block">Disfrute</span>
-                            <span class="text-xl font-bold text-white">${diasConsumidos}</span>
+                            <span class="text-xs font-medium text-white block">Disfrutes Efectivos</span>
+                            <span class="text-xl font-extrabold text-white">${diasConsumidos}</span>
                         </div>
                         
                         <!-- Columna 3: Total Días (Neto) -->
-                        <div class="px-3 py-1 rounded-lg bg-gray-500/90 shadow-inner flex flex-col items-center justify-center">
+                        <div class="p-3 rounded-lg bg-gray-500/80 shadow-inner flex flex-col items-center justify-center">
                             <i data-lucide="calendar-check-2" class="w-6 h-6 text-white mb-1"></i>
-                            <span class="text-xs font-medium text-white block">Total Días</span>
-                            <span class="text-xl font-extrabold text-white">${totalDays}</span>
+                            <span class="text-xs font-medium text-white block">Total Días (Neto)</span>
+                            <span class="text-2xl font-extrabold text-white">${totalDays}</span>
                         </div>
                         
                     </div>
@@ -780,6 +919,9 @@
 
             // --- 4. PROCESAR Y RENDERIZAR DATOS (Tanto si vienen de caché como de la API) ---
 
+            // **NOTA IMPORTANTE:** Se asume que la API de GAS devuelve los nuevos campos DIA_INI y DIA_FIN.
+            // Para fines de visualización, si el dato está vacío, se mostrará 'N/A'.
+            
             // 5. Aplicar FILTRO por TARGET_CEDULA
             if (TARGET_CEDULA !== null) {
                 const targetNum = Number(TARGET_CEDULA);
@@ -998,6 +1140,11 @@
             document.getElementById('registro-count').textContent = `Registro ${currentRecordIndex + 1} de ${totalRecords}`;
             document.getElementById('detail-periodo').textContent = record.PERIODO || 'N/A';
             document.getElementById('detail-concepto').textContent = record.DESCRIPCION_CONCEPTO || 'N/A';
+            
+            // CAMPOS DE FECHA
+            document.getElementById('detail-dia-ini').textContent = formatDate(record.DIA_INI); 
+            document.getElementById('detail-dia-fin').textContent = formatDate(record.DIA_FIN);
+            
             document.getElementById('detail-dias').textContent = `${record.DIAS_VACACIONES || 0}`;
             document.getElementById('detail-bono').textContent = record.BONO_VACACIONAL;
 
@@ -1047,6 +1194,54 @@
             if (prevBtn) prevBtn.classList.toggle('disabled-nav', currentRecordIndex <= 0);
             if (nextBtn) nextBtn.classList.toggle('disabled-nav', currentRecordIndex >= total - 1);
         }
+        
+        // --- LÓGICA DEL NUEVO MODAL DE AÑADIR/EDITAR VACACIONES ---
+        
+        /** * Cierra el modal de añadir/editar vacaciones. 
+         */
+        function closeVacationAddEditModal(event) {
+            if (!event || event.target.id === 'VacationAddEditModal' || event.target.closest('button[data-lucide="x"]')) {
+                document.getElementById('VacationAddEditModal').style.display = 'none';
+            }
+        }
+        
+        /** * Abre el formulario para un nuevo registro. (Solo estructura por ahora)
+         */
+        function openNewVacationForm() {
+            const modal = document.getElementById('VacationAddEditModal');
+            const modalContentWrapper = document.getElementById('vacation-add-edit-content-wrapper');
+            const workerCard = document.getElementById('worker-card');
+
+            // 1. Posicionar el Modal (Clave: Debajo de la tarjeta del trabajador)
+            if (workerCard) {
+                const cardRect = workerCard.getBoundingClientRect();
+                const cardBottomPosition = cardRect.bottom + window.scrollY; 
+                modalContentWrapper.style.top = `${cardBottomPosition + 20}px`; 
+                modalContentWrapper.style.position = 'absolute';
+            } else {
+                modalContentWrapper.style.top = '100px'; 
+            }
+            
+            // 2. Limpiar/Inicializar campos 
+            document.getElementById('form-modal-title').textContent = 'Añadir Nuevo Evento';
+            document.getElementById('form-periodo').value = ''; 
+            document.getElementById('form-concepto').value = '';
+            document.getElementById('form-dia-ini').value = ''; 
+            document.getElementById('form-dia-fin').value = ''; 
+            document.getElementById('form-dias').value = 0; 
+            document.getElementById('form-bono').value = '';
+            
+            // 3. Mostrar el Modal
+            modal.style.display = 'flex';
+            
+            // 4. Asegurarse de que el cálculo se ejecute si hay fechas prellenadas (aunque aquí limpiamos)
+            updateDaysField(); 
+
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                lucide.createIcons();
+            }
+        }
+
 
         // --- FUNCIÓN PRINCIPAL DE NAVEGACIÓN ---
 
@@ -1070,7 +1265,7 @@
             }
     
             if (section === 'Perfil') {
-                window.location.href = 'PerfilUsuario.html';
+                window.location.href = 'PerfilUser.html';
                 return;
             }
     
@@ -1106,11 +1301,10 @@
                                            light:bg-white dark:bg-gray-700 
                                            text-gray-900 dark:text-gray-100 
                                            placeholder-gray-400 border light:border-gray-300 dark:border-gray-600 
-                                           focus:outline-none focus:ring-2 focus:ring-blue-500
-                                           autocomplete="off"
+                                           focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     onkeyup="applyAllFilters()"> 
                                 <!-- Icono de búsqueda con buen contraste -->
-                                <i data-lucide="search" class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 light:text-gray-500 text-red-500"></i> 
+                                <i data-lucide="search" class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 light:text-gray-500 dark:text-gray-300"></i> 
                             </div> 
                             
                             <!-- Botones de Limpiar y Recargar -->
@@ -1126,7 +1320,7 @@
                         </div>      
                         
                         <div class="flex justify-between items-start mt-1 mb-1"> 
-                            <div><h2 class="text-2xl font-bold text-blue-400">Registro de Vacaciones</h2></div>                        
+                            <div><h2 class="text-2xl font-bold text-blue-400">Registros de Vacaciones</h2></div>                        
                         </div>
                         <div id="table-loading-status" class="text-center py-10" style="display: none;"></div>
                         <div id="table-scroll-wrapper" class="table-scroll-container">
@@ -1155,34 +1349,65 @@
             }
         }
         
-        // --- INICIALIZACIÓN DE LA APLICACIÓN ---
-        document.addEventListener('DOMContentLoaded', () => {
-            const usuarioTienda = localStorage.getItem('Usuario_Tienda');
-            const usuarioNombre = localStorage.getItem('Usuario_Nombre');
-            const usuarioPerfil = localStorage.getItem('Usuario_Perfil');
-            const usuarioIdx = localStorage.getItem('Usuario_Idx');
-            const diasIniInput = document.getElementById('field-dias-ini-vacation-add'); 
-            const diasFinInput = document.getElementById('field-dias-fin-vacation-add'); 
-            const diasVacacionesInput = document.getElementById('field-dias-vacaciones-vacation-add'); 
-        
-            // Extraer el primer nombre
-            let primerNombre = '';
-            if (usuarioNombre) {
-                primerNombre = usuarioNombre.trim().split(' ')[0];
-                document.querySelector('.text-xl.font-bold').textContent = `¡Hola, ${primerNombre}!`;
-            }
+        // --- INICIALIZACIÓN ---
 
-            // Agregar event listeners a los botones del footer
+        function setActiveFooterButton(section) {
             const footerButtons = document.querySelectorAll('.footer-btn');
+            footerButtons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-section') === section) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const initialSection = 'Vacaciones';
+            loadContent(initialSection); 
+            setActiveFooterButton(initialSection); 
+
+            const footerButtons = document.querySelectorAll('.footer-btn');
+            // CORRECCIÓN DEL ERROR DE REFERENCIA: Uso correcto de forEach
             footerButtons.forEach(button => {
                 button.addEventListener('click', () => {
                     const section = button.getAttribute('data-section');
-                    loadContent(section);
+                    setActiveFooterButton(section);
+                    loadContent(section); 
                 });
-            });            
-            loadContent('Vacaciones'); 
+            });
+            
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    // Cerrar ambos modales
+                    if (document.getElementById('VacationDetailModal').style.display === 'flex') {
+                        closeVacationModal();
+                    }
+                    if (document.getElementById('VacationAddEditModal').style.display === 'flex') {
+                        closeVacationAddEditModal();
+                    }
+                }
+            });
+            
+            // --- NUEVA LÓGICA DE CÁLCULO DE DÍAS HÁBILES ---
+            const iniInput = document.getElementById('form-dia-ini');
+            const finInput = document.getElementById('form-dia-fin');
+            const formDias = document.getElementById('form-dias');
+
+            if (iniInput && finInput && formDias) {
+                // Hacemos que el campo 'form-dias' sea de solo lectura
+                formDias.readOnly = true; 
+                
+                // Adjuntamos la función de cálculo al cambiar cualquiera de las fechas
+                // Usamos 'change' para inputs tipo date, que es más robusto al usar el selector.
+                iniInput.addEventListener('change', updateDaysField);
+                finInput.addEventListener('change', updateDaysField);
+            } else {
+                console.warn("No se encontraron todos los campos de fecha ('form-dia-ini', 'form-dia-fin') o el campo de días ('form-dias').");
+            }
+            // --- FIN NUEVA LÓGICA ---
         });
-        
+
     </script>
 </body>
 </html>
