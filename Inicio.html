@@ -435,6 +435,7 @@
         // URL de implementación de Google Apps Script proporcionada por el usuario (OBLIGATORIA)
         const BASE_GAS_API_URL = 'https://script.google.com/macros/s/AKfycbx87WvxA9ca1KyGMA1wsw1npZw5vPtjoItomhF823BICXScNrWGFh5m0Dj6Veb24CtHXQ/exec';
         const TARGET_SHEET_NAME = 'BD_Personal2'; // Nombre de la hoja de datos
+        const USUARIO_NOMBRE_KEY = 'Usuario_Nombre';
         
         // URL de implementación de Google Apps Script para el MÉTODO POST (Actualización)
         // ⚠️ DEBES REEMPLAZAR ESTA URL CON LA DE TU IMPLEMENTACIÓN DE GAS.
@@ -1020,8 +1021,8 @@
             action: "update_personal", // Acción que Apps Script reconocerá
             ..._globalSelectedWorkerData, // Datos del borrador (con las ediciones)
             // Añadir el usuario de registro para la auditoría (usando el nombre completo)
-            registroUser: localStorage.getItem(usuarioNombre) || 'Usuario Desconocido' 
-        };
+            registroUser: localStorage.getItem(USUARIO_NOMBRE_KEY) || 'Usuario Desconocido' 
+    };
     
         // Opcional: Eliminar la clave 'ID'
         delete flatPayload.ID; 
