@@ -1056,13 +1056,7 @@
                 if (result.updatedData) {
                     updateLocalDataAndRefresh(result.updatedData);
                 }
-
-                // ⭐️ PASO CLAVE 1: Cerrar el modal inmediatamente. 
-                // Esto elimina la vista del formulario/detalle de la pantalla.
                 closeModal(); 
-            
-                // ⭐️ PASO CLAVE 2: Recarga los datos.
-                // Esto puede tardar, pero ahora se hace con el modal ya oculto.
                 await reloadData();
             
             } else {
@@ -1087,6 +1081,7 @@
             // pero si hay un error, el alert de error permanece.
         }
     }   
+    
         // --- FUNCIONES DE MANEJO DE MODAL Y UTILIDAD ---
 
         function showWorkerDetailsModal(workerData, rowElement) {
@@ -1217,53 +1212,114 @@
             }
         }
         
-        function showCustomAlert(message, type = 'info') {
-            const alertModal = document.getElementById('custom-alert-modal');
-            let alertContent = document.getElementById('alert-content-wrapper');
+        // Variable global para el ID del temporizador de cierre (si es exitoso o de carga)
+        let alertTimeoutId = null;
 
-            if (!alertContent) {
-                alertContent = document.createElement('div');
-                alertContent.id = 'alert-content-wrapper';
-                alertContent.className = 'mx-auto'; 
-                alertModal.appendChild(alertContent);
+        /**
+         * Muestra un modal de alerta/carga personalizado.
+         * @param {string} message - El mensaje a mostrar.
+         * @param {'loading'|'info'|'error'} type - El tipo de alerta.
+         */
+        function showCustomAlert(message, type) {
+            // 1. Obtener o crear el contenedor principal del modal
+            let container = document.getElementById('custom-alert-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'custom-alert-container';
+                // Estilos para el contenedor: Z-index alto, centrado, fondo transparente total.
+                // Tailwind: fixed top-0 left-0 w-full h-full flex items-center justify-center z-[1000] backdrop-blur-sm
+                container.className = 'fixed inset-0 flex justify-center z-[1000] bg-transparent items-start';
+                document.body.appendChild(container);
             }
-            
-            let bgColor = 'bg-blue-600';
-            let iconHtml = '<i data-lucide="info" class="w-5 h-5 mr-2"></i>';
-            let spinClass = '';
-            
-            if (type === 'loading') {
-                bgColor = 'bg-yellow-600';
-                iconHtml = '<i data-lucide="loader-circle" class="w-5 h-5 mr-2 animate-spin"></i>';
-                spinClass = 'animate-pulse';
-            } else if (type === 'error') {
-                bgColor = 'bg-red-600';
-                iconHtml = '<i data-lucide="alert-triangle" class="w-5 h-5 mr-2"></i>';
+    
+            // Limpiar temporizador anterior
+            if (alertTimeoutId) {
+                clearTimeout(alertTimeoutId);
+                alertTimeoutId = null;
             }
-            
-            alertContent.innerHTML = `
-                <div class="${bgColor} p-4 rounded-xl shadow-lg w-full max-w-sm text-center flex items-center justify-center ${spinClass}" onclick="event.stopPropagation()">
-                    ${iconHtml}
-                    <p class="text-white font-semibold">${message}</p>
+
+            // Definir estilos y contenido según el tipo
+            let title = '';
+            let iconHtml = '';
+            let bgColorClass = '';
+            let showCloseButton = false;
+            let autoclose = false;
+    
+            switch (type) {
+                case 'loading':
+                    title = 'Procesando...';
+                    // Icono de carga giratorio (asumiendo Lucide icons)
+                    iconHtml = '<i data-lucide="loader-circle" class="w-10 h-10 animate-spin text-blue-400"></i>';
+                    bgColorClass = 'bg-gray-800/95'; // Fondo oscuro semitransparente para la carga
+                    showCloseButton = false;
+                    break;
+                case 'info':
+                    title = '¡Éxito!';
+                    iconHtml = '<i data-lucide="check-circle" class="w-10 h-10 text-green-400"></i>';
+                    bgColorClass = 'bg-gray-800/95';
+                    showCloseButton = false; // Se cerrará automáticamente o con closeModal()
+                    autoclose = true;
+                    break;
+                case 'error':
+                    title = 'Error de Operación';
+                    iconHtml = '<i data-lucide="alert-triangle" class="w-10 h-10 text-red-500"></i>';
+                    bgColorClass = 'bg-red-900/95'; // Fondo rojo oscuro para el error
+                    showCloseButton = true; // REQUERIMIENTO: Mostrar botón de cierre solo en error
+                    break;
+            }
+
+            // 2. Generar el contenido HTML del modal
+            container.innerHTML = `
+                <div class="p-6 rounded-xl shadow-2xl max-w-sm w-full transition-all duration-300 ${bgColorClass} mt-40"> 
+                    <div class="flex flex-col items-center space-y-4 mb-40">
+                
+                        ${showCloseButton ? `
+                            <button class="absolute top-2 right-2 text-gray-400 hover:text-white transition-colors"
+                                    onclick="closeCustomAlert()">
+                                <i data-lucide="x" class="w-6 h-6"></i>
+                            </button>
+                        `: ''}
+
+                        <div class="pt-4">${iconHtml}</div>
+                
+                        <h3 class="text-xl font-bold text-white">${title}</h3>
+                        <p class="text-sm text-center text-gray-200">${message}</p>
+                
+                        ${showCloseButton ? `
+                            <button class="w-full py-2 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg mt-4 transition-colors"
+                                    onclick="closeCustomAlert()">
+                                Cerrar
+                            </button>
+                        ` : ''}
+                    </div>
                 </div>
             `;
-            
+
+            // 3. Mostrar el contenedor
+            container.style.display = 'flex';
             lucide.createIcons();
-            alertModal.style.display = 'flex';
-            
-            // Si no es un mensaje de carga o error, lo ocultamos automáticamente
-            if (type === 'info') {
-                setTimeout(closeCustomAlert, 1500);
+
+            // 4. Configurar cierre automático (solo para 'info' breve)
+            if (autoclose) {
+                alertTimeoutId = setTimeout(closeCustomAlert, 1500); // 1.5 segundos
             }
         }
-        
-        function closeCustomAlert() {
-             const alertModal = document.getElementById('custom-alert-modal');
-             if (alertModal) {
-                 alertModal.style.display = 'none';
-             }
-        }
 
+
+        /**
+        * Cierra el modal de alerta/carga (showCustomAlert).
+        */
+        function closeCustomAlert() {
+            const container = document.getElementById('custom-alert-container');
+            if (container) {
+                container.style.display = 'none';
+                container.innerHTML = ''; // Limpiar contenido
+            }
+            if (alertTimeoutId) {
+                clearTimeout(alertTimeoutId);
+                alertTimeoutId = null;
+            }
+}
         function closeModal() {
             const modal = document.getElementById('DetalleTrabajadorModal');
             if (modal) {
