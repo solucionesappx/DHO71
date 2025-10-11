@@ -1053,6 +1053,8 @@
                     if (result.updatedData) {
                         updateLocalDataAndRefresh(result.updatedData);
                     }
+
+                    await reloadData();
                     
                     // Cerrar modal al guardar exitosamente
                     setTimeout(closeModal, 500); // Dar un breve tiempo para que se vea el mensaje
