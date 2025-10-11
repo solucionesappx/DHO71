@@ -903,6 +903,7 @@
                                class="${commonClasses} justify-center font-bold bg-transparent text-red-300"
                                ${field.type === 'number' ? 'min="0"' : ''}
                                oninput="updateDraftData(this.getAttribute('data-key'), this.value)"
+                               autocomplete="off"
                         >`;
                 } else {
                      // Campo no editable: SPAN (mantiene el mismo diseño de input, pero no es interactivo)
