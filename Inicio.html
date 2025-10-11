@@ -350,20 +350,21 @@
                 <div class="bg-gray-800 p-6 rounded-xl shadow-2xl w-full transition-all duration-300 transform scale-100 dark:bg-gray-700">
                     
                     <div class="flex justify-between items-center pb-3 border-b border-gray-600 mb-4">
-                        
                         <div class="flex items-center space-x-2">
-                            <h3 class="text-xl font-bold text-blue-400" id="modal-title">Detalle Trabajador</h3>
-                            
-                            <!-- Botón para ver detalle de Vacaciones (Funcionalidad de navegación eliminada, ahora muestra alerta dummy) -->
-                            <button class="p-1" title="Ver Detalle de Vacaciones" onclick="showVacationDetailModal()">
+                            <h3 class="text-xl font-bold text-blue-400" id="modal-title">Detalle Trabajador</h3>       
+                            <button class="p-1" 
+                                    title="Ver Detalle de Vacaciones" 
+                                    onclick="showVacationDetailModal()"
+                                    id="vacation-detail-button">
                                 <i data-lucide="calendar-days" class="w-6 h-6 text-yellow-400"></i>
                             </button>
                         </div>
-                        
+
                         <!-- Botón de Cerrar Modal -->
                         <button onclick="closeModal()" class="text-3xl text-red-400 hover:text-red-600 transition duration-150 p-2 -mr-3">
                             <i data-lucide="x" class="w-6 h-6 icon-x relative -mt-8 -mr-2"></i> 		
                         </button>
+
                     </div>
                     
                     <!-- Contenedor del contenido (será reemplazado por <span> o <input>) -->
@@ -435,7 +436,6 @@
         // URL de implementación de Google Apps Script proporcionada por el usuario (OBLIGATORIA)
         const BASE_GAS_API_URL = 'https://script.google.com/macros/s/AKfycbx87WvxA9ca1KyGMA1wsw1npZw5vPtjoItomhF823BICXScNrWGFh5m0Dj6Veb24CtHXQ/exec';
         const TARGET_SHEET_NAME = 'BD_Personal2'; // Nombre de la hoja de datos
-        const USUARIO_NOMBRE_KEY = 'Usuario_Nombre';
         
         // URL de implementación de Google Apps Script para el MÉTODO POST (Actualización)
         // ⚠️ DEBES REEMPLAZAR ESTA URL CON LA DE TU IMPLEMENTACIÓN DE GAS.
@@ -945,6 +945,15 @@
          * @param {boolean} isCanceled - True si se está saliendo por cancelación (ignora cambios).
          */
         function toggleEditMode(isEditing, isCanceled = false) {
+            // ⭐️ Lógica de ocultar/mostrar el botón de Vacaciones
+            const vacationButton = document.getElementById('vacation-detail-button');
+
+            if (vacationButton) {
+                // Ocultar si está editando (isEditing = true -> display: 'none')
+                // Mostrar si no está editando (isEditing = false -> display: 'block')
+                vacationButton.style.display = isEditing ? 'none' : 'block'; 
+            }
+            
             isModalInEditMode = isEditing;
             
             if (isCanceled) {
@@ -1021,8 +1030,8 @@
             action: "update_personal", // Acción que Apps Script reconocerá
             ..._globalSelectedWorkerData, // Datos del borrador (con las ediciones)
             // Añadir el usuario de registro para la auditoría (usando el nombre completo)
-            registroUser: localStorage.getItem(USUARIO_NOMBRE_KEY) || 'Usuario Desconocido' 
-    };
+            registroUser: localStorage.getItem(UusuarioNombre) || 'Usuario Desconocido' 
+        };
     
         // Opcional: Eliminar la clave 'ID'
         delete flatPayload.ID; 
