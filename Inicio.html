@@ -435,6 +435,10 @@
         // URL de implementación de Google Apps Script proporcionada por el usuario (OBLIGATORIA)
         const BASE_GAS_API_URL = 'https://script.google.com/macros/s/AKfycbx87WvxA9ca1KyGMA1wsw1npZw5vPtjoItomhF823BICXScNrWGFh5m0Dj6Veb24CtHXQ/exec';
         const TARGET_SHEET_NAME = 'BD_Personal2'; // Nombre de la hoja de datos
+        
+        // URL de implementación de Google Apps Script para el MÉTODO POST (Actualización)
+        // ⚠️ DEBES REEMPLAZAR ESTA URL CON LA DE TU IMPLEMENTACIÓN DE GAS.
+        const POST_URL = 'https://script.google.com/macros/s/AKfycbxjneZ_WpBjmIEAqtutJgk0m3oqsa0-OsmHjfPxBqZNfDb9gYzWV4kQ8hoXXIK5EAVnSA/exec'; 
 
         const usuarioTienda = localStorage.getItem('Usuario_Tienda');
         const usuarioNombre = localStorage.getItem('Usuario_Nombre');
@@ -508,6 +512,41 @@
         // --- FUNCIONES DE MANEJO DE DATOS GAS ---
         function buildGasApiUrl(sheetName) {
             return `${BASE_GAS_API_URL}?sheet=${sheetName}`;
+        }
+        
+        /**
+         * Actualiza los arrays de datos locales (allEmployeeData, filteredEmployeeData) con los
+         * datos que fueron exitosamente guardados en la base de datos (GAS).
+         * @param {Object} updatedWorkerData - Datos del trabajador recién actualizados.
+         */
+        function updateLocalDataAndRefresh(updatedWorkerData) {
+            const updateKey = 'CEDULA';
+            const updatedCedula = updatedWorkerData[updateKey];
+            
+            if (!updatedCedula) {
+                console.error("Error al sincronizar: Los datos actualizados no contienen la Cédula.");
+                return;
+            }
+
+            const updateArray = (arr) => {
+                const index = arr.findIndex(w => String(w[updateKey]) === String(updatedCedula));
+                if (index !== -1) {
+                    // Reemplaza el objeto completo en el array
+                    arr[index] = updatedWorkerData; 
+                }
+            };
+            
+            // 1. Actualiza el array principal (allEmployeeData)
+            updateArray(allEmployeeData);
+            
+            // 2. Actualiza el array filtrado (filteredEmployeeData)
+            updateArray(filteredEmployeeData);
+            
+            // 3. Vuelve a renderizar la tabla para reflejar los cambios
+            // Se usa filteredEmployeeData, que ahora contiene los datos actualizados.
+            // Se re-aplica el filtro de búsqueda actual si existe.
+            const searchInput = document.getElementById('search-input');
+            filterEmployees(searchInput ? searchInput.value : '');
         }
 
         async function loadData() {
@@ -835,8 +874,7 @@
             lucide.createIcons();
         }    
 
-        /** 
-         * Renders the modal content in edit mode, replacing spans with inputs.
+        /** * Renders the modal content in edit mode, replacing spans with inputs.
          * Esta es la lógica clave para el "flip" de etiqueta a input.
          */
         function renderEditMode() {
@@ -885,11 +923,11 @@
             });
             modalBody.innerHTML = contentHtml;
             
-            // 2. Generar Botones (Modo Editar: Guardar/Cancelar)
+            // 2. Generar Botones (Modo Editar: Solo Guardar)
             footerButtons.innerHTML = `
                 <div class="w-full flex justify-center">
                     <button class="py-2 px-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors shadow-md"
-                            onclick="saveWorkerDetails()">
+                            onclick="sendDataToGas()">
                         <i data-lucide="circle-check-big" class="w-6 h-6 inline-block mr-2"></i>
                         Guardar
                     </button>
@@ -942,21 +980,105 @@
         }
 
         /**
-         * Simula el guardado de los cambios en los arrays globales (no a la API).
+         * Convierte un objeto JavaScript a formato URL-encoded (a=1&b=2).
+         * Esto es necesario para la comunicación POST con Google Apps Script (doPost(e)).
+         * @param {object} obj - El objeto de datos.
+         * @returns {string} La cadena de consulta codificada.
          */
-        function saveWorkerDetails() {
-            if (!_globalSelectedWorkerData) {
-                showCustomAlert("Error: No hay datos para guardar.");
+        function urlEncodeObject(data) {
+            const parts = [];
+            for (const key in data) { // FIX: Usar 'data' en lugar de 'obj'
+                if (data.hasOwnProperty(key)) {
+                    // Se usa encodeURIComponent para manejar espacios y caracteres especiales
+                    parts.push(encodeURIComponent(key) + '=' + encodeURIComponent(data[key] || ''));
+                }
+            }
+            return parts.join('&');
+        }
+
+        /**
+         * Envía los datos del trabajador (_globalSelectedWorkerData) al Apps Script.
+         */
+        async function sendDataToGas() {
+            // Referencias a elementos de mensaje (si estuvieran en esta página)
+            const resultMessageBox = document.getElementById('result-message-box');
+            const resultMessage = document.getElementById('result-message');
+            
+            showCustomAlert('Guardando cambios...', 'loading'); // Muestra alerta de carga
+            
+            // 1. Validar datos mínimos
+            if (!_globalSelectedWorkerData || !_globalSelectedWorkerData.CEDULA) {
+                showCustomAlert('Error: Datos de Cédula (clave) no encontrados.', 'error');
                 return;
             }
-
-            // Salir del modo edición y notificar
-            showCustomAlert(`¡Registro guardado (simulado) exitosamente!`);
-            toggleEditMode(false); // Vuelve a modo vista con los datos actualizados
-            closeModal(); 
             
-            console.log("Datos listos para enviar a la API de GUARDADO:", updatedData);
+            // 2. Preparar payload
+            const flatPayload = {
+                action: "update_personal", // Acción que Apps Script reconocerá
+                ..._globalSelectedWorkerData, // Datos del borrador (con las ediciones)
+                // Añadir el usuario de registro para la auditoría (usando el nombre completo)
+                registroUser: localStorage.getItem(usuarioNombre) || 'Usuario Desconocido' 
+            };
+            
+            // Opcional: Eliminar la clave 'ID' si se incluye, ya que no es el índice de la hoja
+            delete flatPayload.ID; 
+
+            // 3. Convertir a formato URL-encoded (String)
+            const urlEncodedBody = urlEncodeObject(flatPayload);
+            console.log("datos que seran enviados a GAS: ", urlEncodedBody);
+
+            // 4. Ejecutar la solicitud
+            try {
+                const response = await fetch(POST_URL, {
+                    method: 'POST',
+                    mode: 'cors', 
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded' // Clave para doPost(e) en GAS
+                    },
+                    body: urlEncodedBody 
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error("Respuesta cruda de GAS:", errorText);
+                    throw new Error(`Error HTTP: ${response.status}. Respuesta: ${errorText.substring(0, 100)}...`);
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showCustomAlert(result.message || "Operación completada exitosamente.", 'info');
+                    
+                    // 5. Sincronizar datos locales y refrescar tabla
+                    if (result.updatedData) {
+                        updateLocalDataAndRefresh(result.updatedData);
+                    }
+                    
+                    // Cerrar modal al guardar exitosamente
+                    setTimeout(closeModal, 500); // Dar un breve tiempo para que se vea el mensaje
+                    
+                } else {
+                    showCustomAlert(result.error || "Ocurrió un error desconocido al procesar la solicitud.", 'error');
+                }
+
+            } catch (error) {
+                console.error("Error al enviar la solicitud:", error);
+                
+                let errorMessage;
+                if (error.message.includes('Failed to fetch')) {
+                    errorMessage = 'Fallo de conexión. Revise la URL y permisos de Google Apps Script (CORS/Deploy).';
+                } else if (error.message.includes('invalid json response body')) {
+                    errorMessage = 'GAS devolvió un formato no JSON. Revise su función doPost.';
+                } else {
+                    errorMessage = error.message;
+                }
+
+                showCustomAlert(errorMessage, 'error');
+            } finally {
+                // setLoadingState(false); // No es necesario si se usa el alert personalizado
+            }
         }
+      
 
         // --- FUNCIONES DE MANEJO DE MODAL Y UTILIDAD ---
 
@@ -985,7 +1107,7 @@
             if (!row) return;
 
             // Obtener el índice de la fila (asumiendo que está sincronizado con filteredEmployeeData)
-            const rowIndex = Array.from(row.parentNode.children).indexOf(row);
+            const rowIndex = Number(row.getAttribute('data-index')); // Usamos el atributo data-index en lugar de Array.from().indexOf(row)
             const workerData = filteredEmployeeData[rowIndex]; 
             
             if (workerData) {
@@ -1021,7 +1143,7 @@
             if (!row) return;
 
             // Obtener el índice de la fila que corresponde al índice en filteredEmployeeData
-            const rowIndex = Array.from(row.parentNode.children).indexOf(row);
+            const rowIndex = Number(row.getAttribute('data-index'));
             
             const workerData = filteredEmployeeData[rowIndex]; 
             
@@ -1038,13 +1160,18 @@
             tableHeaders.forEach(header => {
                 const key = header.getAttribute('data-key');
                 if (key) { 
-                    header.removeEventListener('click', () => { sortData(key); }); // Limpia por si acaso
-                    header.addEventListener('click', () => { sortData(key); });
+                    // Se usa una función anónima para evitar problemas con la eliminación de listeners anteriores
+                    const clickHandler = () => { sortData(key); };
+                    
+                    // Limpia listeners previos para evitar duplicados al recargar la tabla
+                    header.removeEventListener('click', clickHandler); 
+                    header.addEventListener('click', clickHandler);
                 }
             });
             
             const tableRows = document.querySelectorAll('#employee-table-container tr.worker-row');
             tableRows.forEach(row => {
+                // Usamos data-index en la fila para obtener el índice en filteredEmployeeData
                 row.removeEventListener('dblclick', handleRowDoubleClick);
                 row.removeEventListener('click', handleRowClick);
                 
@@ -1069,9 +1196,11 @@
                 }
                 // Intenta parsear como fecha
                 const date = new Date(dateStr);
-                if (isNaN(date)) {
+                if (isNaN(date.getTime())) { // Comprobar si la fecha es inválida
                     return dateStr;
                 }
+                // A veces, new Date() puede ser demasiado permisivo (ej: 42000 => 1970).
+                // Si parece una fecha válida de JS, la formateamos.
                 const day = String(date.getDate()).padStart(2, '0');
                 const month = String(date.getMonth() + 1).padStart(2, '0');
                 const year = date.getFullYear();
@@ -1081,7 +1210,7 @@
             }
         }
         
-        function showCustomAlert(message) {
+        function showCustomAlert(message, type = 'info') {
             const alertModal = document.getElementById('custom-alert-modal');
             let alertContent = document.getElementById('alert-content-wrapper');
 
@@ -1092,14 +1221,33 @@
                 alertModal.appendChild(alertContent);
             }
             
+            let bgColor = 'bg-blue-600';
+            let iconHtml = '<i data-lucide="info" class="w-5 h-5 mr-2"></i>';
+            let spinClass = '';
+            
+            if (type === 'loading') {
+                bgColor = 'bg-yellow-600';
+                iconHtml = '<i data-lucide="loader-circle" class="w-5 h-5 mr-2 animate-spin"></i>';
+                spinClass = 'animate-pulse';
+            } else if (type === 'error') {
+                bgColor = 'bg-red-600';
+                iconHtml = '<i data-lucide="alert-triangle" class="w-5 h-5 mr-2"></i>';
+            }
+            
             alertContent.innerHTML = `
-                <div class="bg-blue-600 p-4 rounded-xl shadow-lg w-full max-w-sm text-center">
+                <div class="${bgColor} p-4 rounded-xl shadow-lg w-full max-w-sm text-center flex items-center justify-center ${spinClass}" onclick="event.stopPropagation()">
+                    ${iconHtml}
                     <p class="text-white font-semibold">${message}</p>
                 </div>
             `;
+            
+            lucide.createIcons();
             alertModal.style.display = 'flex';
-            // Duración mensaje Alerta
-            setTimeout(closeCustomAlert, 1000);
+            
+            // Si no es un mensaje de carga o error, lo ocultamos automáticamente
+            if (type === 'info') {
+                setTimeout(closeCustomAlert, 1500);
+            }
         }
         
         function closeCustomAlert() {
@@ -1119,6 +1267,7 @@
                     _globalSelectedRowElement = null;
                 }
                 _globalSelectedWorkerData = null;
+                closeCustomAlert(); // Cierra el mensaje de alerta (ej. si estaba en "guardando...")
             }
         }
 
@@ -1359,15 +1508,19 @@
             const usuarioNombre = localStorage.getItem('Usuario_Nombre');
             const usuarioPerfil = localStorage.getItem('Usuario_Perfil');
             const usuarioIdx = localStorage.getItem('Usuario_Idx');
-            const diasIniInput = document.getElementById('field-dias-ini-vacation-add'); 
-            const diasFinInput = document.getElementById('field-dias-fin-vacation-add'); 
-            const diasVacacionesInput = document.getElementById('field-dias-vacaciones-vacation-add');
+            // Elementos no usados en esta página, pero que estaban en el DCL, los mantengo como referencias comentadas por si acaso.
+            // const diasIniInput = document.getElementById('field-dias-ini-vacation-add'); 
+            // const diasFinInput = document.getElementById('field-dias-fin-vacation-add'); 
+            // const diasVacacionesInput = document.getElementById('field-dias-vacaciones-vacation-add');
         
             // Extraer el primer nombre
             let primerNombre = '';
             if (usuarioNombre) {
                 primerNombre = usuarioNombre.trim().split(' ')[0];
-                document.querySelector('.text-xl.font-bold').textContent = `¡Hola, ${primerNombre}!`;
+                const headerTitle = document.querySelector('header h1');
+                if (headerTitle) {
+                     headerTitle.textContent = `¡Hola, ${primerNombre}!`;
+                }
             }
 
             // Agregar event listeners a los botones del footer
