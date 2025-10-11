@@ -996,92 +996,97 @@
             return parts.join('&');
         }
 
-        /**
-         * Envía los datos del trabajador (_globalSelectedWorkerData) al Apps Script.
-         */
-        async function sendDataToGas() {
-            // Referencias a elementos de mensaje (si estuvieran en esta página)
-            const resultMessageBox = document.getElementById('result-message-box');
-            const resultMessage = document.getElementById('result-message');
-            
-            showCustomAlert('Guardando cambios...', 'loading'); // Muestra alerta de carga
-            
-            // 1. Validar datos mínimos
-            if (!_globalSelectedWorkerData || !_globalSelectedWorkerData.CEDULA) {
-                showCustomAlert('Error: Datos de Cédula (clave) no encontrados.', 'error');
-                return;
-            }
-            
-            // 2. Preparar payload
-            const flatPayload = {
-                action: "update_personal", // Acción que Apps Script reconocerá
-                ..._globalSelectedWorkerData, // Datos del borrador (con las ediciones)
-                // Añadir el usuario de registro para la auditoría (usando el nombre completo)
-                registroUser: localStorage.getItem(usuarioNombre) || 'Usuario Desconocido' 
-            };
-            
-            // Opcional: Eliminar la clave 'ID' si se incluye, ya que no es el índice de la hoja
-            delete flatPayload.ID; 
-
-            // 3. Convertir a formato URL-encoded (String)
-            const urlEncodedBody = urlEncodeObject(flatPayload);
-            console.log("datos que seran enviados a GAS: ", urlEncodedBody);
-
-            // 4. Ejecutar la solicitud
-            try {
-                const response = await fetch(POST_URL, {
-                    method: 'POST',
-                    mode: 'cors', 
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded' // Clave para doPost(e) en GAS
-                    },
-                    body: urlEncodedBody 
-                });
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error("Respuesta cruda de GAS:", errorText);
-                    throw new Error(`Error HTTP: ${response.status}. Respuesta: ${errorText.substring(0, 100)}...`);
-                }
-
-                const result = await response.json();
-
-                if (result.success) {
-                    showCustomAlert(result.message || "Operación completada exitosamente.", 'info');
-                    
-                    // 5. Sincronizar datos locales y refrescar tabla
-                    if (result.updatedData) {
-                        updateLocalDataAndRefresh(result.updatedData);
-                    }
-
-                    await reloadData();
-                    
-                    // Cerrar modal al guardar exitosamente
-                    setTimeout(closeModal, 500); // Dar un breve tiempo para que se vea el mensaje
-                    
-                } else {
-                    showCustomAlert(result.error || "Ocurrió un error desconocido al procesar la solicitud.", 'error');
-                }
-
-            } catch (error) {
-                console.error("Error al enviar la solicitud:", error);
-                
-                let errorMessage;
-                if (error.message.includes('Failed to fetch')) {
-                    errorMessage = 'Fallo de conexión. Revise la URL y permisos de Google Apps Script (CORS/Deploy).';
-                } else if (error.message.includes('invalid json response body')) {
-                    errorMessage = 'GAS devolvió un formato no JSON. Revise su función doPost.';
-                } else {
-                    errorMessage = error.message;
-                }
-
-                showCustomAlert(errorMessage, 'error');
-            } finally {
-                // setLoadingState(false); // No es necesario si se usa el alert personalizado
-            }
+    /**
+     * Envía los datos del trabajador (_globalSelectedWorkerData) al Apps Script.
+     * Almacena los cambios y luego recarga la tabla y cierra el modal inmediatamente.
+     */
+    async function sendDataToGas() {
+        // Las referencias a resultMessageBox y resultMessage son opcionales si usas showCustomAlert
+        // const resultMessageBox = document.getElementById('result-message-box');
+        // const resultMessage = document.getElementById('result-message');
+    
+        // Muestra alerta de carga
+        showCustomAlert('Guardando cambios...', 'loading'); 
+    
+        // 1. Validar datos mínimos
+        if (!_globalSelectedWorkerData || !_globalSelectedWorkerData.CEDULA) {
+            showCustomAlert('Error: Datos de Cédula (clave) no encontrados.', 'error');
+            return;
         }
-      
+    
+        // 2. Preparar payload
+        const flatPayload = {
+            action: "update_personal", // Acción que Apps Script reconocerá
+            ..._globalSelectedWorkerData, // Datos del borrador (con las ediciones)
+            // Añadir el usuario de registro para la auditoría (usando el nombre completo)
+            registroUser: localStorage.getItem(usuarioNombre) || 'Usuario Desconocido' 
+        };
+    
+        // Opcional: Eliminar la clave 'ID'
+        delete flatPayload.ID; 
 
+        // 3. Convertir a formato URL-encoded (String)
+        const urlEncodedBody = urlEncodeObject(flatPayload);
+        console.log("datos que seran enviados a GAS: ", urlEncodedBody);
+
+        // 4. Ejecutar la solicitud
+        try {
+            const response = await fetch(POST_URL, {
+                method: 'POST',
+                mode: 'cors', 
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded' // Clave para doPost(e) en GAS
+                },
+                body: urlEncodedBody 
+            });
+        
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error("Respuesta cruda de GAS:", errorText);
+                throw new Error(`Error HTTP: ${response.status}. Respuesta: ${errorText.substring(0, 100)}...`);
+            }
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Mostrar mensaje de éxito (se ocultará automáticamente por closeCustomAlert en closeModal)
+                showCustomAlert(result.message || "Operación completada exitosamente.", 'info'); 
+            
+                // 5. Sincronizar datos locales y refrescar tabla (si aplica)
+                if (result.updatedData) {
+                    updateLocalDataAndRefresh(result.updatedData);
+                }
+
+                // ⭐️ PASO CLAVE 1: Cerrar el modal inmediatamente. 
+                // Esto elimina la vista del formulario/detalle de la pantalla.
+                closeModal(); 
+            
+                // ⭐️ PASO CLAVE 2: Recarga los datos.
+                // Esto puede tardar, pero ahora se hace con el modal ya oculto.
+                await reloadData();
+            
+            } else {
+                showCustomAlert(result.error || "Ocurrió un error desconocido al procesar la solicitud.", 'error');
+           }
+
+        } catch (error) {
+        console.error("Error al enviar la solicitud:", error);
+        
+               let errorMessage;
+            if (error.message.includes('Failed to fetch')) {
+                errorMessage = 'Fallo de conexión. Revise la URL y permisos de Google Apps Script (CORS/Deploy).';
+            } else if (error.message.includes('invalid json response body')) {
+                errorMessage = 'GAS devolvió un formato no JSON. Revise su función doPost.';
+            } else {
+                errorMessage = error.message;
+            }
+
+            showCustomAlert(errorMessage, 'error');
+        } finally {
+            // En este caso, el closeModal() ya se encarga de cerrar el alert, 
+            // pero si hay un error, el alert de error permanece.
+        }
+    }   
         // --- FUNCIONES DE MANEJO DE MODAL Y UTILIDAD ---
 
         function showWorkerDetailsModal(workerData, rowElement) {
