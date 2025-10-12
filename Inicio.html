@@ -434,7 +434,7 @@
         
         // --- CONSTANTES ---
         // URL de implementación de Google Apps Script proporcionada por el usuario (OBLIGATORIA)
-        const BASE_GAS_API_URL = 'https://script.google.com/macros/s/AKfycbx87WvxA9ca1KyGMA1wsw1npZw5vPtjoItomhF823BICXScNrWGFh5m0Dj6Veb24CtHXQ/exec';
+        const GET_URL = 'https://script.google.com/macros/s/AKfycbx87WvxA9ca1KyGMA1wsw1npZw5vPtjoItomhF823BICXScNrWGFh5m0Dj6Veb24CtHXQ/exec';
         const TARGET_SHEET_NAME = 'BD_Personal2'; // Nombre de la hoja de datos
         
         // URL de implementación de Google Apps Script para el MÉTODO POST (Actualización)
@@ -513,7 +513,7 @@
 
         // --- FUNCIONES DE MANEJO DE DATOS GAS ---
         function buildGasApiUrl(sheetName) {
-            return `${BASE_GAS_API_URL}?sheet=${sheetName}`;
+            return `${GET_URL}?sheet=${sheetName}`;
         }
         
         /**
