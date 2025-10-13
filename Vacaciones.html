@@ -766,7 +766,7 @@
             const formattedIngreso = formatDate(data.INGRESO);
 
             infoContainer.innerHTML = `
-                <div id="worker-card" class="bg-[#2D59A1] p-4 rounded-xl shadow-lg dark:bg-gray-800/90">
+                <div id="worker-card" class="bg-gray-800 p-4 rounded-xl shadow-lg dark:bg-gray-800/90">
                     
                     <!-- 1RA GRID (2 Columnas: Nombre | Cédula y Fecha Ingreso) -->
                     <div class="grid grid-cols-2 gap-4 pb-2 mb-2 border-b border-blue-800 dark:border-gray-700">
@@ -1168,7 +1168,7 @@
                 const cardRect = workerCard.getBoundingClientRect();
                 const cardBottomPosition = cardRect.bottom + window.scrollY; 
                 
-                modalContentWrapper.style.top = `${cardBottomPosition + 20}px`; 
+                modalContentWrapper.style.top = `${cardBottomPosition + 10}px`; 
                 modalContentWrapper.style.position = 'absolute';
             } else {
                 modalContentWrapper.style.top = '100px'; 
@@ -1232,7 +1232,7 @@
             if (workerCard) {
                 const cardRect = workerCard.getBoundingClientRect();
                 const cardBottomPosition = cardRect.bottom + window.scrollY; 
-                modalContentWrapper.style.top = `${cardBottomPosition + 20}px`; 
+                modalContentWrapper.style.top = `${cardBottomPosition + 10}px`; 
                 modalContentWrapper.style.position = 'absolute';
             } else {
                 modalContentWrapper.style.top = '100px'; 
