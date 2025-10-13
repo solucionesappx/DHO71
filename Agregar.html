@@ -384,7 +384,7 @@
                 <div class="p-5 bg-gray-900 rounded-xl shadow-lg border border-gray-700">
                     <h2 class="text-xl font-bold text-yellow-300 mb-4 pb-2 flex items-center">
                         <i data-lucide="calendar-plus" class="w-6 h-6 mr-2"></i>
-                        Detalles de Solicitud
+                        Detalle de Absentismo
                     </h2>
                     
                     <!-- Período -->
@@ -407,15 +407,15 @@
                     <!-- DÍA DE INICIO / DÍA DE FIN -->
                     <div class="grid grid-cols-2 gap-4 pt-2">
                         <div>
-                            <label for="form-dia-ini" class="form-label">DÍA DE INICIO *</label>
+                            <label for="form-dia-ini" class="form-label">INICIO *</label>
                             <!-- autocomplete="off" no es estrictamente necesario para type="date" pero se añade por consistencia -->
-                            <input type="date" id="form-dia-ini" name="DIA_INICIO" required
+                            <input type="date" id="form-dia-ini" name="INICIO" required
                                 autocomplete="off" class="form-input">
                         </div>
                         <div>
-                            <label for="form-dia-fin" class="form-label">DÍA DE FIN *</label>
+                            <label for="form-dia-fin" class="form-label">FIN *</label>
                             <!-- autocomplete="off" no es estrictamente necesario para type="date" pero se añade por consistencia -->
-                            <input type="date" id="form-dia-fin" name="DIA_FINAL" required
+                            <input type="date" id="form-dia-fin" name="FINAL" required
                                 autocomplete="off" class="form-input">
                         </div>
                     </div>
@@ -434,7 +434,7 @@
                             <!-- *** autocomplete="off" agregado a campo hidden *** -->
                             <input type="hidden" id="form-dias" name="DIAS_VACACIONES" value="0" autocomplete="off">
                             <p id="dias-habiles-info" class="text-xs text-gray-400 mt-1">
-                                Calculado automáticamente (días hábiles).
+                                Valor calculado (días hábiles)
                             </p>
                         </div>
 
