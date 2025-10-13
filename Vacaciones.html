@@ -1168,9 +1168,9 @@
                 const cardBottomPosition = cardRect.bottom + window.scrollY; 
                 
                 modalContentWrapper.style.top = `${cardBottomPosition + 10}px`; 
-                modalContentWrapper.style.position = 'absolute';
+                modalContentWrapper.style.position = 'relative';
             } else {
-                modalContentWrapper.style.top = '50px'; 
+                modalContentWrapper.style.top = '100px'; 
             }
             
             // 3. Actualizar estado de navegación
