@@ -497,16 +497,6 @@
                 tableContainerId: 'employee-table-container', 
             },
         };
-
-        // Extraer el primer nombre
-        let primerNombre = '';
-          if (usuarioNombre) {
-              primerNombre = usuarioNombre.trim().split(' ')[0];
-              const headerTitle = document.querySelector('header h1');
-              if (headerTitle) {
-                   headerTitle.textContent = `¡Hola, ${primerNombre}!`;
-              }
-          }        
        
         // --- LÓGICA DE CARGA DE DATOS DEL EMPLEADO (LOCALSTORAGE/MOCK) ---
         const EMPLOYEE_TRANSFER_KEY = 'userInfoToEdit';
@@ -1419,7 +1409,7 @@
                     }
                 }
             });
-           
+            
             // --- Lógica de CÁLCULO DE DÍAS HÁBILES: Listeners en inputs del modal ---
             const iniInput = document.getElementById('form-dia-ini');
             const finInput = document.getElementById('form-dia-fin');
