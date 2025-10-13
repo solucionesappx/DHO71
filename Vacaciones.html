@@ -1165,10 +1165,10 @@
             // 2. Posicionar el Modal (Clave: Debajo de la tarjeta del trabajador)
             if (workerCard) {
                 const cardRect = workerCard.getBoundingClientRect();
-                const cardBottomPosition = cardRect.bottom + window.scrollY; 
+                const cardBottomPosition = cardRect.bottom + window.scrollY-10px; 
                 
                 modalContentWrapper.style.top = `${cardBottomPosition + 10}px`; 
-                modalContentWrapper.style.position = 'relative';
+                modalContentWrapper.style.position = 'absolute';
             } else {
                 modalContentWrapper.style.top = '100px'; 
             }
