@@ -792,16 +792,14 @@
 
                     <!-- 2DA GRID (3 Columnas: Asignación | Disfrutes | Total Días) -->
                     <div class="grid grid-cols-3 gap-2 text-center">
-                        <div class="grid grid-cols-2 gap-2 text-center">
+                       
+                        <!-- Columna 1: Asignación Beneficio (Días > 0) -->
+                        <div class="p-3 rounded-lg bg-green-500/80 shadow-inner flex flex-col items-center justify-center">
                             <i data-lucide="calendar-arrow-up" class="w-6 h-6 text-white mb-1"></i>
-                        </div>    
-                            <!-- Columna 1: Asignación Beneficio (Días > 0) -->
-                            <div class="p-3 rounded-lg bg-green-500/80 shadow-inner flex flex-col items-center justify-center">
-                                
-                                    <span class="text-xl font-extrabold text-white">${diasAsignados}</span>
-                                    <span class="text-xs font-medium text-white block">Asignaciones</span>
-                            </div>
-                  
+                                <span class="text-xl font-extrabold text-white">${diasAsignados}</span>
+                                <span class="text-xs font-medium text-white block">Asignaciones</span>
+                        </div>
+                       
                         <!-- Columna 2: Disfrutes Efectivos (Días < 0, valor absoluto) -->
                         <div class="p-3 rounded-lg bg-red-500/80 shadow-inner flex flex-col items-center justify-center">
                             <i data-lucide="calendar-arrow-down" class="w-6 h-6 text-white mb-1"></i>
