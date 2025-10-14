@@ -474,6 +474,51 @@
     </div>
 
     <script>
+
+        // ====================================================================================
+        // *** 2. CONSTANTES DE CLAVE DE USUARIO EN LOCAL STORAGE ***
+        // ====================================================================================
+        const USUARIO_TIENDA_KEY = 'Usuario_Tienda';
+        const USUARIO_NOMBRE_KEY = 'Usuario_Nombre'; 
+        const USUARIO_PERFIL_KEY = 'Usuario_Perfil';
+        const USUARIO_IDX_KEY = 'Usuario_Idx';
+ 
+        let USER_INFO = {}; // Se inicializa leyendo de localStorage en initializeUserInfo()
+
+        /**
+         * Lee los datos del usuario logueado desde localStorage y actualiza el objeto USER_INFO 
+         * y el título de la cabecera.
+         */
+        function initializeUserInfo() {
+            // Leer datos del localStorage
+            USER_INFO.usuarioTienda = localStorage.getItem(USUARIO_TIENDA_KEY);
+            USER_INFO.usuarioNombre = localStorage.getItem(USUARIO_NOMBRE_KEY);
+            USER_INFO.usuarioPerfil = localStorage.getItem(USUARIO_PERFIL_KEY);
+            USER_INFO.usuarioIdx = localStorage.getItem(USUARIO_IDX_KEY);
+
+            // Lógica para actualizar el encabezado con el primer nombre
+            const headerTitleEl = document.querySelector('#app-header .text-xl.font-bold');
+
+            if (USER_INFO.usuarioNombre && headerTitleEl) {
+                // Extraer el primer nombre (usa regex para manejar múltiples espacios)
+                const names = USER_INFO.usuarioNombre.trim().split(/\s+/).filter(p => p.length > 0);
+                const primerNombre = names[0] || '';
+                
+                if (primerNombre) {
+                    // Guardar el primer nombre para uso futuro si es necesario
+                    USER_INFO.usuarioPrimerNombre = primerNombre; 
+                    headerTitleEl.textContent = `¡Hola, ${primerNombre}!`;
+                } else {
+                    headerTitleEl.textContent = 'Mi Aplicación Móvil DHO';
+                }
+            } else if (headerTitleEl) {
+                // Fallback si no hay nombre o si no se inicializó correctamente
+                headerTitleEl.textContent = 'Mi Aplicación Móvil DHO';
+            }
+            
+            console.log("USER_INFO inicializado:", USER_INFO);
+        }
+
         // --- CONSTANTES Y VARIABLES GLOBALES ---
         
         // Simulación de la URL de la API de Google Apps Script
@@ -766,56 +811,73 @@
             const formattedIngreso = formatDate(data.INGRESO);
 
             infoContainer.innerHTML = `
-                <div id="worker-card" class="bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-500 dark:bg-gray-800/90">
-                    <!-- 1RA GRID (2 Columnas: Nombre | Cédula y Fecha Ingreso) -->
-                    <div class="grid grid-cols-2 gap-4 pb-2 mb-2 border-b border-blue-800 dark:border-gray-700">
+            <div id="worker-card" class="bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-500 dark:bg-gray-800/90">
+                <!-- 1RA GRID (2 Columnas: Nombre | Cédula y Fecha Ingreso) -->
+                <div class="grid grid-cols-2 gap-4 pb-2 mb-2 border-b border-blue-800 dark:border-gray-700">
                         
-                        <!-- Columna 1: Nombre del Trabajador (Formato destacado) -->
-                        <div>
-                            <h3 class="text-xl font-extrabold text-white leading-tight">
-                                ${formattedName}
-                            </h3>
-                            <!-- BOTÓN DE AÑADIR NUEVO REGISTRO -->
-                            <button class="p-1" title="Añadir Nuevo Registro" onclick="loadContent('Agregar')"> 
-                                <i data-lucide="calendar-plus" class="w-6 h-6 text-yellow-400"></i>
-                            </button>
-                        </div>
-                        
-                        <!-- Columna 2: Cédula y Fecha Ingreso (Alineado a la derecha) -->
-                        <div class="text-right">
-                            <div class="flex flex-col items-end">
-                                <span class="text-sm text-white font-semibold">Cédula: ${formattedCedula}</span>
-                                <span class="text-sm text-white font-semibold">Ingreso: ${formattedIngreso}</span>
-                            </div>
-                        </div>
+                    <!-- Columna 1: Nombre del Trabajador (Formato destacado) -->
+                    <div>
+                        <h3 class="text-xl font-extrabold text-white leading-tight">
+                            ${formattedName}
+                        </h3>
+                        <!-- BOTÓN DE AÑADIR NUEVO REGISTRO -->
+                        <button class="p-1" title="Añadir Nuevo Registro" onclick="loadContent('Agregar')"> 
+                            <i data-lucide="calendar-plus" class="w-6 h-6 text-yellow-400"></i>
+                        </button>
                     </div>
-
-                    <!-- 2DA GRID (3 Columnas: Asignación | Disfrutes | Total Días) -->
-                    <div class="grid grid-cols-3 gap-2 text-center">
-                       
-                        <!-- Columna 1: Asignación Beneficio (Días > 0) -->
-                        <div class="p-3 rounded-lg bg-green-500/80 shadow-inner flex flex-col items-center justify-center">
-                            <i data-lucide="calendar-arrow-up" class="w-6 h-6 text-white mb-1"></i>
-                                <span class="text-xl font-extrabold text-white">${diasAsignados}</span>
-                                <span class="text-xs font-medium text-white block">Asignaciones</span>
-                        </div>
-                       
-                        <!-- Columna 2: Disfrutes Efectivos (Días < 0, valor absoluto) -->
-                        <div class="p-3 rounded-lg bg-red-500/80 shadow-inner flex flex-col items-center justify-center">
-                            <i data-lucide="calendar-arrow-down" class="w-6 h-6 text-white mb-1"></i>
-                            <span class="text-xl font-extrabold text-white">${diasConsumidos}</span>
-                            <span class="text-xs font-medium text-white block">Disfrutes</span>
-                        </div>
                         
-                        <!-- Columna 3: Total Días (Neto) -->
-                        <div class="p-3 rounded-lg bg-gray-500/80 shadow-inner flex flex-col items-center justify-center">
-                            <i data-lucide="calendar-check-2" class="w-6 h-6 text-white mb-1"></i>
-                            <span class="text-xl font-extrabold text-white">${totalDays}</span>
-                            <span class="text-xs font-medium text-white block">Total Días</span>
+                    <!-- Columna 2: Cédula y Fecha Ingreso (Alineado a la derecha) -->
+                    <div class="text-right">
+                        <div class="flex flex-col items-end">
+                            <span class="text-sm text-white font-semibold">Cédula: ${formattedCedula}</span>
+                            <span class="text-sm text-white font-semibold">Ingreso: ${formattedIngreso}</span>
                         </div>
-                        
                     </div>
                 </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                <!-- Columna 1: Asignación Beneficio (Días > 0) -->
+                <div class="p-1.5 rounded-xl bg-gray-700 shadow-lg flex items-center space-x-2 border-2 border-green-400">
+                    <!-- Columna Interna 1: Ícono -->
+                    <div class="flex-shrink-0">
+                        <i data-lucide="calendar-arrow-up" class="w-6 h-6 text-green-400"></i>
+                    </div>
+                    <!-- Columna Interna 2: Cantidad y Etiqueta -->
+                    <div class="flex flex-col leading-tight">
+                        <span class="text-xl font-extrabold text-green-400 leading-none">${diasAsignados}</span>
+                        <span class="text-xs text-gray-300 whitespace-nowrap">Asignaciones</span>
+                    </div>
+                </div>
+                
+                <!-- Columna 2: Disfrutes Efectivos (Días < 0, valor absoluto) -->
+                <div class="p-1.5 rounded-xl bg-gray-700 shadow-lg flex items-center space-x-2 border-2 border-red-400">
+                    <!-- Columna Interna 1: Ícono -->
+                    <div class="flex-shrink-0">
+                        <i data-lucide="calendar-arrow-down" class="w-6 h-6 text-red-400"></i>
+                    </div>
+                    <!-- Columna Interna 2: Cantidad y Etiqueta -->
+                    <div class="flex flex-col leading-tight">
+                        <span class="text-xl font-extrabold text-red-400 leading-none">${diasConsumidos}</span>
+                        <span class="text-xs text-gray-300 whitespace-nowrap">Disfrutes</span>
+                    </div>
+                </div>
+                
+                <!-- Columna 3: Total Días (Neto) -->
+                <div id="total-card" class="p-1.5 rounded-xl bg-gray-700 shadow-lg flex items-center space-x-2 border-2 border-yellow-400">
+                    <!-- Columna Interna 1: Ícono -->
+                    <div class="flex-shrink-0">
+                        <i data-lucide="calendar-check-2" class="w-6 h-6 text-yellow-400"></i>
+                    </div>
+                    <!-- Columna Interna 2: Cantidad y Etiqueta -->
+                    <div class="flex flex-col leading-tight">
+                        <span class="text-xl font-extrabold text-yellow-400 leading-none" id="total-value">${totalDays}</span>
+                        <span class="text-xs text-gray-300 whitespace-nowrap">Total Días</span>
+                    </div>
+                </div>
+                
+            </div>
+        
             `;
             
             if (typeof lucide !== 'undefined' && lucide.createIcons) {
