@@ -267,7 +267,7 @@
     <div id="app-container" class="shadow-xl">
         
         <!-- Encabezado Fijo -->
-        <header id="app-header" class="fixed top-0 w-full h-14 border-b border-gray-700 dark:border-gray-500 flex items-center justify-between px-4">
+        <header id="app-header-title" class="fixed top-0 w-full h-14 border-b border-gray-700 dark:border-gray-500 flex items-center justify-between px-4">
             <h1 class="text-xl font-bold cursor-pointer hover:opacity-80 transition-opacity" onclick="window.location.href = 'inicio.html'">
                 Mi Aplicación Móvil DHO
             </h1>
@@ -386,9 +386,8 @@
                             <span class="text-xs font-medium uppercase text-gray-400">Bono Vacacional</span>
                             <span id="detail-bono" class="text-base font-semibold text-green-400"></span>
                         </div>
-                        
-                    </div>
-                    
+                
+                    </div>                  
                 </div>
             </div>
         </div>
@@ -534,7 +533,7 @@
             USER_INFO.usuarioPerfil = localStorageGetItem(USUARIO_PERFIL_KEY);
             USER_INFO.usuarioIdx = localStorageGetItem(USUARIO_IDX_KEY);
 
-            // Seleccionar el elemento del título
+            // Seleccionar el elemento del título (ahora un SPAN dentro de un DIV flexible)
             const headerTitleEl = document.getElementById('app-header-title');
 
             if (USER_INFO.usuarioNombre && headerTitleEl) {
@@ -556,46 +555,6 @@
             
             console.log("USER_INFO inicializado:", USER_INFO);
         }
-
-
-        // ====================================================================================
-        // *** 2. LÓGICA DE INICIALIZACIÓN DE USUARIO ***
-        // ====================================================================================
-
-        /**
-         * Lee los datos del usuario (preferentemente de localStorage o simulados) 
-         * y actualiza el objeto USER_INFO y el título de la cabecera.
-         */
-        function initializeUserInfo() {
-            // Leer datos (usando la función robusta que incluye fallback)
-            USER_INFO.usuarioTienda = localStorageGetItem(USUARIO_TIENDA_KEY);
-            USER_INFO.usuarioNombre = localStorageGetItem(USUARIO_NOMBRE_KEY);
-            USER_INFO.usuarioPerfil = localStorageGetItem(USUARIO_PERFIL_KEY);
-            USER_INFO.usuarioIdx = localStorageGetItem(USUARIO_IDX_KEY);
-
-            // Seleccionar el elemento del título
-            const headerTitleEl = document.getElementById('app-header-title');
-
-            if (USER_INFO.usuarioNombre && headerTitleEl) {
-                // Extraer el primer nombre
-                const names = USER_INFO.usuarioNombre.trim().split(/\s+/).filter(p => p.length > 0);
-                const primerNombre = names.length > 0 ? names[0] : '';
-                
-                if (primerNombre) {
-                    // Actualizar el título
-                    USER_INFO.usuarioPrimerNombre = primerNombre; 
-                    headerTitleEl.textContent = `¡Hola, ${primerNombre}!`;
-                } else {
-                    headerTitleEl.textContent = 'Mi Aplicación Móvil DHO';
-                }
-            } else if (headerTitleEl) {
-                // Fallback de título por defecto
-                headerTitleEl.textContent = 'Mi Aplicación Móvil DHO';
-            }
-            
-            console.log("USER_INFO inicializado:", USER_INFO);
-        }
-
         // --- CONSTANTES Y VARIABLES GLOBALES ---
         
         // Simulación de la URL de la API de Google Apps Script
