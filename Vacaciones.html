@@ -265,21 +265,18 @@
 
     <div id="app-container" class="shadow-xl">
         
-        <header class="flex items-center justify-between mb-6 border-b border-gray-700 pb-4">
-            <!-- Título que será actualizado dinámicamente con el nombre de usuario -->
-            <span id="app-header-title" 
-                  class="text-2xl font-bold text-white cursor-pointer hover:opacity-80 transition-opacity" 
-                  onclick="/* window.location.href = 'inicio.html' */">
+        <!-- Encabezado Fijo -->
+        <header id="app-header-title" class="fixed top-0 w-full h-14 border-b border-gray-700 dark:border-gray-500 flex items-center justify-between px-4">
+            <h1 class="text-xl font-bold cursor-pointer hover:opacity-80 transition-opacity" onclick="window.location.href = 'inicio.html'">
                 Mi Aplicación Móvil DHO
-            </span>
-            <!-- Botón de Log-out (funcionalidad simulada) -->
-            <button class="p-1 rounded-full hover:bg-gray-700 transition-colors" 
-                    onclick="/* window.location.href = 'index.html' */">
-                <i data-lucide="log-out" class="w-6 h-6 text-red-400"></i>
-            </button>
+            </h1>
+            <div class="flex space-x-3">
+                <button class="p-2 rounded-full hover:opacity-80 transition-opacity" onclick="window.location.href = 'index.html'">
+                    <i data-lucide="log-out" class="w-6 h-6 text-red-400 dark:text-red-300"></i>
+                </button>
+            </div>
         </header>
 
-        
         <!-- Contenido Principal con Scroll. -->
         <main id="main-content" class="flex flex-col space-y-4">
             <!-- El contenido de la sección 'Vacaciones' se inyectará aquí. -->
