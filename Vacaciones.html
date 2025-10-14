@@ -481,20 +481,7 @@
         const USUARIO_NOMBRE_KEY = 'Usuario_Nombre';
         const USUARIO_PERFIL_KEY = 'Usuario_Perfil';
         const USUARIO_IDX_KEY = 'Usuario_Idx';
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const usuarioNombre = localStorage.getItem('Usuario_Nombre');
-            
-            // Extraer el primer nombre y actualizar el saludo
-            let primerNombre = '';
-            if (usuarioNombre) {
-                primerNombre = usuarioNombre.trim().split(' ')[0];
-                const headerTitle = document.querySelector('header h1');
-                if (headerTitle) {
-                    headerTitle.textContent = `¡Hola, ${primerNombre}!`;
-                }
-            }
-        
+       
         let USER_INFO = {}; 
 
         // Datos simulados (Mock data) para usar como fallback
