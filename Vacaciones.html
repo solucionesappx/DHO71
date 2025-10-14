@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -533,28 +532,30 @@
             USER_INFO.usuarioPerfil = localStorageGetItem(USUARIO_PERFIL_KEY);
             USER_INFO.usuarioIdx = localStorageGetItem(USUARIO_IDX_KEY);
 
-            // Seleccionar el elemento del título (ahora un SPAN dentro de un DIV flexible)
+            // Seleccionar el elemento del título
             const headerTitleEl = document.getElementById('app-header-title');
+            let newTitle = 'Mi Aplicación Móvil DHO'; // Establecer título por defecto
 
-            if (USER_INFO.usuarioNombre && headerTitleEl) {
+            if (USER_INFO.usuarioNombre) {
                 // Extraer el primer nombre
                 const names = USER_INFO.usuarioNombre.trim().split(/\s+/).filter(p => p.length > 0);
                 const primerNombre = names.length > 0 ? names[0] : '';
                 
                 if (primerNombre) {
-                    // Actualizar el título
+                    // Si encontramos el nombre, establecemos el saludo personalizado
                     USER_INFO.usuarioPrimerNombre = primerNombre; 
-                    headerTitleEl.textContent = `¡Hola, ${primerNombre}!`;
-                } else {
-                    headerTitleEl.textContent = 'Mi Aplicación Móvil DHO';
+                    newTitle = `¡Hola, ${primerNombre}!`;
                 }
-            } else if (headerTitleEl) {
-                // Fallback de título por defecto
-                headerTitleEl.textContent = 'Mi Aplicación Móvil DHO';
             }
             
-            console.log("USER_INFO inicializado:", USER_INFO);
+            // Aplicar el título (personalizado o por defecto) al elemento del encabezado
+            if (headerTitleEl) {
+                headerTitleEl.textContent = newTitle;
+            }
+            
+            console.log("USER_INFO inicializado:", USER_INFO, "Título establecido:", newTitle);
         }
+        
         // --- CONSTANTES Y VARIABLES GLOBALES ---
         
         // Simulación de la URL de la API de Google Apps Script
