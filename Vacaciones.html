@@ -394,201 +394,30 @@
         </div>
         <!-- Fin MODAL DE DETALLE DE VACACIONES -->
 
-        <!-- MODAL DE AÑADIR/EDITAR VACACIONES (NUEVO FORMULARIO EDITABLE) -->
-        <div id="VacationAddEditModal" class="modal-overlay" onclick="closeVacationAddEditModal(event)" style="display: none;">
-            <div id="vacation-add-edit-content-wrapper" 
-                 class="mx-auto" 
-                 onclick="event.stopPropagation()">
-                
-                <div class="bg-gray-800 p-6 rounded-xl shadow-2xl w-full dark:bg-gray-700">
-                    
-                    <!-- Encabezado del Modal -->
-                    <div class="flex justify-between items-center pb-3 mb-4">
-                        <h3 id="form-modal-title" class="text-xl font-bold text-yellow-400">Añadir Nuevo Evento</h3>
-                        <!-- Botón de Cierre -->
-                        <button onclick="closeVacationAddEditModal()" class="p-1 rounded-full text-red-400 hover:text-red-600 transition duration-150">
-                            <i data-lucide="x" class="w-6 h-6 icon-x relative -mt-8 -mr-6"></i> 		
-                        </button>
-                    </div>
-                    
-                    <!-- Campos de Formulario Editables -->
-                    <form id="vacation-form" class="grid grid-cols-2 gap-x-4 gap-y-4 p-4 bg-gray-700 rounded-lg text-sm">
-                        
-                        <!-- 1. Período -->
-                        <div class="col-span-2 flex flex-col">
-                            <label for="form-periodo" class="text-xs font-medium uppercase text-gray-400 mb-1">Período</label>
-                            <input type="text" id="form-periodo" placeholder="Ej: 2024"
-                                   class="p-2 rounded-lg bg-gray-600 border border-gray-500 text-white focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                        
-                        <!-- 2. Concepto -->
-                        <div class="col-span-2 flex flex-col">
-                            <label for="form-concepto" class="text-xs font-medium uppercase text-gray-400 mb-1">Concepto</label>
-                            <textarea id="form-concepto" rows="2" placeholder="Ej: Asignación anual de días"
-                                      class="p-2 rounded-lg bg-gray-600 border border-gray-500 text-white focus:ring-blue-500 focus:border-blue-500"></textarea>
-                        </div>
-
-                        <!-- 3. DÍA INICIO (tipo date) -->
-                        <div class="flex flex-col">
-                            <label for="form-dia-ini" class="text-xs font-medium uppercase text-gray-400 mb-1">Día de Inicio</label>
-                            <input type="date" id="form-dia-ini" 
-                                   class="p-2 rounded-lg bg-gray-600 border border-gray-500 text-white focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-
-                        <!-- 4. DÍA FIN (tipo date) -->
-                        <div class="flex flex-col">
-                            <label for="form-dia-fin" class="text-xs font-medium uppercase text-gray-400 mb-1">Día de Fin</label>
-                            <input type="date" id="form-dia-fin" 
-                                   class="p-2 rounded-lg bg-gray-600 border border-gray-500 text-white focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                        
-                        <!-- 5. Días (tipo text, para evitar los spin buttons) -->
-                        <div class="flex flex-col">
-                            <label for="form-dias" class="text-xs font-medium uppercase text-gray-400 mb-1">Días Vacaciones</label>
-                            <input type="text" id="form-dias" placeholder="0" value="0"
-                                   class="p-2 rounded-lg bg-gray-600 border border-gray-500 text-white focus:ring-blue-500 focus:border-blue-500" readonly>
-                            <p class="text-xs text-gray-400 mt-1">Calculado automáticamente (días hábiles).</p>
-                        </div>
-                        
-                        <!-- 6. Bono -->
-                        <div class="flex flex-col">
-                            <label for="form-bono" class="text-xs font-medium uppercase text-gray-400 mb-1">Bono Vacacional</label>
-                            <input type="text" id="form-bono" placeholder="Ej: Sí/No"
-                                   class="p-2 rounded-lg bg-gray-600 border border-gray-500 text-white focus:ring-green-500 focus:border-green-500">
-                        </div>
-
-                        <!-- Botón de Guardar (Placeholder) -->
-                        <div class="col-span-2 pt-4">
-                            <button type="submit" 
-                                    class="w-full p-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold transition duration-150 shadow-lg">
-                                Guardar Registro (Pendiente de Lógica)
-                            </button>
-                        </div>
-                        
-                    </form>
-                    
-                </div>
-            </div>
-        </div>
-        <!-- Fin MODAL DE AÑADIR/EDITAR VACACIONES -->
-
     </div>
 
     <script>
+        
+        // Inicializa los íconos de Lucide
+        lucide.createIcons();    
 
+        // --- INICIALIZACIÓN DE LA APLICACIÓN ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Lógica para mostrar el nombre completo del usuario si existe en localStorage
-            const usuarioNombre = localStorage.getItem('Usuario_Nombre');
+            // Lógica para mostrar solo el primer nombre del usuario en el header
             const headerTitle = document.querySelector('#app-header h1');
-            
-            if (usuarioNombre && headerTitle) {
-                // Usa el nombre completo del usuario para el saludo en el encabezado
-                headerTitle.textContent = `¡Hola, ${usuarioNombre.trim()}!`;
+            if (MOCK_EMPLOYEE_INFO.NOMBRES && headerTitle) {
+                const primerNombre = String(MOCK_EMPLOYEE_INFO.NOMBRES).trim().split(' ')[0];
+                headerTitle.textContent = `¡Hola, ${primerNombre}!`;
             }
-            // Si usuarioNombre es null/vacío, el h1 mantiene su valor por defecto ("Mi Aplicación Móvil ZXC").
 
-            // Agrega event listeners para la navegación MPA, llamando a loadContent
+            // Agrega event listeners para la navegación MPA
             const footerButtons = document.querySelectorAll('.footer-btn');
             footerButtons.forEach(button => {
                 button.addEventListener('click', () => {
                     const section = button.getAttribute('data-section');
                     loadContent(section);
                 });
-            });
-            
-            // Opcional: Redirigir a 'Perfil' (que es la vista principal) al cargar el index
-            // loadContent('Perfil'); 
-        });
-        
-
-        
-         // ====================================================================================
-        // *** 1. CONSTANTES DE DATOS Y CLAVES ***
-        // ====================================================================================
-        const USUARIO_TIENDA_KEY = 'Usuario_Tienda';
-        const USUARIO_NOMBRE_KEY = 'Usuario_Nombre';
-        const USUARIO_PERFIL_KEY = 'Usuario_Perfil';
-        const USUARIO_IDX_KEY = 'Usuario_Idx';
-       
-        let USER_INFO = {}; 
-
-        // Datos simulados (Mock data) para usar como fallback
-        const simulatedLocalStorage = {
-            'Usuario_Nombre': 'Juan Pérez Rodríguez',
-            'Usuario_Tienda': 'T001',
-            'Usuario_Perfil': 'Admin',
-            'Usuario_Idx': '12345'
-        };
-
-        /**
-         * Intenta leer el valor de localStorage.
-         * Si falla (ej: por restricción de iframe), usa los datos simulados.
-         * @param {string} key La clave a buscar.
-         * @returns {string | null} El valor de la clave.
-         */
-        const localStorageGetItem = (key) => {
-            try {
-                // 1. Intenta leer directamente de localStorage
-                const realValue = window.localStorage.getItem(key);
-                console.log(`Intentando leer localStorage para ${key}:`, realValue);
-                if (realValue !== null) {
-                    return realValue;
-                }
-            } catch (error) {
-                // 2. Si hay un error (ej: SecurityError en iframes), usaremos el fallback
-                console.warn(`Error al acceder a localStorage (usando mock data): ${error.message}`);
-            }
-
-            // 3. Fallback: Usar los datos simulados
-            const mockValue = simulatedLocalStorage[key] || null;
-            return mockValue;
-        };
-
-
-        // ====================================================================================
-        // *** 2. LÓGICA DE INICIALIZACIÓN DE USUARIO ***
-        // ====================================================================================
-
-        /**
-         * Lee los datos del usuario (preferentemente de localStorage o simulados) 
-         * y actualiza el objeto USER_INFO y el título de la cabecera.
-         */
-        function initializeUserInfo() {
-            // Leer datos (usando la función robusta que incluye fallback)
-            USER_INFO.usuarioTienda = localStorageGetItem(USUARIO_TIENDA_KEY);
-            USER_INFO.usuarioNombre = localStorageGetItem(USUARIO_NOMBRE_KEY);
-            USER_INFO.usuarioPerfil = localStorageGetItem(USUARIO_PERFIL_KEY);
-            USER_INFO.usuarioIdx = localStorageGetItem(USUARIO_IDX_KEY);
-
-            // Seleccionar el elemento del título
-            const headerTitleEl = document.querySelector('#app-header-title h1');
-            let newTitle = 'Mi Aplicación Móvil DHO'; // Establecer título por defecto
-            
-            let primerNombre = '';
-
-            if (USER_INFO.usuarioNombre) {
-                // Extraer el primer nombre
-                const names = USER_INFO.usuarioNombre.trim().split(/\s+/).filter(p => p.length > 0);
-                primerNombre = names.length > 0 ? names[0] : '';
-                
-                // ASIGNACIÓN AJUSTADA: Siempre asignamos el nombre extraído a USER_INFO
-                USER_INFO.usuarioPrimerNombre = primerNombre; 
-            }
-            
-            // Verificamos si tenemos un nombre válido para el saludo
-            if (primerNombre) {
-                // El chequeo 'if (primerNombre)' es suficiente porque 'primerNombre' es una cadena
-                // vacía ('') si no se encuentra un nombre. En JS, una cadena vacía es 'falsy'.
-                newTitle = `¡Hola, ${primerNombre}!`;
-            }
-            
-            // Aplicar el título (personalizado o por defecto) al elemento del encabezado
-            if (headerTitleEl) {
-                headerTitleEl.textContent = newTitle;
-            }
-            
-            console.log("USER_INFO inicializado:", USER_INFO, "Título establecido:", newTitle);
-        }
+            });        
         
         // --- CONSTANTES Y VARIABLES GLOBALES ---
         
@@ -608,7 +437,7 @@
         
         const SECTION_CONFIG = {
             'Vacaciones': { 
-                sheetName: 'Vacaciones', 
+                sheetName: 'Vacaciones2', 
                 columns: VACACIONES_COLUMNS,
                 tableContainerId: 'employee-table-container', 
             },
