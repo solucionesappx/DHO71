@@ -541,7 +541,7 @@
                 const names = USER_INFO.usuarioNombre.trim().split(/\s+/).filter(p => p.length > 0);
                 const primerNombre = names.length > 0 ? names[0] : '';
                 
-                if (primerNombre) {
+                if (names) {
                     // Si encontramos el nombre, establecemos el saludo personalizado
                     USER_INFO.usuarioPrimerNombre = primerNombre; 
                     newTitle = `¡Hola, ${primerNombre}!`;
