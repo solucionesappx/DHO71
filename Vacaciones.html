@@ -266,8 +266,10 @@
     <div id="app-container" class="shadow-xl">
         
         <!-- Encabezado Fijo -->
-        <header id="app-header-title" class="fixed top-0 w-full h-14 border-b border-gray-700 dark:border-gray-500 flex items-center justify-between px-4">
-            <h1 class="text-xl font-bold cursor-pointer hover:opacity-80 transition-opacity" onclick="window.location.href = 'inicio.html'">
+        <header id="app-header" class="fixed top-0 w-full h-14 border-b border-gray-700 dark:border-gray-500 flex items-center justify-between px-4">
+            <h1 id="app-header-title"
+                class="text-xl font-bold cursor-pointer hover:opacity-80 transition-opacity" 
+                onclick="window.location.href = 'inicio.html'">
                 Mi Aplicación Móvil DHO
             </h1>
             <div class="flex space-x-3">
@@ -276,7 +278,7 @@
                 </button>
             </div>
         </header>
-
+   
         <!-- Contenido Principal con Scroll. -->
         <main id="main-content" class="flex flex-col space-y-4">
             <!-- El contenido de la sección 'Vacaciones' se inyectará aquí. -->
@@ -536,7 +538,7 @@
             const headerTitleEl = document.getElementById('app-header-title');
             let newTitle = 'Mi Aplicación Móvil DHO'; // Establecer título por defecto
             
-            let primerNombre = 'X';
+            let primerNombre = '';
 
             if (USER_INFO.usuarioNombre) {
                 // Extraer el primer nombre
