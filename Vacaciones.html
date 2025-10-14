@@ -474,6 +474,127 @@
     </div>
 
     <script>
+
+        // ====================================================================================
+        // *** 1. CONSTANTES DE DATOS Y CLAVES ***
+        // ====================================================================================
+        const USUARIO_TIENDA_KEY = 'Usuario_Tienda';
+        const USUARIO_NOMBRE_KEY = 'Usuario_Nombre';
+        const USUARIO_PERFIL_KEY = 'Usuario_Perfil';
+        const USUARIO_IDX_KEY = 'Usuario_Idx';
+        
+        let USER_INFO = {}; 
+
+        // Datos simulados (Mock data) para usar como fallback
+        const simulatedLocalStorage = {
+            'Usuario_Nombre': 'Juan Pérez Rodríguez',
+            'Usuario_Tienda': 'T001',
+            'Usuario_Perfil': 'Admin',
+            'Usuario_Idx': '12345'
+        };
+
+        /**
+         * Intenta leer el valor de localStorage.
+         * Si falla (ej: por restricción de iframe), usa los datos simulados.
+         * @param {string} key La clave a buscar.
+         * @returns {string | null} El valor de la clave.
+         */
+        const localStorageGetItem = (key) => {
+            try {
+                // 1. Intenta leer directamente de localStorage
+                const realValue = window.localStorage.getItem(key);
+                console.log(`Intentando leer localStorage para ${key}:`, realValue);
+                if (realValue !== null) {
+                    return realValue;
+                }
+            } catch (error) {
+                // 2. Si hay un error (ej: SecurityError en iframes), usaremos el fallback
+                console.warn(`Error al acceder a localStorage (usando mock data): ${error.message}`);
+            }
+
+            // 3. Fallback: Usar los datos simulados
+            const mockValue = simulatedLocalStorage[key] || null;
+            return mockValue;
+        };
+
+
+        // ====================================================================================
+        // *** 2. LÓGICA DE INICIALIZACIÓN DE USUARIO ***
+        // ====================================================================================
+
+        /**
+         * Lee los datos del usuario (preferentemente de localStorage o simulados) 
+         * y actualiza el objeto USER_INFO y el título de la cabecera.
+         */
+        function initializeUserInfo() {
+            // Leer datos (usando la función robusta que incluye fallback)
+            USER_INFO.usuarioTienda = localStorageGetItem(USUARIO_TIENDA_KEY);
+            USER_INFO.usuarioNombre = localStorageGetItem(USUARIO_NOMBRE_KEY);
+            USER_INFO.usuarioPerfil = localStorageGetItem(USUARIO_PERFIL_KEY);
+            USER_INFO.usuarioIdx = localStorageGetItem(USUARIO_IDX_KEY);
+
+            // Seleccionar el elemento del título
+            const headerTitleEl = document.getElementById('app-header-title');
+
+            if (USER_INFO.usuarioNombre && headerTitleEl) {
+                // Extraer el primer nombre
+                const names = USER_INFO.usuarioNombre.trim().split(/\s+/).filter(p => p.length > 0);
+                const primerNombre = names.length > 0 ? names[0] : '';
+                
+                if (primerNombre) {
+                    // Actualizar el título
+                    USER_INFO.usuarioPrimerNombre = primerNombre; 
+                    headerTitleEl.textContent = `¡Hola, ${primerNombre}!`;
+                } else {
+                    headerTitleEl.textContent = 'Mi Aplicación Móvil DHO';
+                }
+            } else if (headerTitleEl) {
+                // Fallback de título por defecto
+                headerTitleEl.textContent = 'Mi Aplicación Móvil DHO';
+            }
+            
+            console.log("USER_INFO inicializado:", USER_INFO);
+        }
+
+
+        // ====================================================================================
+        // *** 2. LÓGICA DE INICIALIZACIÓN DE USUARIO ***
+        // ====================================================================================
+
+        /**
+         * Lee los datos del usuario (preferentemente de localStorage o simulados) 
+         * y actualiza el objeto USER_INFO y el título de la cabecera.
+         */
+        function initializeUserInfo() {
+            // Leer datos (usando la función robusta que incluye fallback)
+            USER_INFO.usuarioTienda = localStorageGetItem(USUARIO_TIENDA_KEY);
+            USER_INFO.usuarioNombre = localStorageGetItem(USUARIO_NOMBRE_KEY);
+            USER_INFO.usuarioPerfil = localStorageGetItem(USUARIO_PERFIL_KEY);
+            USER_INFO.usuarioIdx = localStorageGetItem(USUARIO_IDX_KEY);
+
+            // Seleccionar el elemento del título
+            const headerTitleEl = document.getElementById('app-header-title');
+
+            if (USER_INFO.usuarioNombre && headerTitleEl) {
+                // Extraer el primer nombre
+                const names = USER_INFO.usuarioNombre.trim().split(/\s+/).filter(p => p.length > 0);
+                const primerNombre = names.length > 0 ? names[0] : '';
+                
+                if (primerNombre) {
+                    // Actualizar el título
+                    USER_INFO.usuarioPrimerNombre = primerNombre; 
+                    headerTitleEl.textContent = `¡Hola, ${primerNombre}!`;
+                } else {
+                    headerTitleEl.textContent = 'Mi Aplicación Móvil DHO';
+                }
+            } else if (headerTitleEl) {
+                // Fallback de título por defecto
+                headerTitleEl.textContent = 'Mi Aplicación Móvil DHO';
+            }
+            
+            console.log("USER_INFO inicializado:", USER_INFO);
+        }
+
         // --- CONSTANTES Y VARIABLES GLOBALES ---
         
         // Simulación de la URL de la API de Google Apps Script
@@ -766,56 +887,73 @@
             const formattedIngreso = formatDate(data.INGRESO);
 
             infoContainer.innerHTML = `
-                <div id="worker-card" class="bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-500 dark:bg-gray-800/90">
-                    <!-- 1RA GRID (2 Columnas: Nombre | Cédula y Fecha Ingreso) -->
-                    <div class="grid grid-cols-2 gap-4 pb-2 mb-2 border-b border-blue-800 dark:border-gray-700">
+            <div id="worker-card" class="bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-500 dark:bg-gray-800/90">
+                <!-- 1RA GRID (2 Columnas: Nombre | Cédula y Fecha Ingreso) -->
+                <div class="grid grid-cols-2 gap-4 pb-2 mb-2 border-b border-blue-800 dark:border-gray-700">
                         
-                        <!-- Columna 1: Nombre del Trabajador (Formato destacado) -->
-                        <div>
-                            <h3 class="text-xl font-extrabold text-white leading-tight">
-                                ${formattedName}
-                            </h3>
-                            <!-- BOTÓN DE AÑADIR NUEVO REGISTRO -->
-                            <button class="p-1" title="Añadir Nuevo Registro" onclick="loadContent('Agregar')"> 
-                                <i data-lucide="calendar-plus" class="w-6 h-6 text-yellow-400"></i>
-                            </button>
-                        </div>
-                        
-                        <!-- Columna 2: Cédula y Fecha Ingreso (Alineado a la derecha) -->
-                        <div class="text-right">
-                            <div class="flex flex-col items-end">
-                                <span class="text-sm text-white font-semibold">Cédula: ${formattedCedula}</span>
-                                <span class="text-sm text-white font-semibold">Ingreso: ${formattedIngreso}</span>
-                            </div>
-                        </div>
+                    <!-- Columna 1: Nombre del Trabajador (Formato destacado) -->
+                    <div>
+                        <h3 class="text-xl font-extrabold text-white leading-tight">
+                            ${formattedName}
+                        </h3>
+                        <!-- BOTÓN DE AÑADIR NUEVO REGISTRO -->
+                        <button class="p-1" title="Añadir Nuevo Registro" onclick="loadContent('Agregar')"> 
+                            <i data-lucide="calendar-plus" class="w-6 h-6 text-yellow-400"></i>
+                        </button>
                     </div>
-
-                    <!-- 2DA GRID (3 Columnas: Asignación | Disfrutes | Total Días) -->
-                    <div class="grid grid-cols-3 gap-2 text-center">
-                       
-                        <!-- Columna 1: Asignación Beneficio (Días > 0) -->
-                        <div class="p-3 rounded-lg bg-green-500/80 shadow-inner flex flex-col items-center justify-center">
-                            <i data-lucide="calendar-arrow-up" class="w-6 h-6 text-white mb-1"></i>
-                                <span class="text-xl font-extrabold text-white">${diasAsignados}</span>
-                                <span class="text-xs font-medium text-white block">Asignaciones</span>
-                        </div>
-                       
-                        <!-- Columna 2: Disfrutes Efectivos (Días < 0, valor absoluto) -->
-                        <div class="p-3 rounded-lg bg-red-500/80 shadow-inner flex flex-col items-center justify-center">
-                            <i data-lucide="calendar-arrow-down" class="w-6 h-6 text-white mb-1"></i>
-                            <span class="text-xl font-extrabold text-white">${diasConsumidos}</span>
-                            <span class="text-xs font-medium text-white block">Disfrutes</span>
-                        </div>
                         
-                        <!-- Columna 3: Total Días (Neto) -->
-                        <div class="p-3 rounded-lg bg-gray-500/80 shadow-inner flex flex-col items-center justify-center">
-                            <i data-lucide="calendar-check-2" class="w-6 h-6 text-white mb-1"></i>
-                            <span class="text-xl font-extrabold text-white">${totalDays}</span>
-                            <span class="text-xs font-medium text-white block">Total Días</span>
+                    <!-- Columna 2: Cédula y Fecha Ingreso (Alineado a la derecha) -->
+                    <div class="text-right">
+                        <div class="flex flex-col items-end">
+                            <span class="text-sm text-white font-semibold">Cédula: ${formattedCedula}</span>
+                            <span class="text-sm text-white font-semibold">Ingreso: ${formattedIngreso}</span>
                         </div>
-                        
                     </div>
                 </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                <!-- Columna 1: Asignación Beneficio (Días > 0) -->
+                <div class="p-1.5 rounded-xl bg-gray-700 shadow-lg flex items-center space-x-2 border-2 border-green-400">
+                    <!-- Columna Interna 1: Ícono -->
+                    <div class="flex-shrink-0">
+                        <i data-lucide="calendar-arrow-up" class="w-6 h-6 text-green-400"></i>
+                    </div>
+                    <!-- Columna Interna 2: Cantidad y Etiqueta -->
+                    <div class="flex flex-col leading-tight">
+                        <span class="text-xl font-extrabold text-green-400 leading-none">${diasAsignados}</span>
+                        <span class="text-xs text-gray-300 whitespace-nowrap">Asignaciones</span>
+                    </div>
+                </div>
+                
+                <!-- Columna 2: Disfrutes Efectivos (Días < 0, valor absoluto) -->
+                <div class="p-1.5 rounded-xl bg-gray-700 shadow-lg flex items-center space-x-2 border-2 border-red-400">
+                    <!-- Columna Interna 1: Ícono -->
+                    <div class="flex-shrink-0">
+                        <i data-lucide="calendar-arrow-down" class="w-6 h-6 text-red-400"></i>
+                    </div>
+                    <!-- Columna Interna 2: Cantidad y Etiqueta -->
+                    <div class="flex flex-col leading-tight">
+                        <span class="text-xl font-extrabold text-red-400 leading-none">${diasConsumidos}</span>
+                        <span class="text-xs text-gray-300 whitespace-nowrap">Disfrutes</span>
+                    </div>
+                </div>
+                
+                <!-- Columna 3: Total Días (Neto) -->
+                <div id="total-card" class="p-1.5 rounded-xl bg-gray-700 shadow-lg flex items-center space-x-2 border-2 border-yellow-400">
+                    <!-- Columna Interna 1: Ícono -->
+                    <div class="flex-shrink-0">
+                        <i data-lucide="calendar-check-2" class="w-6 h-6 text-yellow-400"></i>
+                    </div>
+                    <!-- Columna Interna 2: Cantidad y Etiqueta -->
+                    <div class="flex flex-col leading-tight">
+                        <span class="text-xl font-extrabold text-yellow-400 leading-none" id="total-value">${totalDays}</span>
+                        <span class="text-xs text-gray-300 whitespace-nowrap">Total Días</span>
+                    </div>
+                </div>
+                
+            </div>
+        
             `;
             
             if (typeof lucide !== 'undefined' && lucide.createIcons) {
