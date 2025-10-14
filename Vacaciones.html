@@ -267,9 +267,8 @@
     <div id="app-container" class="shadow-xl">
         
         <!-- Encabezado Fijo -->
-        <header class="fixed top-0 w-full h-14 border-b border-gray-700 dark:border-gray-500 flex items-center justify-between px-4">
-            <h1 id="app-header-title"
-                class="text-xl font-bold cursor-pointer hover:opacity-80 transition-opacity" 
+        <header id="app-header-title" class="fixed top-0 w-full h-14 border-b border-gray-700 dark:border-gray-500 flex items-center justify-between px-4">
+            <h1 class="text-xl font-bold cursor-pointer hover:opacity-80 transition-opacity" 
                 onclick="window.location.href = 'Inicio.html'">
                 Mi Aplicación Móvil DHO
             </h1>
@@ -536,7 +535,7 @@
             USER_INFO.usuarioIdx = localStorageGetItem(USUARIO_IDX_KEY);
 
             // Seleccionar el elemento del título
-            const headerTitleEl = document.getElementById('app-header-title');
+            const headerTitleEl = document.querySelector('#app-header-title h1');
             let newTitle = 'Mi Aplicación Móvil DHO'; // Establecer título por defecto
             
             let primerNombre = '';
