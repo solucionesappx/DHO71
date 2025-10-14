@@ -417,7 +417,22 @@
                     const section = button.getAttribute('data-section');
                     loadContent(section);
                 });
-            });        
+            });     
+
+        // --- INICIALIZACIÓN DE LA APLICACIÓN ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Lógica para mostrar solo el primer nombre del usuario si existe en localStorage
+            const usuarioNombreCompleto = localStorage.getItem('Usuario_Nombre');
+            const headerTitle = document.querySelector('#app-header h1');
+            
+            if (usuarioNombreCompleto && headerTitle) {
+                // Extrae solo el primer nombre, tomando la primera palabra y recortando espacios
+                const primerNombre = usuarioNombreCompleto.trim().split(' ')[0];
+                headerTitle.textContent = `¡Hola, ${primerNombre}!`;
+            }
+            // Si usuarioNombreCompleto es null/vacío, el h1 mantiene su valor por defecto ("Mi Aplicación Móvil DHO").
+
+        });            
         
         // --- CONSTANTES Y VARIABLES GLOBALES ---
         
