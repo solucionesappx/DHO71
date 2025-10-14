@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Métricas Dinámicas</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configuración de color y fuente para Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Usamos la fuente Inter, que es moderna y clara */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+    <!-- Carga de Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gray-900 min-h-screen flex items-center justify-center p-4">
+
+    <!-- Contenedor Principal (Simula la tarjeta o sección en el panel oscuro) -->
+    <!-- ANCHO FIJADO A 500PX -->
+    <div id="metrics-container" class="w-[480px] p-6 bg-gray-800 rounded-xl shadow-2xl">
+        <!-- Título que será actualizado dinámicamente -->
+        <h2 id="app-header-title" class="text-2xl font-bold text-white mb-6 border-b border-gray-700 pb-4">
+            Mi Aplicación Móvil DHO
+        </h2>
+        
+        <!-- Aquí se inyectará el contenido dinámico -->
+        <div id="metrics-grid">
+            <!-- El contenido generado por JS irá aquí -->
+        </div>
+
+    </div>
+
+    <script>
+        // ====================================================================================
+        // *** 1. CONSTANTES DE DATOS Y CLAVES ***
+        // ====================================================================================
+        const USUARIO_TIENDA_KEY = 'Usuario_Tienda';
+        const USUARIO_NOMBRE_KEY = 'Usuario_Nombre';
+        const USUARIO_PERFIL_KEY = 'Usuario_Perfil';
+        const USUARIO_IDX_KEY = 'Usuario_Idx';
+        
+        let USER_INFO = {}; 
+
+        // Datos simulados (Mock data) para usar como fallback
+        const simulatedLocalStorage = {
+            'Usuario_Nombre': 'Juan Pérez Rodríguez',
+            'Usuario_Tienda': 'T001',
+            'Usuario_Perfil': 'Admin',
+            'Usuario_Idx': '12345'
+        };
+
+        /**
+         * Intenta leer el valor de localStorage.
+         * Si falla (ej: por restricción de iframe), usa los datos simulados.
+         * @param {string} key La clave a buscar.
+         * @returns {string | null} El valor de la clave.
+         */
+        const localStorageGetItem = (key) => {
+            try {
+                // 1. Intenta leer directamente de localStorage
+                const realValue = window.localStorage.getItem(key);
+                console.log(`Intentando leer localStorage para ${key}:`, realValue);
+                if (realValue !== null) {
+                    return realValue;
+                }
+            } catch (error) {
+                // 2. Si hay un error (ej: SecurityError en iframes), usaremos el fallback
+                console.warn(`Error al acceder a localStorage (usando mock data): ${error.message}`);
+            }
+
+            // 3. Fallback: Usar los datos simulados
+            const mockValue = simulatedLocalStorage[key] || null;
+            return mockValue;
+        };
+
+
+        // ====================================================================================
+        // *** 2. LÓGICA DE INICIALIZACIÓN DE USUARIO ***
+        // ====================================================================================
+
+        /**
+         * Lee los datos del usuario (preferentemente de localStorage o simulados) 
+         * y actualiza el objeto USER_INFO y el título de la cabecera.
+         */
+        function initializeUserInfo() {
+            // Leer datos (usando la función robusta que incluye fallback)
+            USER_INFO.usuarioTienda = localStorageGetItem(USUARIO_TIENDA_KEY);
+            USER_INFO.usuarioNombre = localStorageGetItem(USUARIO_NOMBRE_KEY);
+            USER_INFO.usuarioPerfil = localStorageGetItem(USUARIO_PERFIL_KEY);
+            USER_INFO.usuarioIdx = localStorageGetItem(USUARIO_IDX_KEY);
+
+            // Seleccionar el elemento del título
+            const headerTitleEl = document.getElementById('app-header-title');
+
+            if (USER_INFO.usuarioNombre && headerTitleEl) {
+                // Extraer el primer nombre
+                const names = USER_INFO.usuarioNombre.trim().split(/\s+/).filter(p => p.length > 0);
+                const primerNombre = names.length > 0 ? names[0] : '';
+                
+                if (primerNombre) {
+                    // Actualizar el título
+                    USER_INFO.usuarioPrimerNombre = primerNombre; 
+                    headerTitleEl.textContent = `¡Hola, ${primerNombre}!`;
+                } else {
+                    headerTitleEl.textContent = 'Mi Aplicación Móvil DHO';
+                }
+            } else if (headerTitleEl) {
+                // Fallback de título por defecto
+                headerTitleEl.textContent = 'Mi Aplicación Móvil DHO';
+            }
+            
+            console.log("USER_INFO inicializado:", USER_INFO);
+        }
+        // ====================================================================================
+        // *** 3. LÓGICA DE MÉTRICAS ***
+        // ====================================================================================
+        
+        // Datos simulados para las métricas (Variables dinámicas)
+        const diasAsignados = 25;
+        const diasConsumidos = 10;
+        const totalDays = diasAsignados - diasConsumidos;
+
+        // Definición del template HTML con las variables inyectadas
+        const metricsHTML = `
+            <div class="grid grid-cols-3 gap-4">
+                
+                <!-- Columna 1: Asignación Beneficio (Días > 0) -->
+                <div id="asignaciones-card" class="p-1.5 rounded-xl shadow-lg flex items-center space-x-2 border-2 border-green-400">
+                    <!-- Columna Interna 1: Ícono -->
+                    <div class="flex-shrink-0">
+                        <i data-lucide="calendar-arrow-up" class="w-6 h-6 text-green-400"></i>
+                    </div>
+                    <!-- Columna Interna 2: Cantidad y Etiqueta -->
+                    <div class="flex flex-col leading-tight">
+                        <span class="text-xl font-extrabold text-green-400 leading-none">${diasAsignados}</span>
+                        <span class="text-xs text-gray-300 whitespace-nowrap">Asignaciones</span>
+                    </div>
+                </div>
+                
+                <!-- Columna 2: Disfrutes Efectivos (Días < 0, valor absoluto) -->
+                <div id="disfrutes-card" class="p-1.5 rounded-xl shadow-lg flex items-center space-x-2 border-2 border-red-500">
+                    <!-- Columna Interna 1: Ícono -->
+                    <div class="flex-shrink-0">
+                        <i data-lucide="calendar-arrow-down" class="w-6 h-6 text-red-500"></i>
+                    </div>
+                    <!-- Columna Interna 2: Cantidad y Etiqueta -->
+                    <div class="flex flex-col leading-tight">
+                        <span class="text-xl font-extrabold text-red-500 leading-none">${diasConsumidos}</span>
+                        <span class="text-xs text-gray-300 whitespace-nowrap">Disfrutes</span>
+                    </div>
+                </div>
+                
+                <!-- Columna 3: Total Días (Neto) -->
+                <div id="total-card" class="p-1.5 rounded-xl shadow-lg flex items-center space-x-2 border-2 border-yellow-400">
+                    <!-- Columna Interna 1: Ícono -->
+                    <div class="flex-shrink-0">
+                        <i data-lucide="calendar-check-2" class="w-6 h-6 text-yellow-400"></i>
+                    </div>
+                    <!-- Columna Interna 2: Cantidad y Etiqueta -->
+                    <div class="flex flex-col leading-tight">
+                        <span class="text-xl font-extrabold text-yellow-400 leading-none" id="total-value">${totalDays}</span>
+                        <span class="text-xs text-gray-300 whitespace-nowrap">Total Días</span>
+                    </div>
+                </div>
+                
+            </div>
+        `;
+
+        // 4. Lógica de Ejecución al cargar
+        document.addEventListener('DOMContentLoaded', () => {
+            // A. Inicializar la info del usuario y actualizar el título
+            initializeUserInfo();
+
+            // B. Inyectar el HTML de las métricas en el DOM
+            document.getElementById('metrics-grid').innerHTML = metricsHTML;
+
+            // C. Inicializar los íconos de Lucide
+            lucide.createIcons();
+
+            // D. Ajustar el color del "Total Días" basado en el valor y el borde
+            const totalValueElement = document.getElementById('total-value');
+            const totalIconElement = document.querySelector('#total-card [data-lucide="calendar-check-2"]'); 
+            const totalCardElement = document.getElementById('total-card');
+            
+            // Clases de color base (Amarillo por defecto)
+            const baseTextColor = 'text-yellow-400';
+            const baseBorderColor = 'border-yellow-400'; 
+
+            if (totalDays < 0) {
+                // Saldo Negativo: Usar Rojo
+                const negativeColor = 'text-red-500';
+                const negativeBorder = 'border-red-500';
+
+                totalValueElement.classList.replace(baseTextColor, negativeColor);
+                totalCardElement.classList.replace(baseBorderColor, negativeBorder);
+
+                // Si el SVG ya está en el DOM, actualiza su color
+                const svg = totalIconElement?.parentElement?.querySelector('svg');
+                if (svg) svg.classList.replace(baseTextColor, negativeColor);
+                
+            } else if (totalDays > 0) {
+                // Saldo Positivo: Usar Verde
+                const positiveColor = 'text-green-400';
+                const positiveBorder = 'border-green-400';
+
+                totalValueElement.classList.replace(baseTextColor, positiveColor);
+                totalCardElement.classList.replace(baseBorderColor, positiveBorder);
+
+                // Si el SVG ya está en el DOM, actualiza su color
+                const svg = totalIconElement?.parentElement?.querySelector('svg');
+                if (svg) svg.classList.replace(baseTextColor, positiveColor);
+            }
+        });
+    </script>
+</body>
+</html>
