@@ -476,6 +476,32 @@
 
     <script>
 
+        document.addEventListener('DOMContentLoaded', () => {
+            // Lógica para mostrar el nombre completo del usuario si existe en localStorage
+            const usuarioNombre = localStorage.getItem('Usuario_Nombre');
+            const headerTitle = document.querySelector('#app-header h1');
+            
+            if (usuarioNombre && headerTitle) {
+                // Usa el nombre completo del usuario para el saludo en el encabezado
+                headerTitle.textContent = `¡Hola, ${usuarioNombre.trim()}!`;
+            }
+            // Si usuarioNombre es null/vacío, el h1 mantiene su valor por defecto ("Mi Aplicación Móvil ZXC").
+
+            // Agrega event listeners para la navegación MPA, llamando a loadContent
+            const footerButtons = document.querySelectorAll('.footer-btn');
+            footerButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const section = button.getAttribute('data-section');
+                    loadContent(section);
+                });
+            });
+            
+            // Opcional: Redirigir a 'Perfil' (que es la vista principal) al cargar el index
+            // loadContent('Perfil'); 
+        });
+        
+
+        
          // ====================================================================================
         // *** 1. CONSTANTES DE DATOS Y CLAVES ***
         // ====================================================================================
