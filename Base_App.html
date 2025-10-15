@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplicación Móvil - Vacaciones</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Configuración de Tailwind para usar el color de acento y la fuente Inter  */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        html {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Definición de colores base  */
+        :root {
+            --color-bg-dark: #1f2937;
+            --color-text-dark: #f3f4f6;
+            --color-primary-dark: #60a5fa;
+            --color-surface-dark: #374151;
+        }
+        
+        /* Estilos del cuerpo en modo oscuro */
+        .dark { background-color: var(--color-bg-dark); color: var(--color-text-dark); }
+        
+        #app-container {
+            max-width: 500px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            position: relative; 
+            overflow: hidden; 
+        }
+
+        header, footer {
+            width: 100%;
+            max-width: 500px; 
+            z-index: 50; 
+            transition: background-color 0.3s, color 0.3s;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* Estilos específicos para header y footer en modo oscuro */
+        .dark header, .dark footer { 
+            background-color: var(--color-surface-dark); 
+            border-color: #4b5563; 
+        }
+
+        main {
+            flex-grow: 1;
+            overflow-y: auto; 
+            padding-left: 1rem;
+            padding-right: 1rem;
+            transition: padding 0.3s ease-in-out;
+            padding-top: 76px; /* Para compensar la altura del header */
+            padding-bottom: 72px; /* Para compensar la altura del footer */
+        }
+        
+        .footer-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 4px;
+            font-size: 0.75rem;
+            line-height: 1;
+            transition: color 0.2s, background-color 0.2s;
+            border-radius: 0.5rem;
+            color: inherit;
+        }
+
+        /* Aplica el color primario al botón activo */
+        .footer-btn.active { color: var(--color-primary-dark); }
+    </style>
+</head>
+<body class="dark transition-colors duration-300">
+
+    <div id="app-container" class="shadow-xl">
+        
+        <!-- HEADER FIJO (Igual que index.html) -->
+        <header id="app-header" class="fixed top-0 w-full h-14 border-b border-gray-700 dark:border-gray-500 flex items-center justify-between px-4">
+         <h1 class="text-xl font-bold cursor-pointer hover:opacity-80 transition-opacity" onclick="window.location.href = 'Inicio.html'">
+                Mi Aplicación Móvil ZXC
+            </h1>
+            <div class="flex space-x-3">
+                
+                <!-- Botón de Cerrar Sesión con redirección a index.html -->
+                <button class="p-2 rounded-full hover:opacity-80 transition-opacity" onclick="window.location.href = 'index.html'">
+                    <i data-lucide="log-out" class="w-6 h-6 text-red-400 dark:text-red-300"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- CONTENIDO PRINCIPAL: Vista de Vacaciones -->
+        <main id="main-content" class="flex flex-col space-y-6">
+            <h2 class="text-2xl font-extrabold text-gray-200 border-b border-gray-700 pb-2">Gestión de Vacaciones</h2>
+            
+            <!-- Resumen de días disponibles -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="dark:bg-gray-800 p-4 rounded-xl shadow-lg text-center">
+                    <p class="text-4xl font-bold text-green-400">18</p>
+                    <p class="text-sm text-gray-400">Días Disponibles</p>
+                </div>
+                <div class="dark:bg-gray-800 p-4 rounded-xl shadow-lg text-center">
+                    <p class="text-4xl font-bold text-yellow-400">5</p>
+                    <p class="text-sm text-gray-400">Días Pendientes</p>
+                </div>
+            </div>
+
+            <!-- Listado de Solicitudes -->
+            <div class="dark:bg-gray-800 p-4 rounded-xl shadow-lg">
+                <h3 class="text-lg font-semibold mb-3 border-b border-gray-700 pb-2">Historial de Solicitudes</h3>
+                
+                <!-- Tarjeta de Solicitud Aprobada -->
+                <div class="flex items-center justify-between py-3 border-b border-gray-700 last:border-b-0">
+                    <div>
+                        <p class="font-medium">20 Dic - 26 Dic (7 días)</p>
+                        <p class="text-xs text-gray-400">Motivo: Viaje Familiar</p>
+                    </div>
+                    <span class="px-3 py-1 text-xs font-semibold rounded-full bg-green-900 text-green-300">Aprobada</span>
+                </div>
+
+                <!-- Tarjeta de Solicitud Rechazada -->
+                <div class="flex items-center justify-between py-3 border-b border-gray-700 last:border-b-0">
+                    <div>
+                        <p class="font-medium">1 Ago - 5 Ago (5 días)</p>
+                        <p class="text-xs text-gray-400">Motivo: Descanso</p>
+                    </div>
+                    <span class="px-3 py-1 text-xs font-semibold rounded-full bg-red-900 text-red-300">Rechazada</span>
+                </div>
+                
+                <!-- Tarjeta de Solicitud Pendiente -->
+                <div class="flex items-center justify-between py-3">
+                    <div>
+                        <p class="font-medium">5 Mar - 7 Mar (3 días)</p>
+                        <p class="text-xs text-gray-400">Motivo: Asuntos Personales</p>
+                    </div>
+                    <span class="px-3 py-1 text-xs font-semibold rounded-full bg-blue-900 text-blue-300">Pendiente</span>
+                </div>
+                
+            </div>
+            
+            <!-- Botón para solicitar nuevas vacaciones -->
+            <button onclick="window.location.href = 'AgregarDat.html'" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg transition-colors duration-200 flex items-center justify-center space-x-2">
+                <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                <span>Solicitar Nuevas Vacaciones</span>
+            </button>
+            
+        </main>
+
+        <!-- Footer de Navegación Fijo -->
+        <footer id="app-footer" class="fixed bottom-0 w-full h-18 border-t border-gray-700 dark:border-gray-500 flex items-center justify-around py-2">
+            <button class="footer-btn" data-section="Inicio">
+                <i data-lucide="home" class="w-6 h-6"></i>
+                <span>Inicio</span>
+            </button>
+            <button class="footer-btn active" data-section="Vacaciones">
+                <i data-lucide="calendar-days"> class="w-6 h-6"></i>
+                <span>Vacaciones</span>
+            </button>
+            <button class="footer-btn" data-section="Agregar">
+                <i data-lucide="calendar-plus" class="w-6 h-6"></i>
+                <span>Agregar</span>
+            </button>
+            <button class="footer-btn" data-section="Editar">
+                <i data-lucide="edit" class="w-6 h-6"></i>
+                <span>Editar</span>
+            </button>
+            <button class="footer-btn" data-section="Perfil">
+                <i data-lucide="user" class="w-6 h-6"></i>
+                <span>Perfil</span>
+            </button>
+            <button class="footer-btn" data-section="Configuración">
+                <i data-lucide="settings" class="w-6 h-6"></i>
+                <span>Config</span>
+            </button>
+        </footer>
+    </div>
+
+    <script>
+        // Inicializa los íconos de Lucide
+        lucide.createIcons();
+
+        // Función principal para cargar el contenido de la sección y manejar la navegación MPA
+        function loadContent(section) {
+            console.log("Navegando a la sección:", section);
+
+            // Redirección a archivos HTML individuales
+            const navigationMap = {
+                'Inicio': 'Inicio.html',
+                'Vacaciones': 'Vacaciones.html',
+                'Agregar': 'AgregarDat.html',
+                'Editar': 'EditarDat.html',
+                'Perfil': 'PerfilUser.html',
+                'Configuración': 'ConfigApp.html'
+            };
+
+            const targetFile = navigationMap[section];
+
+            if (targetFile) {
+                window.location.href = targetFile;
+                return; 
+            }
+            
+            console.error(`ERROR: Sección no mapeada para navegación: ${section}`);
+        }
+        
+        // --- INICIALIZACIÓN DE LA APLICACIÓN ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Lógica para mostrar solo el primer nombre del usuario si existe en localStorage
+            const usuarioNombreCompleto = localStorage.getItem('Usuario_Nombre');
+            const headerTitle = document.querySelector('#app-header h1');
+            
+            if (usuarioNombreCompleto && headerTitle) {
+                // Extrae solo el primer nombre, tomando la primera palabra y recortando espacios
+                const primerNombre = usuarioNombreCompleto.trim().split(' ')[0];
+                headerTitle.textContent = `¡Hola, ${primerNombre}!`;
+            }
+
+            // Agrega event listeners para la navegación MPA, llamando a loadContent
+            const footerButtons = document.querySelectorAll('.footer-btn');
+            footerButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const section = button.getAttribute('data-section');
+                    loadContent(section);
+                });
+            });
+            
+            // Inicializa los íconos de Lucide nuevamente.
+            lucide.createIcons();
+        });
+        
+    </script>
+</body>
+</html>
