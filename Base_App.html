@@ -14,11 +14,15 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Definición de colores base  */
+        /* Definición de colores base */
         :root {
+            --color-bg-light: #f9fafb;
+            --color-text-light: #1f2937;
+            --color-primary-light: #3b82f6;
             --color-bg-dark: #1f2937;
             --color-text-dark: #f3f4f6;
             --color-primary-dark: #60a5fa;
+            --color-surface-light: #ffffff;
             --color-surface-dark: #374151;
         }
         
@@ -51,14 +55,30 @@
             border-color: #4b5563; 
         }
 
+        /* MAIN: Ahora solo asegura que ocupa el espacio disponible */
         main {
             flex-grow: 1;
+            overflow: hidden; /* Contenido manejado por el contenedor interno */
+        }
+        
+        /* CONTENEDOR DESPLEGABLE (SCROLLABLE-CONTENT) */
+        #scroll-container {
+            height: 100%;
             overflow-y: auto; 
+            /* Padding para evitar que el contenido sea cubierto por el header/footer fijos */
             padding-left: 1rem;
             padding-right: 1rem;
+            padding-top: 76px; 
+            padding-bottom: 72px; 
             transition: padding 0.3s ease-in-out;
-            padding-top: 76px; /* Para compensar la altura del header */
-            padding-bottom: 72px; /* Para compensar la altura del footer */
+        }
+
+        /* ESTILOS PARA EL CONTENIDO COLAPSABLE */
+        #collapsible-content {
+            overflow: hidden;
+            transition: max-height 0.4s ease-in-out, margin-top 0.4s ease-in-out;
+            max-height: 2000px; /* Suficientemente grande para el contenido expandido */
+            margin-top: 1.5rem; /* El espacio original de space-y-6 */
         }
         
         .footer-btn {
@@ -82,7 +102,7 @@
 
     <div id="app-container" class="shadow-xl">
         
-        <!-- HEADER FIJO (Igual que index.html) -->
+        <!-- HEADER FIJO -->
         <header id="app-header" class="fixed top-0 w-full h-14 border-b border-gray-700 dark:border-gray-500 flex items-center justify-between px-4">
          <h1 class="text-xl font-bold cursor-pointer hover:opacity-80 transition-opacity" onclick="window.location.href = 'Inicio.html'">
                 Mi Aplicación Móvil ZXC
@@ -97,60 +117,74 @@
         </header>
 
         <!-- CONTENIDO PRINCIPAL: Vista de Vacaciones -->
-        <main id="main-content" class="flex flex-col space-y-6">
-            <h2 class="text-2xl font-extrabold text-gray-200 border-b border-gray-700 pb-2">Gestión de Vacaciones</h2>
-            
-            <!-- Resumen de días disponibles -->
-            <div class="grid grid-cols-2 gap-4">
-                <div class="dark:bg-gray-800 p-4 rounded-xl shadow-lg text-center">
-                    <p class="text-4xl font-bold text-green-400">18</p>
-                    <p class="text-sm text-gray-400">Días Disponibles</p>
-                </div>
-                <div class="dark:bg-gray-800 p-4 rounded-xl shadow-lg text-center">
-                    <p class="text-4xl font-bold text-yellow-400">5</p>
-                    <p class="text-sm text-gray-400">Días Pendientes</p>
+        <main id="main-content">
+            <!-- Contenedor Desplegable/Scrollable -->
+            <div id="scroll-container" class="flex flex-col">
+                
+                <h2 class="text-2xl font-extrabold text-gray-200 border-b border-gray-700 pb-2">Gestión de Vacaciones</h2>
+                
+                <!-- Botón de Expander/Contraer -->
+                <button id="toggle-content-btn" class="w-full mt-4 py-2 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2">
+                    <i data-lucide="chevrons-up" id="toggle-icon" class="w-5 h-5"></i>
+                    <span id="toggle-text">Contraer Detalles</span>
+                </button>
+
+                <!-- Contenido que se Expande/Contrae -->
+                <div id="collapsible-content" class="flex flex-col space-y-6">
+                    
+                    <!-- Resumen de días disponibles -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="dark:bg-gray-800 p-4 rounded-xl shadow-lg text-center">
+                            <p class="text-4xl font-bold text-green-400">18</p>
+                            <p class="text-sm text-gray-400">Días Disponibles</p>
+                        </div>
+                        <div class="dark:bg-gray-800 p-4 rounded-xl shadow-lg text-center">
+                            <p class="text-4xl font-bold text-yellow-400">5</p>
+                            <p class="text-sm text-gray-400">Días Pendientes</p>
+                        </div>
+                    </div>
+
+                    <!-- Listado de Solicitudes -->
+                    <div class="dark:bg-gray-800 p-4 rounded-xl shadow-lg">
+                        <h3 class="text-lg font-semibold mb-3 border-b border-gray-700 pb-2">Historial de Solicitudes</h3>
+                        
+                        <!-- Tarjeta de Solicitud Aprobada -->
+                        <div class="flex items-center justify-between py-3 border-b border-gray-700 last:border-b-0">
+                            <div>
+                                <p class="font-medium">20 Dic - 26 Dic (7 días)</p>
+                                <p class="text-xs text-gray-400">Motivo: Viaje Familiar</p>
+                            </div>
+                            <span class="px-3 py-1 text-xs font-semibold rounded-full bg-green-900 text-green-300">Aprobada</span>
+                        </div>
+
+                        <!-- Tarjeta de Solicitud Rechazada -->
+                        <div class="flex items-center justify-between py-3 border-b border-gray-700 last:border-b-0">
+                            <div>
+                                <p class="font-medium">1 Ago - 5 Ago (5 días)</p>
+                                <p class="text-xs text-gray-400">Motivo: Descanso</p>
+                            </div>
+                            <span class="px-3 py-1 text-xs font-semibold rounded-full bg-red-900 text-red-300">Rechazada</span>
+                        </div>
+                        
+                        <!-- Tarjeta de Solicitud Pendiente -->
+                        <div class="flex items-center justify-between py-3">
+                            <div>
+                                <p class="font-medium">5 Mar - 7 Mar (3 días)</p>
+                                <p class="text-xs text-gray-400">Motivo: Asuntos Personales</p>
+                            </div>
+                            <span class="px-3 py-1 text-xs font-semibold rounded-full bg-blue-900 text-blue-300">Pendiente</span>
+                        </div>
+                        
+                    </div>
+                    
+                    <!-- Botón para solicitar nuevas vacaciones -->
+                    <button onclick="window.location.href = 'AgregarDat.html'" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg transition-colors duration-200 flex items-center justify-center space-x-2">
+                        <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                        <span>Solicitar Nuevas Vacaciones</span>
+                    </button>
+                    
                 </div>
             </div>
-
-            <!-- Listado de Solicitudes -->
-            <div class="dark:bg-gray-800 p-4 rounded-xl shadow-lg">
-                <h3 class="text-lg font-semibold mb-3 border-b border-gray-700 pb-2">Historial de Solicitudes</h3>
-                
-                <!-- Tarjeta de Solicitud Aprobada -->
-                <div class="flex items-center justify-between py-3 border-b border-gray-700 last:border-b-0">
-                    <div>
-                        <p class="font-medium">20 Dic - 26 Dic (7 días)</p>
-                        <p class="text-xs text-gray-400">Motivo: Viaje Familiar</p>
-                    </div>
-                    <span class="px-3 py-1 text-xs font-semibold rounded-full bg-green-900 text-green-300">Aprobada</span>
-                </div>
-
-                <!-- Tarjeta de Solicitud Rechazada -->
-                <div class="flex items-center justify-between py-3 border-b border-gray-700 last:border-b-0">
-                    <div>
-                        <p class="font-medium">1 Ago - 5 Ago (5 días)</p>
-                        <p class="text-xs text-gray-400">Motivo: Descanso</p>
-                    </div>
-                    <span class="px-3 py-1 text-xs font-semibold rounded-full bg-red-900 text-red-300">Rechazada</span>
-                </div>
-                
-                <!-- Tarjeta de Solicitud Pendiente -->
-                <div class="flex items-center justify-between py-3">
-                    <div>
-                        <p class="font-medium">5 Mar - 7 Mar (3 días)</p>
-                        <p class="text-xs text-gray-400">Motivo: Asuntos Personales</p>
-                    </div>
-                    <span class="px-3 py-1 text-xs font-semibold rounded-full bg-blue-900 text-blue-300">Pendiente</span>
-                </div>
-                
-            </div>
-            
-            <!-- Botón para solicitar nuevas vacaciones -->
-            <button onclick="window.location.href = 'AgregarDat.html'" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg transition-colors duration-200 flex items-center justify-center space-x-2">
-                <i data-lucide="plus-circle" class="w-5 h-5"></i>
-                <span>Solicitar Nuevas Vacaciones</span>
-            </button>
-            
         </main>
 
         <!-- Footer de Navegación Fijo -->
@@ -160,7 +194,7 @@
                 <span>Inicio</span>
             </button>
             <button class="footer-btn active" data-section="Vacaciones">
-                <i data-lucide="calendar-days"> class="w-6 h-6"></i>
+                <i data-lucide="calendar-days" class="w-6 h-6"></i> 
                 <span>Vacaciones</span>
             </button>
             <button class="footer-btn" data-section="Agregar">
@@ -210,6 +244,50 @@
             console.error(`ERROR: Sección no mapeada para navegación: ${section}`);
         }
         
+        // Función para expandir o contraer el contenido
+        function toggleCollapsibleContent() {
+            const content = document.getElementById('collapsible-content');
+            const toggleText = document.getElementById('toggle-text');
+            const toggleIcon = document.getElementById('toggle-icon');
+            const button = document.getElementById('toggle-content-btn');
+            
+            // Comprueba si el contenido está visible o colapsado
+            const isCollapsed = content.style.maxHeight === '0px' || content.style.maxHeight === '';
+
+            if (isCollapsed) {
+                // Expandir: establece la altura a la altura real del contenido + un margen de seguridad
+                content.style.maxHeight = content.scrollHeight + "px";
+                content.style.marginTop = '1.5rem'; // Restaura el margen de space-y-6
+                toggleText.textContent = 'Contraer Detalles';
+                toggleIcon.setAttribute('data-lucide', 'chevrons-up');
+                
+                // Estilo para indicar estado expandido
+                button.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                button.classList.add('bg-gray-700', 'hover:bg-gray-600');
+                
+            } else {
+                // Colapsar: establece la altura a 0
+                
+                // Primero, nos aseguramos de que maxHeight esté configurado a la altura real para que la transición funcione
+                content.style.maxHeight = content.scrollHeight + "px"; 
+                // Luego, con un pequeño retraso, establecemos maxHeight a 0
+                setTimeout(() => {
+                    content.style.maxHeight = '0px';
+                    content.style.marginTop = '0rem'; // Elimina el margen para colapsar completamente
+                }, 10);
+
+                toggleText.textContent = 'Expandir Detalles';
+                toggleIcon.setAttribute('data-lucide', 'chevrons-down');
+                
+                // Estilo para indicar que hay contenido oculto
+                button.classList.remove('bg-gray-700', 'hover:bg-gray-600');
+                button.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            }
+            
+            // Vuelve a dibujar el ícono con Lucide
+            lucide.createIcons(); 
+        }
+        
         // --- INICIALIZACIÓN DE LA APLICACIÓN ---
         document.addEventListener('DOMContentLoaded', () => {
             // Lógica para mostrar solo el primer nombre del usuario si existe en localStorage
@@ -217,12 +295,11 @@
             const headerTitle = document.querySelector('#app-header h1');
             
             if (usuarioNombreCompleto && headerTitle) {
-                // Extrae solo el primer nombre, tomando la primera palabra y recortando espacios
                 const primerNombre = usuarioNombreCompleto.trim().split(' ')[0];
                 headerTitle.textContent = `¡Hola, ${primerNombre}!`;
             }
 
-            // Agrega event listeners para la navegación MPA, llamando a loadContent
+            // Agrega event listeners para la navegación MPA
             const footerButtons = document.querySelectorAll('.footer-btn');
             footerButtons.forEach(button => {
                 button.addEventListener('click', () => {
@@ -230,6 +307,16 @@
                     loadContent(section);
                 });
             });
+            
+            // Adjunta el event listener al botón de colapsar
+            const toggleButton = document.getElementById('toggle-content-btn');
+            const content = document.getElementById('collapsible-content');
+            
+            if (toggleButton && content) {
+                toggleButton.addEventListener('click', toggleCollapsibleContent);
+                // Asegura que el contenido está completamente expandido al cargar la página
+                content.style.maxHeight = content.scrollHeight + "px";
+            }
             
             // Inicializa los íconos de Lucide nuevamente.
             lucide.createIcons();
