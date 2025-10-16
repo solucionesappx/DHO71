@@ -658,35 +658,39 @@
             // y se integró el botón de acción en una columna separada para mejor responsividad.
             const cardHTML = `
                 <div class="employee-card p-4 rounded-xl shadow-xl transition duration-300">
-                    <!-- 1RA FILA: Nombre (Izquierda) y Cédula/Ingreso (Derecha) -->
-                    <div class="flex items-start justify-between mb-3">
-                        <!-- Lado Izquierdo: Nombre (Formateado) y Empresa -->
-                        <i data-lucide="circle-user-round" class="w-6 h-6 text-blue-300 flex-shrink-0"></i>
-                        <div class="font-extrabold text-2xl leading-snug text-gray-800 break-words max-w-full">
-                            ${nombreFormateado.toUpperCase()}
+                    
+                    <!-- 1RA FILA: NOMBRE Y EMPRESA (Ambos justificados a la IZQUIERDA) -->
+                    <div class="pb-3">
+                        
+                        <!-- Nombre del Empleado -->
+                        <div class="flex items-center space-x-2 flex-grow min-w-0 pr-4">
+                            <!-- Ícono de Usuario (circle-user-round) en azul claro -->
+                            <i data-lucide="circle-user-round" class="w-6 h-6 text-blue-300 flex-shrink-0"></i>
+                            <!-- Nombre: Prominente, mayúsculas, justificado a la izquierda -->
+                            <p class="text-lg font-extrabold text-gray-100 leading-snug break-words max-w-full">
+                                ${nombreFormateado.toUpperCase()}
+                            </p>
                         </div>
                         
-                       
-                            <!-- EMPRESA (ahora solo muestra el nombre de la empresa) -->
-                            <div class="flex items-center mt-1 text-sm text-gray-400 space-x-1">
-                                <i data-lucide="briefcase" class="w-5 h-5 text-gray-400"></i>
-                                <span>${empresa || 'Empresa ZXC'}</span>
-                            </div>
+                        <!-- EMPRESA (Justificado a la izquierda, debajo del nombre) -->
+                        <div class="flex items-center text-sm text-gray-400 space-x-2">
+                            <i data-lucide="factory" class="w-6 h-6 text-gray-400 flex-shrink-0"></i>
+                            <span class="whitespace-normal">${empresa || 'Empresa ZXC'}</span>
                         </div>
-                        
-                        <!-- Lado Derecho: Cédula e Ingreso (Justificado a la derecha) -->
+                    </div>
+
+                    <!-- 2DA FILA: CÉDULA E INGRESO (Alineados a la derecha, en formato de texto simple) -->
                         <div class="text-right">
                             <div class="flex flex-col items-end">
                                 <span class="text-sm text-white font-semibold">Cédula: ${formatNumberWithDots(cedula)}</span>
                                 <span class="text-sm text-white font-semibold">Ingreso: ${formatDate(fechaIngreso)}</span>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- LÍNEA SEPARADORA -->
+                    <!-- LÍNEA SEPARADORA (Ahora entre detalles fijos y totales) -->
                     <div class="border-b border-gray-600 mt-4 mb-4"></div>
 
-                    <!-- 2DA GRID: 4 Columnas para Acciones/Totales (grid-cols-4) - MÁS RESPONSIVO -->
+                    <!-- 3RA GRID: 4 Columnas para Acciones/Totales (grid-cols-4) -->
                     <div class="grid grid-cols-4 gap-3">
                         
                         <!-- Columna 1: Acción Rápida (Agregar) -->
