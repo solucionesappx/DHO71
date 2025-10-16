@@ -661,16 +661,12 @@
                     <!-- 1RA FILA: Nombre (Izquierda) y Cédula/Ingreso (Derecha) -->
                     <div class="flex items-start justify-between mb-3">
                         <!-- Lado Izquierdo: Nombre (Formateado) y Empresa -->
-                        <div class="flex flex-col flex-grow min-w-0 pr-4">
-                            <!-- Nombre en negrita y mayúsculas. Usando el nombre formateado. -->
-                            <div class="flex items-center space-x-2">
-                                <!-- Ícono de Usuario (circle-user-round) en azul claro -->
-                                <i data-lucide="circle-user-round" class="w-6 h-6 text-blue-300 flex-shrink-0"></i>
-                                <p class="text-lg font-extrabold text-gray-100 leading-snug truncate">
-                                    ${nombreFormateado.toUpperCase()}
-                                </p>
-                            </div>
-
+                        <i data-lucide="circle-user-round" class="w-6 h-6 text-blue-300 flex-shrink-0"></i>
+                        <div class="font-extrabold text-2xl leading-snug text-gray-800 break-words max-w-full">
+                            ${nombreFormateado.toUpperCase()}
+                        </div>
+                        
+                       
                             <!-- EMPRESA (ahora solo muestra el nombre de la empresa) -->
                             <div class="flex items-center mt-1 text-sm text-gray-400 space-x-1">
                                 <i data-lucide="briefcase" class="w-5 h-5 text-gray-400"></i>
