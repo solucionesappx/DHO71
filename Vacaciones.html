@@ -1,20 +1,22 @@
 <!DOCTYPE html>
-<html lang="es" class="dark">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplicación Móvil - Vacaciones</title>
+    <title>Vacaciones - Carga desde GAS</title>
+    <!-- Carga de Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Carga de Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    
     <style>
         /* Configuración de Tailwind para usar el color de acento y la fuente Inter  */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         html {
             font-family: 'Inter', sans-serif;
-            -webkit-tap-highlight-color: transparent;
+            -webkit-tap-highlight-color: transparent; 
         }
 
-        /* Definición de colores base */
+        /* Definición de colores base para modo claro y oscuro */
         :root {
             --color-bg-light: #f9fafb;
             --color-text-light: #1f2937;
@@ -24,12 +26,28 @@
             --color-primary-dark: #60a5fa;
             --color-surface-light: #ffffff;
             --color-surface-dark: #374151;
-            /* NUEVA VARIABLE: Color de hover verde para la fila */
-            --color-row-hover: #15803d; /* Verde oscuro (ej. Emerald 700) */
+            
+            --color-header: #2D59A1; 
+            --color-data-text: #ffffff;
+            
+            /* Altura de referencia para alinear el modal y la tarjeta de bienvenida (Header + Padding) */
+            --header-offset: 76px; 
+            --footer-height: 72px; 
+            
+            --color-row-hover: #15803d; 
+            --color-row-selected: #1e8749; 
+            --color-warning: #ef4444; 
         }
         
-        /* Estilos del cuerpo en modo oscuro */
-        .dark { background-color: var(--color-bg-dark); color: var(--color-text-dark); }
+        /* Estilos del cuerpo en modo claro y oscuro */
+        .light {
+            background-color: var(--color-bg-light);
+            color: var(--color-text-light);
+        }
+        .dark {
+            background-color: var(--color-bg-dark);
+            color: var(--color-text-dark);
+        }
         
         #app-container {
             max-width: 500px;
@@ -51,144 +69,25 @@
             transform: translateX(-50%);
         }
 
-        /* Estilos específicos para header y footer en modo oscuro */
-        .dark header, .dark footer { 
-            background-color: var(--color-surface-dark); 
-            border-color: #4b5563; 
+        .light header, .light footer {
+            background-color: var(--color-surface-light);
+            border-color: #e5e7eb;
+        }
+        .dark header, .dark footer {
+            background-color: var(--color-surface-dark);
+            border-color: #4b5563;
         }
 
-        /* MAIN: Ahora solo asegura que ocupa el espacio disponible */
+        /* AJUSTE: Padding del main para dejar espacio al header y footer */
         main {
             flex-grow: 1;
-            overflow: hidden; /* Contenido manejado por el contenedor interno */
-        }
-        
-        /* CONTENEDOR DESPLEGABLE (SCROLLABLE-CONTENT) */
-        #scroll-container {
-            height: 100%;
             overflow-y: auto; 
-            /* Padding para evitar que el contenido sea cubierto por el header/footer fijos */
-            padding-left: 1rem;
-            padding-right: 1rem;
-            padding-top: 76px; 
-            padding-bottom: 72px; 
+            padding: 1rem; 
+            padding-top: var(--header-offset);
+            padding-bottom: var(--footer-height);
             transition: padding 0.3s ease-in-out;
         }
         
-        /* ESTILOS ESPECÍFICOS DE LA TARJETA DEL TRABAJADOR */
-        .employee-card {
-            background: linear-gradient(135deg, #1f2937, #374151); /* Fondo degradado sutil */
-            border: 1px solid #4b5563;
-        }
-
-        /* Estilo para hacer que la tabla sea desplazable horizontalmente en móviles */
-        .table-container {
-            overflow-x: auto;
-            width: 100%;
-            /* AJUSTE: Altura máxima de la tabla a 450px */
-            max-height: 450px; 
-            overflow-y: auto; /* Permite el scroll vertical si la tabla es más larga que el contenedor */
-            /* NUEVO AJUSTE: Radio de borde para el contenedor */
-            border-radius: 0.75rem; 
-            
-            /* REDUCCIÓN DE ESPACIO: Cambiado de 1rem a 0.5rem (mt-2) */
-            margin-top: 0.5rem; 
-        }
-
-        /* Estilos de la tabla para mejor visualización móvil */
-        .data-table {
-            width: 100%; /* Permite que la tabla se estire si es necesario */
-            min-width: 768px; /* Asegura un ancho mínimo para que las columnas no se colapsen */
-            border-collapse: collapse;
-            background-color: var(--color-surface-dark);
-        }
-
-        .data-table th, .data-table td {
-            /* AJUSTE: Reducción del padding vertical para hacer las filas más compactas */
-            padding: 0.25rem 0.5rem; 
-            text-align: left;
-            border-bottom: 1px solid #4b5563; /* Borde más oscuro para contraste */
-            white-space: nowrap; /* Evita saltos de línea en celdas pequeñas */
-        }
-
-        /* Regla de HOVER para filas del BODY (excluye encabezados) */
-        .data-table tbody tr {
-            cursor: pointer; /* Añadido cursor pointer para indicar que es clickeable */
-        }
-        
-        .data-table tbody tr:hover {
-            /* Usamos el color definido en :root */
-            background-color: var(--color-row-hover); 
-        }
-        
-        /* Aseguramos que la columna fija también cambie de color con el hover de la fila */
-        .data-table tbody tr:hover td.fixed-column {
-            background-color: var(--color-row-hover); 
-            border-right-color: rgba(255, 255, 255, 0.2); /* Borde más claro para contraste en verde */
-        }
-
-        .data-table th {
-            /* AJUSTE: Color de fondo para encabezados */
-            background-color: #2D59A1; /* Color azul oscuro especificado */
-            color: #e5e7eb; /* Texto claro para contraste */
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.05em;
-            /* FIX: Encabezado Fijo */
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            /* El padding se mueve a .header-content para permitir el diseño flex */
-            padding: 0; 
-            max-height: 450px; 
-        }
-
-        /* Estilos para el contenido del encabezado (texto + icono) */
-        .header-content {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start; /* Alinea a la izquierda */
-            padding: 0.25rem 0.5rem; /* Vuelve a aplicar el padding que tenía el TH */
-            height: 100%; 
-            min-height: 2.5rem; 
-        }
-
-
-        /* CLASE PARA FIJAR LA COLUMNA ID (Horizontalmente) */
-        .fixed-column {
-            position: sticky;
-            left: 0;
-            z-index: 5; /* Necesario para que esté sobre el scroll del cuerpo */
-            /* AJUSTE: Color de fondo para la columna fija */
-            background-color: #2D59A1; 
-            border-right: 2px solid #a3b1e8; /* Borde más claro para contraste */
-            font-weight: 600;
-            width: 50px; /* Ancho fijo para el ID */
-            text-align: center !important;
-            color: #e5e7eb; /* Texto claro para contraste */
-        }
-        
-        /* Asegurarse de que el TH fijo también tiene el color de fondo para que no sea transparente */
-        .data-table th.fixed-column {
-            /* AJUSTE: Color de fondo para TH fijo */
-            background-color: #2D59A1; 
-            z-index: 15; /* Mayor que el TH normal y el TD fijo */
-            cursor: default; /* El ID no debe ser clickeable para ordenar */
-            padding: 0.25rem 0.5rem; /* El padding se queda en el TH para esta columna fija */
-        }
-
-        /* Aplica el color de fondo para el TD fijo también al hacer scroll */
-        .data-table td.fixed-column {
-            /* AJUSTE: Color de fondo para TD fijo */
-            background-color: var(--color-surface-dark); /* Fondo del TD normal en modo oscuro */
-        }
-
-        
-        /* CLASES PERSONALIZADAS DE LA REJILLA DE TOTALES (ELIMINADAS/REEMPLAZADAS) */
-        /* Eliminada la definición específica, se usará flex/grid de Tailwind directamente en JS */
-        
-        /* REGLAS CSS AÑADIDAS PARA EL BOTÓN DEL FOOTER */
         .footer-btn {
             display: flex;
             flex-direction: column;
@@ -201,229 +100,188 @@
             border-radius: 0.5rem;
             color: inherit; 
         }
-        
-        /* REGLAS CSS ADICIONALES PARA EL ESTADO ACTIVO */
+
         .footer-btn.active {
             color: var(--color-primary-dark);
         }
         .light .footer-btn.active {
-            color: var(--color-primary-light);
+             color: var(--color-primary-light);
         }
         
-        /* --- ESTILOS DEL MODAL --- */
+        /* * ESTILO ESPECÍFICO PARA LA TABLA DE DATOS * */
+
+        .table-scroll-container {
+            max-height: 450px; 
+            overflow-x: auto; 
+            overflow-y: auto; 
+            border-radius: 0.75rem; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            display: block; 
+        }
+        
+        .table-scroll-container table {
+            table-layout: auto; 
+            width: max-content; 
+            min-width: 100%; 
+        }
+        
+        .table-scroll-container th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: var(--color-header); 
+            color: var(--color-data-text);
+            padding: 0.5rem; 
+            text-align: center; 
+            white-space: nowrap;
+        }
+
+        .sort-icon-lucide {
+            display: inline-block;
+            margin-left: 0.25rem;
+            width: 16px; 
+            height: 16px;
+            vertical-align: middle;
+            opacity: 0.9;
+        }
+        
+        .table-data-cell {
+            font-size: 0.875rem; 
+            padding-top: 0.25rem; 
+            padding-bottom: 0.25rem;
+            white-space: nowrap; 
+            transition: background-color 0.15s, color: 0.15s, border-color 0.15s;
+        }
+
+        .light .table-data-cell {
+            color: var(--color-text-light);
+            border-bottom: 1px solid #e5e7eb; 
+            background-color: var(--color-surface-light); 
+        }
+
+        .dark .table-data-cell {
+            color: var(--color-text-dark);
+            border-bottom: 1px solid var(--color-surface-dark); 
+            background-color: var(--color-bg-dark); 
+        }
+        
+        .row-warning-text td {
+            color: var(--color-warning) !important;
+        }
+        .row-warning-text:hover td {
+            color: #ffffff !important; 
+        }
+
+        .sticky-id-cell {
+            position: sticky;
+            left: 0;
+            background-color: var(--color-header) !important; 
+            color: var(--color-data-text) !important; 
+            border-right: 1px solid rgba(255, 255, 255, 0.2); 
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .sticky-id-cell.header {
+            top: 0;
+            z-index: 20; 
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); 
+        }
+        
+        .sortable-header {
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.1s;
+        }
+
+        .sortable-header:hover {
+            background-color: rgba(255, 255, 255, 0.1); 
+        }
+        
+        .worker-row:hover td {
+            background-color: var(--color-row-hover) !important;
+            color: #ffffff !important; 
+            cursor: pointer; 
+            border-bottom-color: var(--color-row-hover) !important; 
+        }
+
+        .worker-row.selected-row td {
+            background-color: var(--color-row-selected) !important;
+            color: #ffffff !important; 
+            border-bottom-color: var(--color-row-selected) !important; 
+        }
+
+        .worker-row:hover td.sticky-id-cell,
+        .worker-row.selected-row td.sticky-id-cell {
+            background-color: var(--color-row-hover) !important;
+            border-right: 1px solid rgba(255, 255, 255, 0.4) !important; 
+        }
+
+        /* --- ESTILOS DEL MODAL FIJO Y ALINEADO --- */
         .modal-overlay {
-            position: fixed;
+            position: fixed; /* Usar fixed para asegurar que cubra todo el viewport */
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            /* ---------------------------------------------------- */
-            /* *** Mantiene Mayor opacidad para el fondo (60%) *** */
-            background-color: rgba(0, 0, 0, 0.60); /* Fondo semitransparente oscuro */
-            /* ---------------------------------------------------- */
-            display: none; /* Oculto por defecto */
+            background-color: rgba(0, 0, 0, 0.6); 
+            display: none; 
             justify-content: center;
-            align-items: center;
-            z-index: 100; /* Asegura que esté por encima de todo */
-            padding: 1rem;
-            /* --- PROPIEDAD ELIMINADA: backdrop-filter: blur(10px); --- */
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .modal-overlay.open {
-            display: flex;
-            opacity: 1;
-        }
-
-        #vacation-modal-content-wrapper {
-            max-width: 450px;
-            width: 100%;
-            transform: translateY(-50px);
-            transition: transform 0.3s ease;
-        }
-        .modal-overlay.open #vacation-modal-content-wrapper {
-            transform: translateY(0);
+            align-items: flex-start; /* Alineación arriba para permitir el posicionamiento */
+            z-index: 999; /* Alto z-index */
+            overflow-y: auto;
+            padding-top: 10px; /* Pequeño padding arriba */
         }
         
+        /* Contenedor del modal */
+        #vacation-modal-content-wrapper, #vacation-add-edit-content-wrapper {
+            position: absolute; 
+            width: 90%; 
+            max-width: 450px; /* Ancho máximo para el detalle */
+            transition: transform 0.3s, opacity 0.3s;
+            /* La posición 'top' se calculará en JS */
+        }
+        
+        /* Estilo para el botón de navegación deshabilitado */
         .disabled-nav {
-             opacity: 0.5;
-             cursor: default;
+            opacity: 0.5;
+            cursor: not-allowed;
         }
-        .disabled-nav:hover {
-             background-color: inherit;
-        }
+
+        .concepto-scroll {
+         /* 1. Evita que el texto se ajuste a la siguiente línea */
+        white-space: nowrap;
+
+        /* 2. Agrega una barra de desplazamiento horizontal si el contenido es demasiado largo */
+        overflow-x: auto;
+
+        /* 3. Se recomienda establecer un ancho máximo visible para que overflow-x se active */
+        max-width: 200px; /* Ajusta este valor según el ancho de columna deseado */
+}
         
     </style>
 </head>
-<body class="dark transition-colors duration-300">
+<body class="dark transition-colors duration-300"> 
 
     <div id="app-container" class="shadow-xl">
         
-        <!-- HEADER FIJO -->
-        <header id="app-header" class="fixed top-0 w-full h-14 border-b border-gray-700 dark:border-gray-500 flex items-center justify-between px-4">
-         <h1 class="text-xl font-bold cursor-pointer hover:opacity-80 transition-opacity" onclick="window.location.href = 'Inicio.html'">
-                Mi Aplicación Móvil ZXC
+        <!-- Encabezado Fijo -->
+        <header id="app-header-title" class="fixed top-0 w-full h-14 border-b border-gray-700 dark:border-gray-500 flex items-center justify-between px-4">
+            <h1 class="text-xl font-bold cursor-pointer hover:opacity-80 transition-opacity" 
+                onclick="window.location.href = 'Inicio.html'">
+                Mi Aplicación Móvil DHO
             </h1>
             <div class="flex space-x-3">
-                
-                <!-- Botón de Cerrar Sesión con redirección a index.html -->
                 <button class="p-2 rounded-full hover:opacity-80 transition-opacity" onclick="window.location.href = 'index.html'">
                     <i data-lucide="log-out" class="w-6 h-6 text-red-400 dark:text-red-300"></i>
                 </button>
             </div>
         </header>
-
-        <!-- CONTENIDO PRINCIPAL: Vista de Vacaciones -->
-        <main id="main-content" class="flex-grow">
-            <!-- Contenedor con scroll para el contenido de la sección -->
-            <div id="scroll-container">
-                
-                <!-- 1. TARJETA DE INFORMACIÓN DEL TRABAJADOR -->
-                <div id="employee-card-container" class="pt-1 mb-4">
-                    <!-- El contenido de la tarjeta se inyectará aquí -->
-                    <div class="employee-card p-4 rounded-xl shadow-lg border border-gray-700">
-                        <p class="text-center text-gray-400">Cargando información del trabajador...</p>
-                    </div>
-                </div>
-
-                <!-- MOTOR DE BÚSQUEDA Y ACCIONES -->
-                <!-- Contenedor general de búsqueda y filtros (REDUCIDO: space-y-3 a space-y-1) -->
-                <div class="space-y-1"> 
-
-                    <!-- CHECKLIST DE FILTRO POR PERIODO -->
-                    <div class="flex items-center space-x-2 p-0">
-                        <input type="checkbox" id="filterByPeriodCheckbox" onchange="updateFilterPlaceholder();" 
-                                class="w-4 h-4 rounded text-blue-500 light:bg-gray-200 dark:bg-gray-600 border-gray-400 focus:ring-blue-500 cursor-pointer">
-                        <label for="filterByPeriodCheckbox" class="text-base text-gray-100 select-none cursor-pointer">
-                            Filtrar por Periodo
-                        </label>
-                    </div>
-
-                    <!-- INPUT DE BÚSQUEDA Y BOTONES -->
-                    <div class="flex items-center space-x-2">
-                        
-                        <!-- Input de Búsqueda -->
-                        <div class="relative flex-grow rounded-xl"> 
-                            <!-- CLASES ACTUALIZADAS + autocomplete="off" -->
-                            <input type="text" id="search-input" 
-                                placeholder="Periodo o Concepto" 
-                                class="w-full pl-10 pr-4 py-2 rounded-xl shadow-inner border 
-                                    bg-white text-gray-900 placeholder-gray-500 border-gray-300 
-                                    dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700 dark:placeholder-gray-500 
-                                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
-                                    transition-colors duration-200"
-                                onkeyup="applyAllFilters()"
-                                autocomplete="off"> 
-                            <!-- Icono de búsqueda con color rojo -->
-                            <i data-lucide="search" class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-red-500"></i> 
-                        </div> 
-                        
-                        <!-- Botones de Limpiar y Recargar -->
-                        <button id="clear-search-btn" 
-                                class="p-2.5 rounded-full light:bg-white hover:bg-gray-700 shadow-md transition-colors duration-150 text-red-500 dark:text-red-400 font-bold" 
-                                title="Reiniciar Filtros"
-                                onclick="clearSearchFilter()"> 
-                            <i data-lucide="x-circle" class="w-7 h-7"></i> 
-                        </button>
-                        <!-- BOTÓN DE RECARGA: Llama a loadVacacionesData(true) para FORZAR la recarga, omitiendo el caché -->
-                        <button id="reload-btn" class="p-2 rounded-full text-blue-400 hover:bg-gray-700 transition duration-150" 
-                                title="Forzar Recarga de Datos (Omitir Caché)"
-                                onclick="initVacacionesView(true)">
-                            <i data-lucide="refresh-cw" class="w-6 h-6" id="reload-icon"></i>
-                        </button> 
-                    </div>
-                </div>
-
-
-                <!-- Contenedor donde se insertará la tabla de datos -->
-                <div id="vacaciones-table-view" class="table-container">
-                    <!-- Aquí se mostrará el indicador de carga o la tabla -->
-                    <p class="text-center text-gray-400 p-4">Cargando tabla...</p>
-                </div>
-            </div>
+   
+        <!-- Contenido Principal con Scroll. -->
+        <main id="main-content" class="flex flex-col space-y-4">
+            <!-- El contenido de la sección 'Vacaciones' se inyectará aquí. -->
         </main>
-
-                <!-- MODAL DE DETALLE DE VACACIONES (READ-ONLY) -->
-        <div id="VacationDetailModal" class="modal-overlay" onclick="closeVacationModal(event)">
-            <div id="vacation-modal-content-wrapper" 
-                 class="mx-auto" 
-                 onclick="event.stopPropagation()">
-                
-                <div class="bg-gray-800 p-6 rounded-xl shadow-2xl w-full dark:bg-gray-700">
-                    
-                    <!-- Encabezado del Modal -->
-                    <div class="flex justify-between items-center pb-3 mb-4">
-                        <h3 class="text-xl font-bold text-yellow-400">Detalle de Vacaciones</h3>
-                        <!-- Botón de Cierre -->
-                        <button onclick="closeVacationModal()" class="p-1 rounded-full text-red-400 hover:text-red-600 transition duration-150">
-                            <i data-lucide="x" class="w-6 h-6 icon-x relative -mt-8 -mr-6"></i> 		
-                        </button>
-                    </div>
-                    
-                    <!-- Contador y Navegación -->
-                    <div class="flex justify-between items-center mb-4">
-                        <!-- Botón Anterior -->
-                        <button id="prev-record-btn" onclick="navigateRecord(-1)" class="p-2 rounded-full bg-gray-600 hover:bg-gray-500 text-white transition disabled-nav" disabled>
-                            <i data-lucide="chevron-left" class="w-4 h-4"></i>
-                        </button>
-
-                        <!-- Registro X de Y -->
-                        <span id="registro-count" class="text-sm font-semibold text-yellow-300">
-                            Registro 0 de 0
-                        </span>
-
-                        <!-- Botón Siguiente -->
-                        <button id="next-record-btn" onclick="navigateRecord(1)" class="p-2 rounded-full bg-gray-600 hover:bg-gray-500 text-white transition disabled-nav" disabled>
-                            <i data-lucide="chevron-right" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-
-                    <!-- Campos de Detalle del Registro (ACTUALIZADO CON DIA_INI y DIA_FIN) -->
-                    <div class="grid grid-cols-2 gap-x-4 gap-y-3 p-4 bg-gray-700 rounded-lg text-sm">
-                        
-                        <!-- 1. Período -->
-                        <div class="col-span-2 flex flex-col">
-                            <span class="text-xs font-medium uppercase text-gray-400">Período</span>
-                            <span id="detail-periodo" class="text-base font-semibold text-white">N/A</span>
-                        </div>
-                        
-                        <!-- 2. Concepto -->
-                        <div class="col-span-2 flex flex-col mb-2">
-                            <span class="text-xs font-medium uppercase text-gray-400">Concepto</span>
-                            <span id="detail-concepto" class="text-base font-semibold text-white">N/A</span>
-                        </div>
-
-                        <!-- 3. DÍA INICIO -->
-                        <div class="flex flex-col border-r border-gray-600 pr-4">
-                            <span class="text-xs font-medium uppercase text-gray-400">Día de Inicio</span>
-                            <span id="detail-dia-ini" class="text-base font-semibold text-white">N/A</span>
-                        </div>
-                        
-                        <!-- 4. DÍA FIN -->
-                        <div class="flex flex-col">
-                            <span class="text-xs font-medium uppercase text-gray-400">Día de Fin</span>
-                            <span id="detail-dia-fin" class="text-base font-semibold text-white">N/A</span>
-                        </div>
-                        
-                        <!-- 5. Días -->
-                        <div class="flex flex-col border-r border-gray-600 pr-4 mt-3 pt-3 border-t border-gray-600">
-                            <span class="text-xs font-medium uppercase text-gray-400">Días Vacaciones</span>
-                            <!-- Este es un span, no un input, pero mantiene la consistencia -->
-                            <span id="detail-dias" class="text-base font-semibold text-white">0</span>
-                        </div>
-                        
-                        <!-- 6. Bono -->
-                        <div class="flex flex-col mt-3 pt-3 border-t border-gray-600">
-                            <span class="text-xs font-medium uppercase text-gray-400">Bono Vacacional</span>
-                            <span id="detail-bono" class="text-base font-semibold text-green-400">0</span>
-                        </div>
-                
-                    </div>                  
-                </div>
-            </div>
-        </div>
-        <!-- Fin MODAL DE DETALLE DE VACACIONES -->
 
         <!-- Footer de Navegación Fijo -->
         <footer id="app-footer" class="fixed bottom-0 w-full h-18 border-t border-gray-700 dark:border-gray-500 flex items-center justify-around py-2">
@@ -431,9 +289,8 @@
                 <i data-lucide="home" class="w-6 h-6"></i>
                 <span>Inicio</span>
             </button>
-            <!-- Este botón tiene la clase 'active' por defecto para mostrar el estado actual -->
             <button class="footer-btn active" data-section="Vacaciones">
-                <i data-lucide="calendar-days" class="w-6 h-6"></i> 
+                <i data-lucide="calendar-days"> class="w-6 h-6"></i>
                 <span>Vacaciones</span>
             </button>
             <button class="footer-btn" data-section="Agregar">
@@ -453,18 +310,310 @@
                 <span>Config</span>
             </button>
         </footer>
+
+        
+        <!-- MODAL DE DETALLE DE VACACIONES (READ-ONLY) -->
+        <div id="VacationDetailModal" class="modal-overlay" onclick="closeVacationModal(event)">
+            <div id="vacation-modal-content-wrapper" 
+                 class="mx-auto" 
+                 onclick="event.stopPropagation()">
+                
+                <div class="bg-gray-800 p-6 rounded-xl shadow-2xl w-full dark:bg-gray-700">
+                    
+                    <!-- Encabezado del Modal -->
+                    <div class="flex justify-between items-center pb-3 mb-4">
+                        <h3 class="text-xl font-bold text-yellow-400">Detalle de Vacaciones</h3>
+                        <!-- Botón de Cierre -->
+                        <button onclick="closeVacationModal()" class="p-1 rounded-full text-red-400 hover:text-red-600 transition duration-150">
+                            <i data-lucide="x" class="w-6 h-6 icon-x relative -mt-8 -mr-6"></i> 		
+                        </button>
+                    </div>
+                    
+                    <!-- Contador y Navegación -->
+                    <div class="flex justify-between items-center mb-4">
+                        <!-- Botón Anterior -->
+                        <button id="prev-record-btn" onclick="navigateRecord(-1)" class="p-2 rounded-full bg-gray-600 hover:bg-gray-500 text-white transition disabled-nav">
+                            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                        </button>
+
+                        <!-- Registro X de Y -->
+                        <span id="registro-count" class="text-sm font-semibold text-yellow-300">
+                            Registro X de Y
+                        </span>
+
+                        <!-- Botón Siguiente -->
+                        <button id="next-record-btn" onclick="navigateRecord(1)" class="p-2 rounded-full bg-gray-600 hover:bg-gray-500 text-white transition disabled-nav">
+                            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <!-- Campos de Detalle del Registro (ACTUALIZADO CON DIA_INI y DIA_FIN) -->
+                    <div class="grid grid-cols-2 gap-x-4 gap-y-3 p-4 bg-gray-700 rounded-lg text-sm">
+                        
+                        <!-- 1. Período -->
+                        <div class="col-span-2 flex flex-col">
+                            <span class="text-xs font-medium uppercase text-gray-400">Período</span>
+                            <span id="detail-periodo" class="text-base font-semibold text-white"></span>
+                        </div>
+                        
+                        <!-- 2. Concepto -->
+                        <div class="col-span-2 flex flex-col mb-2">
+                            <span class="text-xs font-medium uppercase text-gray-400">Concepto</span>
+                            <span id="detail-concepto" class="text-base font-semibold text-white"></span>
+                        </div>
+
+                        <!-- 3. DÍA INICIO -->
+                        <div class="flex flex-col border-r border-gray-600 pr-4">
+                            <span class="text-xs font-medium uppercase text-gray-400">Día de Inicio</span>
+                            <span id="detail-dia-ini" class="text-base font-semibold text-white"></span>
+                        </div>
+                        
+                        <!-- 4. DÍA FIN -->
+                        <div class="flex flex-col">
+                            <span class="text-xs font-medium uppercase text-gray-400">Día de Fin</span>
+                            <span id="detail-dia-fin" class="text-base font-semibold text-white"></span>
+                        </div>
+                        
+                        <!-- 5. Días -->
+                        <div class="flex flex-col border-r border-gray-600 pr-4 mt-3 pt-3 border-t">
+                            <span class="text-xs font-medium uppercase text-gray-400">Días Vacaciones</span>
+                            <!-- Este es un span, no un input, pero mantiene la consistencia -->
+                            <span id="detail-dias" class="text-base font-semibold text-white"></span>
+                        </div>
+                        
+                        <!-- 6. Bono -->
+                        <div class="flex flex-col mt-3 pt-3 border-t border-gray-600">
+                            <span class="text-xs font-medium uppercase text-gray-400">Bono Vacacional</span>
+                            <span id="detail-bono" class="text-base font-semibold text-green-400"></span>
+                        </div>
+                
+                    </div>                  
+                </div>
+            </div>
+        </div>
+        <!-- Fin MODAL DE DETALLE DE VACACIONES -->
+
+        <!-- MODAL DE AÑADIR/EDITAR VACACIONES (NUEVO FORMULARIO EDITABLE) -->
+        <div id="VacationAddEditModal" class="modal-overlay" onclick="closeVacationAddEditModal(event)" style="display: none;">
+            <div id="vacation-add-edit-content-wrapper" 
+                 class="mx-auto" 
+                 onclick="event.stopPropagation()">
+                
+                <div class="bg-gray-800 p-6 rounded-xl shadow-2xl w-full dark:bg-gray-700">
+                    
+                    <!-- Encabezado del Modal -->
+                    <div class="flex justify-between items-center pb-3 mb-4">
+                        <h3 id="form-modal-title" class="text-xl font-bold text-yellow-400">Añadir Nuevo Evento</h3>
+                        <!-- Botón de Cierre -->
+                        <button onclick="closeVacationAddEditModal()" class="p-1 rounded-full text-red-400 hover:text-red-600 transition duration-150">
+                            <i data-lucide="x" class="w-6 h-6 icon-x relative -mt-8 -mr-6"></i> 		
+                        </button>
+                    </div>
+                    
+                    <!-- Campos de Formulario Editables -->
+                    <form id="vacation-form" class="grid grid-cols-2 gap-x-4 gap-y-4 p-4 bg-gray-700 rounded-lg text-sm">
+                        
+                        <!-- 1. Período -->
+                        <div class="col-span-2 flex flex-col">
+                            <label for="form-periodo" class="text-xs font-medium uppercase text-gray-400 mb-1">Período</label>
+                            <input type="text" id="form-periodo" placeholder="Ej: 2024"
+                                   class="p-2 rounded-lg bg-gray-600 border border-gray-500 text-white focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        
+                        <!-- 2. Concepto -->
+                        <div class="col-span-2 flex flex-col">
+                            <label for="form-concepto" class="text-xs font-medium uppercase text-gray-400 mb-1">Concepto</label>
+                            <textarea id="form-concepto" rows="2" placeholder="Ej: Asignación anual de días"
+                                      class="p-2 rounded-lg bg-gray-600 border border-gray-500 text-white focus:ring-blue-500 focus:border-blue-500"></textarea>
+                        </div>
+
+                        <!-- 3. DÍA INICIO (tipo date) -->
+                        <div class="flex flex-col">
+                            <label for="form-dia-ini" class="text-xs font-medium uppercase text-gray-400 mb-1">Día de Inicio</label>
+                            <input type="date" id="form-dia-ini" 
+                                   class="p-2 rounded-lg bg-gray-600 border border-gray-500 text-white focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+
+                        <!-- 4. DÍA FIN (tipo date) -->
+                        <div class="flex flex-col">
+                            <label for="form-dia-fin" class="text-xs font-medium uppercase text-gray-400 mb-1">Día de Fin</label>
+                            <input type="date" id="form-dia-fin" 
+                                   class="p-2 rounded-lg bg-gray-600 border border-gray-500 text-white focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        
+                        <!-- 5. Días (tipo text, para evitar los spin buttons) -->
+                        <div class="flex flex-col">
+                            <label for="form-dias" class="text-xs font-medium uppercase text-gray-400 mb-1">Días Vacaciones</label>
+                            <input type="text" id="form-dias" placeholder="0" value="0"
+                                   class="p-2 rounded-lg bg-gray-600 border border-gray-500 text-white focus:ring-blue-500 focus:border-blue-500" readonly>
+                            <p class="text-xs text-gray-400 mt-1">Calculado automáticamente (días hábiles).</p>
+                        </div>
+                        
+                        <!-- 6. Bono -->
+                        <div class="flex flex-col">
+                            <label for="form-bono" class="text-xs font-medium uppercase text-gray-400 mb-1">Bono Vacacional</label>
+                            <input type="text" id="form-bono" placeholder="Ej: Sí/No"
+                                   class="p-2 rounded-lg bg-gray-600 border border-gray-500 text-white focus:ring-green-500 focus:border-green-500">
+                        </div>
+
+                        <!-- Botón de Guardar (Placeholder) -->
+                        <div class="col-span-2 pt-4">
+                            <button type="submit" 
+                                    class="w-full p-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold transition duration-150 shadow-lg">
+                                Guardar Registro (Pendiente de Lógica)
+                            </button>
+                        </div>
+                        
+                    </form>
+                    
+                </div>
+            </div>
+        </div>
+        <!-- Fin MODAL DE AÑADIR/EDITAR VACACIONES -->
+
     </div>
 
     <script>
-        // Inicializa los íconos de Lucide
-        lucide.createIcons();
 
-        // 1. Constantes de configuración
-        const GET_URL = 'https://script.google.com/macros/s/AKfycbx87WvxA9ca1KyGMA1wsw1npZw5vPtjoItomhF823BICXScNrWGFh5m0Dj6Veb24CtHXQ/exec'; 
-        // const CEDULA = '13105322'; // Cédula para filtrar los datos en el GAS
+        document.addEventListener('DOMContentLoaded', () => {
+            // Lógica para mostrar el nombre completo del usuario si existe en localStorage
+            const usuarioNombre = localStorage.getItem('Usuario_Nombre');
+            const headerTitle = document.querySelector('#app-header h1');
+            
+            if (usuarioNombre && headerTitle) {
+                // Usa el nombre completo del usuario para el saludo en el encabezado
+                headerTitle.textContent = `¡Hola, ${usuarioNombre.trim()}!`;
+            }
+            // Si usuarioNombre es null/vacío, el h1 mantiene su valor por defecto ("Mi Aplicación Móvil ZXC").
+
+            // Agrega event listeners para la navegación MPA, llamando a loadContent
+            const footerButtons = document.querySelectorAll('.footer-btn');
+            footerButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const section = button.getAttribute('data-section');
+                    loadContent(section);
+                });
+            });
+            
+            // Opcional: Redirigir a 'Perfil' (que es la vista principal) al cargar el index
+            // loadContent('Perfil'); 
+        });
+        
+
+        
+         // ====================================================================================
+        // *** 1. CONSTANTES DE DATOS Y CLAVES ***
+        // ====================================================================================
+        const USUARIO_TIENDA_KEY = 'Usuario_Tienda';
+        const USUARIO_NOMBRE_KEY = 'Usuario_Nombre';
+        const USUARIO_PERFIL_KEY = 'Usuario_Perfil';
+        const USUARIO_IDX_KEY = 'Usuario_Idx';
+       
+        let USER_INFO = {}; 
+
+        // Datos simulados (Mock data) para usar como fallback
+        const simulatedLocalStorage = {
+            'Usuario_Nombre': 'Juan Pérez Rodríguez',
+            'Usuario_Tienda': 'T001',
+            'Usuario_Perfil': 'Admin',
+            'Usuario_Idx': '12345'
+        };
+
+        /**
+         * Intenta leer el valor de localStorage.
+         * Si falla (ej: por restricción de iframe), usa los datos simulados.
+         * @param {string} key La clave a buscar.
+         * @returns {string | null} El valor de la clave.
+         */
+        const localStorageGetItem = (key) => {
+            try {
+                // 1. Intenta leer directamente de localStorage
+                const realValue = window.localStorage.getItem(key);
+                console.log(`Intentando leer localStorage para ${key}:`, realValue);
+                if (realValue !== null) {
+                    return realValue;
+                }
+            } catch (error) {
+                // 2. Si hay un error (ej: SecurityError en iframes), usaremos el fallback
+                console.warn(`Error al acceder a localStorage (usando mock data): ${error.message}`);
+            }
+
+            // 3. Fallback: Usar los datos simulados
+            const mockValue = simulatedLocalStorage[key] || null;
+            return mockValue;
+        };
 
 
-                // --- LÓGICA DE CARGA DE DATOS DEL EMPLEADO (LOCALSTORAGE/MOCK) ---
+        // ====================================================================================
+        // *** 2. LÓGICA DE INICIALIZACIÓN DE USUARIO ***
+        // ====================================================================================
+
+        /**
+         * Lee los datos del usuario (preferentemente de localStorage o simulados) 
+         * y actualiza el objeto USER_INFO y el título de la cabecera.
+         */
+        function initializeUserInfo() {
+            // Leer datos (usando la función robusta que incluye fallback)
+            USER_INFO.usuarioTienda = localStorageGetItem(USUARIO_TIENDA_KEY);
+            USER_INFO.usuarioNombre = localStorageGetItem(USUARIO_NOMBRE_KEY);
+            USER_INFO.usuarioPerfil = localStorageGetItem(USUARIO_PERFIL_KEY);
+            USER_INFO.usuarioIdx = localStorageGetItem(USUARIO_IDX_KEY);
+
+            // Seleccionar el elemento del título
+            const headerTitleEl = document.querySelector('#app-header-title h1');
+            let newTitle = 'Mi Aplicación Móvil DHO'; // Establecer título por defecto
+            
+            let primerNombre = '';
+
+            if (USER_INFO.usuarioNombre) {
+                // Extraer el primer nombre
+                const names = USER_INFO.usuarioNombre.trim().split(/\s+/).filter(p => p.length > 0);
+                primerNombre = names.length > 0 ? names[0] : '';
+                
+                // ASIGNACIÓN AJUSTADA: Siempre asignamos el nombre extraído a USER_INFO
+                USER_INFO.usuarioPrimerNombre = primerNombre; 
+            }
+            
+            // Verificamos si tenemos un nombre válido para el saludo
+            if (primerNombre) {
+                // El chequeo 'if (primerNombre)' es suficiente porque 'primerNombre' es una cadena
+                // vacía ('') si no se encuentra un nombre. En JS, una cadena vacía es 'falsy'.
+                newTitle = `¡Hola, ${primerNombre}!`;
+            }
+            
+            // Aplicar el título (personalizado o por defecto) al elemento del encabezado
+            if (headerTitleEl) {
+                headerTitleEl.textContent = newTitle;
+            }
+            
+            console.log("USER_INFO inicializado:", USER_INFO, "Título establecido:", newTitle);
+        }
+        
+        // --- CONSTANTES Y VARIABLES GLOBALES ---
+        
+        // Simulación de la URL de la API de Google Apps Script
+        const GET_URL = 'https://script.google.com/macros/s/AKfycbx87WvxA9ca1KyGMA1wsw1npZw5vPtjoItomhF823BICXScNrWGFh5m0Dj6Veb24CtHXQ/exec';
+        
+        // Constantes ajustadas para la función loadData:
+        const CACHE_VAC_KEY = 'vacacionesDataCache';
+        const CACHE_EXPIRATION_MS = 900000; // 15 minutos   
+
+        const VACACIONES_COLUMNS = [
+            { key: 'PERIODO', label: 'Período', sortable: true },
+            { key: 'DESCRIPCION_CONCEPTO', label: 'Concepto', sortable: true },
+            { key: 'DIAS_VACACIONES', label: 'Días', sortable: true },
+            { key: 'BONO_VACACIONAL', label: 'Bono', sortable: true },
+        ];
+        
+        const SECTION_CONFIG = {
+            'Vacaciones': { 
+                sheetName: 'Vacaciones2', 
+                columns: VACACIONES_COLUMNS,
+                tableContainerId: 'employee-table-container', 
+            },
+        };
+       
+        // --- LÓGICA DE CARGA DE DATOS DEL EMPLEADO (LOCALSTORAGE/MOCK) ---
         const EMPLOYEE_TRANSFER_KEY = 'userInfoToEdit';
 
         /**
@@ -475,8 +624,8 @@
             const defaultInfo = {
                 CEDULA: 13105322, 
                 INGRESO: '13/10/2015',
-                NOMBRES: 'YSABEL XUISANA',
-                APELLIDOS: 'HOJEDA CASTILLO',
+                NOMBRES: 'YSABEL LUISANA',
+                APELLIDOS: 'OJEDA CASTILLO',
             };
             
             try {
@@ -499,356 +648,122 @@
         }
 
         const MOCK_EMPLOYEE_INFO = getEmployeeInfo();
-        let CEDULA = MOCK_EMPLOYEE_INFO.CEDULA; // Cédula del trabajador actual
-
-        const CACHE_KEY = `vacaciones_data_${MOCK_EMPLOYEE_INFO.CEDULA}`; // Clave única para el caché
-        const CACHE_DURATION_MS = 900000; // 15 minutos en milisegundos
-
-
+        let TARGET_CEDULA = MOCK_EMPLOYEE_INFO.CEDULA; // Cédula del trabajador actual
         
         let filteredEmployeeData = []; // Datos que se muestran en la tabla (filtrados por cédula y búsqueda)
         let userBaseData = []; // Base de datos del usuario filtrada por Cédula (para aplicar filtros).
         let currentSheet = 'Vacaciones2'; 
-       
+
+        // Variables de estado para el ordenamiento
+        let currentSortColumn = null; 
+        let sortOrder = 'asc'; 
+        
         // Variables de estado para el modal de detalle
         let currentRecordIndex = -1; // Índice del registro actual en filteredEmployeeData
 
+        // --- FUNCIONES AYUDANTES DE FORMATO Y FECHA ---
 
-        // 2. Definición de las columnas de la tabla 'Vacaciones2'
-        const TABLE_COLUMNS = [
-            'NOMBRE_EMPLEADO', 'INGRESO', 'PERIODO', 'DESCRIPCION_CONCEPTO', 
-            'DIA_INICIO', 'DIA_FINAL', 'DIAS_VACACIONES', 'BONO_VACACIONAL', 
-            'VACACION_CONDICION', 'RegistroUser', 'RegistroDate', 'CEDULA', 
-            'NOMBRES', 'APELLIDOS', 'EMPRESA'
-        ];
-
-        // Global State for Sorting and Data
-        let originalVacacionesData = []; // Datos crudos sin filtrar
-        // Almacena los detalles fijos del empleado (Nombre, Ingreso, etc.) una vez cargados
-        let employeeFixedDetails = null; 
-        let currentSortColumn = null; // Columna activa para el ordenamiento
-        let sortOrder = 'asc'; // 'asc' o 'desc'
-        let searchFilter = ''; // Estado del filtro de búsqueda
-        let filterMode = 'all'; // 'all' (Periodo o Concepto) o 'period' (Solo Periodo)
-        
-        // ESTADO GLOBAL DEL MODAL: Almacena los datos actualmente filtrados y *ordenados*
-        let currentFilteredData = [];       
-
-        // --- FUNCIONES DE FORMATEO (sin cambios) ---
-        
         /**
-         * Formatea un valor numérico para incluir puntos como separadores de miles y maneja decimales.
-         * @param {string|number} value - El valor a formatear.
-         * @returns {string} El número formateado o un string vacío.
+         * Función para obtener la fecha actual en formato 'YYYY-MM-DD',
+         * el formato estándar requerido por el input type="date".
+         * @returns {string} Fecha actual en formato 'YYYY-MM-DD'.
          */
-        function formatNumberWithDots(value) {
-            if (value === null || value === undefined || value === '') return '0';
-            
-            const numStr = String(value).replace(',', '.'); // Reemplaza comas por puntos si existen
-            const number = parseFloat(numStr);
-            
-            if (!isNaN(number)) {
-                 // Usa 2 decimales si el número tiene decimales, si no, usa 0
-                 const maxDigits = number % 1 !== 0 ? 2 : 0;
-                 return new Intl.NumberFormat('es-ES', { 
-                    minimumFractionDigits: maxDigits, 
-                    maximumFractionDigits: maxDigits 
-                }).format(number);
-            }
-            return String(value);
-        }
-        
-        function formatDateTime(value) {
-            if (!value) return 'N/A';
-            try {
-                const date = new Date(value);
-                if (isNaN(date.getTime())) return String(value); 
-                
-                const d = date.getUTCDate().toString().padStart(2, '0');
-                const m = (date.getUTCMonth() + 1).toString().padStart(2, '0');
-                const y = date.getUTCFullYear();
-                
-                const h = date.getUTCHours().toString().padStart(2, '0');
-                const min = date.getUTCMinutes().toString().padStart(2, '0');
-                const s = date.getUTCSeconds().toString().padStart(2, '0');
+        function obtenerFechaActual() {
+            const hoy = new Date();
+            const year = hoy.getFullYear();
+            // Los meses en JS van de 0 (Enero) a 11 (Diciembre), por eso sumamos 1.
+            const month = String(hoy.getMonth() + 1).padStart(2, '0');
+            const day = String(hoy.getDate()).padStart(2, '0');
 
-                return `${d}/${m}/${y} ${h}:${min}:${s}`;
-            } catch (e) {
-                console.error("Error al formatear fecha/hora (formatDateTime):", value, e);
-                return String(value);
+            return `${year}-${month}-${day}`;
+        }
+
+        function buildGasApiUrl(sheetName) {
+            const url = new URL(GET_URL);
+            url.searchParams.append('sheet', sheetName);
+            return url.toString();
+        }
+
+        /** Formatea un número o string de cédula con puntos como separadores de miles. */
+        function formatNumberWithDots(value) {
+            if (value === null || value === undefined || value === '') return '';
+            let numStr;
+            const number = Number(value);
+            if (!isNaN(number)) {
+                numStr = String(number).replace(/\D/g, '');
+            } else {
+                numStr = String(value).replace(/\D/g, ''); 
             }
+            return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 }).format(Number(numStr));
         }
         
         function formatDate(value) {
+            // Asume que el valor es un string de fecha (ej: 'YYYY-MM-DD')
             if (!value) return 'N/A';
-            try {
-                let date;
-                if (typeof value === 'string' && value.includes('T') && value.includes('Z')) {
-                    date = new Date(value);
-                } else if (typeof value === 'string' && !value.includes('T')) {
-                    // Intenta parsear como fecha local para evitar problemas de zona horaria si es solo YYYY-MM-DD
-                    date = new Date(value.replace(/-/g, '/')); 
-                } else {
-                    date = new Date(value);
-                }
-                
-                if (isNaN(date.getTime())) return String(value); 
-                
-                const d = date.getDate().toString().padStart(2, '0');
-                const m = (date.getMonth() + 1).toString().padStart(2, '0');
-                const y = date.getFullYear();
-
-                return `${d}/${m}/${y}`;
-            } catch (e) {
-                console.error("Error al formatear fecha (formatDate):", value, e);
-                return String(value);
-            }
+            // Simplemente devuelve el string, ya que el formato de input type="date" es 'YYYY-MM-DD'
+            return String(value); 
         }
 
+        // --- LÓGICA DE CÁLCULO DE DÍAS HÁBILES ---
 
+        /**
+         * Calcula el número de días hábiles (laborables) entre dos fechas (inclusive).
+         * Excluye Sábados (6) y Domingos (0).
+         * @param {string} startDateString - Fecha de inicio (YYYY-MM-DD).
+         * @param {string} endDateString - Fecha de fin (YYYY-MM-DD).
+         * @returns {number} Número de días hábiles. Retorna 0 si las fechas son inválidas o la fecha de inicio es posterior a la de fin.
+         */
+        function calculateWorkingDays(startDateString, endDateString) {
+            // Aseguramos que la fecha se interprete como local (UTC medianoche) para evitar desfases de zona horaria.
+            const startDate = new Date(startDateString + 'T00:00:00'); 
+            const endDate = new Date(endDateString + 'T00:00:00');
 
-        // --- FUNCIONES DE LÓGICA DE NEGOCIO (TARJETA Y TOTALES) ---
+            // Validación básica de fechas
+            if (isNaN(startDate) || isNaN(endDate) || startDate > endDate) {
+                return 0;
+            }
+
+            let workingDays = 0;
+            let currentDate = new Date(startDate); // Creamos una copia para la iteración
+
+            // Iterar día por día
+            while (currentDate <= endDate) {
+                const dayOfWeek = currentDate.getDay(); // 0 = Domingo, 6 = Sábado
+
+                // Si no es Sábado (6) ni Domingo (0), es un día hábil
+                if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                    workingDays++;
+                }
+
+                // Avanzar al siguiente día
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+
+            return workingDays;
+        }
+
+        /**
+         * Lee las fechas de inicio y fin, calcula los días hábiles y actualiza el campo form-dias.
+         */
+        function updateDaysField() {
+            const diaIni = document.getElementById('form-dia-ini')?.value;
+            const diaFin = document.getElementById('form-dia-fin')?.value;
+            const formDias = document.getElementById('form-dias');
+
+            if (diaIni && diaFin && formDias) {
+                const workingDays = calculateWorkingDays(diaIni, diaFin);
+                formDias.value = workingDays;
+            } else if (formDias) {
+                // Limpiar el campo si una de las fechas no está seleccionada
+                formDias.value = '';
+            }
+        }
         
-        /**
-         * Formatea el nombre completo del empleado al estilo: "Primer Nombre M. Apellido P. A."
-         * @param {string} nombres - La cadena de nombres (e.g., "YSABEL LORENA").
-         * @param {string} apellidos - La cadena de apellidos (e.g., "OJEDA CHACON").
-         * @returns {string} El nombre formateado.
-         */
-        function formatEmployeeName(nombres, apellidos) {
-            let formattedName = 'Empleado Desconocido';
-            
-            if (nombres && apellidos) {
-                // 1. Extraer primer nombre y, opcionalmente, la inicial del segundo nombre.
-                const names = String(nombres).trim().split(/\s+/).filter(Boolean); // Filtra strings vacíos
-                const firstName = names[0] || '';
-                // Asume que el segundo elemento es el segundo nombre si existe
-                const middleInitial = names.length > 1 ? names[1].charAt(0) + '.' : ''; 
-
-                // 2. Extraer primer apellido y, opcionalmente, la inicial del segundo apellido.
-                const surnames = String(apellidos).trim().split(/\s+/).filter(Boolean);
-                const firstSurname = surnames[0] || '';
-                // Asume que el segundo elemento es el segundo apellido si existe
-                const lastInitial = surnames.length > 1 ? surnames[1].charAt(0) + '.' : ''; 
-
-                // 3. Ensamblar y limpiar espacios dobles
-                formattedName = `${firstName} ${middleInitial} ${firstSurname} ${lastInitial}`.replace(/\s{2,}/g, ' ').trim();
-                
-                // Si el nombre sigue vacío (por ejemplo, si NOMBRES/APELLIDOS eran solo espacios)
-                if (!formattedName) {
-                    formattedName = 'Empleado Desconocido';
-                }
-            }
-            return formattedName;
-        }
-
-
-        /**
-         * Calcula los totales de días asignados, consumidos y el saldo neto, 
-         * y extrae los datos del empleado.
-         * @param {Array<Object>} data - Los datos (completos o filtrados) de vacaciones.
-         * @returns {Object} Objeto con los totales. No incluye los detalles del empleado aquí.
-         */
-        function calculateVacationTotals(data) {
-            let diasAsignados = 0;
-            let diasConsumidos = 0; // Almacenará un valor negativo
-            
-            // Iterar y sumar los totales
-            data.forEach(row => {
-                const dias = getNumericValue(row['DIAS_VACACIONES']);
-                
-                if (dias > 0) {
-                    diasAsignados += dias;
-                } else if (dias < 0) {
-                    diasConsumidos += dias; // Se agrega el valor negativo (e.g., -15)
-                }
-            });
-            
-            const totalDays = diasAsignados + diasConsumidos; // La suma de positivo y negativo
-            
-            return {
-                diasAsignados: diasAsignados,
-                diasConsumidos: diasConsumidos,
-                totalDays: totalDays
-            };
-        }
-
-
-        /**
-         * Renderiza la estructura de la tarjeta con los detalles fijos del empleado.
-         * @param {Object} details - Los detalles fijos del empleado (Nombre, Cédula, Ingreso, Empresa).
-         * @param {Object} totals - Los totales de vacaciones (Asignados, Consumidos, Neto).
-         */
-        function renderEmployeeCard(details, totals) {
-            const container = document.getElementById('employee-card-container');
-            
-            if (!container) return; 
-
-            if (!details) {
-                container.innerHTML = `
-                    <div class="employee-card p-4 rounded-xl shadow-lg border border-red-700">
-                        <p class="text-center text-red-400 font-semibold">No hay datos de vacaciones para mostrar la tarjeta.</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            const { nombreFormateado, empresa, cedula, fechaIngreso } = details;
-            const { totalDays } = totals; // Se usa para la clase inicial, luego se actualiza
-            
-            // Define las clases dinámicas para la tarjeta Total (Gris si >= 0, Rojo si < 0)
-            const totalCardClasses = totalDays >= 0 
-                ? 'bg-gray-600/80 border-gray-500 hover:bg-gray-500' // Gris para >= 0
-                : 'bg-red-700/80 border-red-500 hover:bg-red-600';
-
-            // *** ESTRUCTURA DE LA TARJETA (MODIFICADA SEGÚN SOLICITUD) ***
-            const cardHTML = `
-                <div class="employee-card p-4 rounded-xl shadow-xl transition duration-300">
-                    
-                    <!-- 1RA FILA: NOMBRE Y EMPRESA (Ambos justificados a la IZQUIERDA) -->
-                    <div class="flex flex-col space-y-1">
-                        
-                        <!-- Nombre del Empleado -->
-                        <div class="flex items-center space-x-2 flex-grow min-w-0 pr-4">
-                            <!-- Ícono de Usuario (circle-user-round) en azul claro -->
-                            <i data-lucide="circle-user-round" class="w-6 h-6 text-blue-300 flex-shrink-0"></i>
-                            <!-- Nombre: Prominente, mayúsculas, justificado a la izquierda -->
-                            <p class="text-lg font-extrabold text-gray-100 leading-snug break-words max-w-full">
-                                ${nombreFormateado.toUpperCase()}
-                            </p>
-                        </div>
-                        
-                        <!-- EMPRESA (Justificado a la izquierda, debajo del nombre) -->
-                        <div class="flex items-center text-sm text-gray-400 space-x-2">
-                            <i data-lucide="factory" class="w-6 h-6 text-gray-400 flex-shrink-0"></i>
-                            <span class="whitespace-normal">${empresa || 'Empresa ZXC'}</span>
-                        </div>
-                    </div>
-
-                    <!-- 2DA FILA: CÉDULA E INGRESO (Alineados a la derecha, en formato de texto simple) -->
-                        <div class="text-right">
-                            <div class="flex flex-col items-end">
-                                <span class="text-sm text-white font-semibold">Cédula: ${formatNumberWithDots(cedula)}</span>
-                                <span class="text-sm text-white font-semibold">Ingreso: ${formatDate(fechaIngreso)}</span>
-                            </div>
-                        </div>
-
-                    <!-- LÍNEA SEPARADORA (Ahora entre detalles fijos y totales) -->
-                    <div class="border-b border-gray-600 mt-2 mb-2"></div>
-
-                    <!-- 3RA GRID: 4 Columnas para Acciones/Totales (grid-cols-4) -->
-                    <div class="grid grid-cols-4 gap-3">
-                        
-                        <!-- Columna 1: Acción Rápida (Agregar) -->
-                        <div class="flex flex-col items-center justify-center p-2 rounded-xl border border-gray-600 bg-gray-600/80 hover:bg-gray-500 transition-colors cursor-pointer"
-                             title="Añadir Nuevo Registro" onclick="loadContent('Agregar')"> 
-                            <i data-lucide="calendar-plus" class="w-8 h-8 text-yellow-400 flex-shrink-0"></i>
-                            <span class="text-xs text-gray-300 mt-1">Agregar</span>
-                        </div>
-
-                    <!-- Columna 2: Asignación Beneficio (Días > 0) -->
-                    <div id="assigned-card" class="p-1.5 rounded-xl shadow-lg flex flex-col items-center justify-center border border-gray-600 bg-gray-700/50">
-                        <!-- Contenido -->
-                        <div class="flex items-center">
-                            <i data-lucide="calendar-arrow-up" class="w-5 h-5 text-green-400 mr-1"></i>
-                            <span id="assigned-value" class="text-xl font-extrabold text-green-400 leading-none">${formatNumberWithDots(totals.diasAsignados)}</span>
-                        </div>
-                        <span class="text-xs text-gray-300 whitespace-nowrap mt-0.5">Asignados</span>
-                    </div>
-                
-                    <!-- Columna 3: Disfrutes Efectivos (Días < 0, valor absoluto) -->
-                    <div id="consumed-card" class="p-1.5 rounded-xl shadow-lg flex flex-col items-center justify-center border border-gray-600 bg-gray-700/50">
-                        <!-- Contenido -->
-                        <div class="flex items-center">
-                            <i data-lucide="calendar-arrow-down" class="w-5 h-5 text-red-400 mr-1"></i>
-                            <span id="consumed-value" class="text-xl font-extrabold text-red-400 leading-none">${formatNumberWithDots(Math.abs(totals.diasConsumidos))}</span>
-                        </div>
-                        <span class="text-xs text-gray-300 whitespace-nowrap mt-0.5">Consumidos</span>
-                    </div>
-                
-                    <!-- Columna 4: Total Días (Neto) -->
-                    <div id="total-card" class="${totalCardClasses} p-1.5 rounded-xl shadow-lg flex flex-col items-center justify-center border-2 transition-colors duration-300">
-                        <!-- Contenido -->
-                        <div class="flex items-center">
-                            <i data-lucide="calendar-check-2" class="w-5 h-5 text-white mr-1"></i>
-                            <span id="total-value" class="text-xl font-extrabold text-white leading-none">${formatNumberWithDots(totalDays)}</span>
-                        </div>
-                        <span class="text-xs text-white-300 whitespace-nowrap mt-0.5">Saldo Neto</span>
-                    </div>           
-                </div>
-            `;
-
-            container.innerHTML = cardHTML;
-            lucide.createIcons(); // Vuelve a crear los íconos Lucide para la tarjeta
-        }
-
-        /**
-         * Actualiza los valores de Asignados, Consumidos y Saldo Neto en la tarjeta del empleado
-         * basándose en los datos filtrados.
-         */
-        function updateCardMetrics(filteredData) {
-            // Recalcular los totales basados en el subconjunto de datos filtrados
-            const totals = calculateVacationTotals(filteredData);
-
-            // Obtener las referencias de los elementos
-            const assignedEl = document.getElementById('assigned-value');
-            const consumedEl = document.getElementById('consumed-value');
-            const totalEl = document.getElementById('total-value');
-            const totalCard = document.getElementById('total-card');
-
-            if (!assignedEl || !consumedEl || !totalEl || !totalCard) {
-                // Si la tarjeta no ha sido renderizada (ej: no hay datos iniciales) o faltan IDs, salir.
-                return;
-            }
-
-            // Si no hay datos filtrados, mostrar 0 y un estado neutral.
-            if (filteredData.length === 0) {
-                assignedEl.textContent = '0';
-                consumedEl.textContent = '0';
-                totalEl.textContent = '0';
-
-                // Resetear el estilo de la tarjeta total a neutral/gris
-                totalCard.classList.remove(
-                    'bg-red-700/80', 'border-red-500', 'hover:bg-red-600',
-                    'bg-gray-600/80', 'border-gray-500', 'hover:bg-gray-500' 
-                );
-                totalCard.classList.add('bg-gray-600/80', 'border-gray-500', 'hover:bg-gray-500');
-
-                return;
-            }
-
-            // Actualizar los valores
-            assignedEl.textContent = formatNumberWithDots(totals.diasAsignados);
-            consumedEl.textContent = formatNumberWithDots(Math.abs(totals.diasConsumidos));
-            totalEl.textContent = formatNumberWithDots(totals.totalDays);
-
-            // Actualizar el estilo de la tarjeta total
-            // Asegurarse de remover todas las posibles clases de color antes de añadir las nuevas.
-            totalCard.classList.remove(
-                'bg-red-700/80', 'border-red-500', 'hover:bg-red-600', 
-                'bg-gray-600/80', 'border-gray-500', 'hover:bg-gray-500' // Incluye el gris para la remoción
-            );
-            
-            const totalDays = totals.totalDays;
-            
-            // LÓGICA DE CLASE DINÁMICA: Gris para positivo/cero, Rojo para negativo.
-            const totalCardClasses = totalDays >= 0
-                ? 'bg-gray-600/80 border-gray-500 hover:bg-gray-500' // GRIS para >= 0
-                : 'bg-red-700/80 border-red-500 hover:bg-red-600'; // ROJO se mantiene para < 0
-            
-            // Re-aplicar las clases de estilo
-            totalCardClasses.split(' ').forEach(cls => totalCard.classList.add(cls));
-        }
-
-
-
-        // --- FUNCIONES DE FILTRO Y ORDENAMIENTO (ACTUALIZADAS) ---
+        // --- LÓGICA DE ORDENAMIENTO Y COMPARACIÓN ---
 
         function getNumericValue(value) {
-            // Se asegura de convertir el valor a un número redondeado o 0 si es inválido
-            // Importante: parseFloat se usa aquí para DIAS_VACACIONES, ya que pueden ser decimales en algunos sistemas.
-            const num = parseFloat(value); 
-            return isNaN(num) || value === '' ? 0 : num; // Devuelve el número (puede ser decimal) o 0
+            const num = Number(value);
+            return isNaN(num) || value === '' ? 0 : Math.round(num); 
         }
 
         function compareValues(valA, valB, order, isNumeric = false) {
@@ -869,34 +784,7 @@
             }
         }
 
-        /**
-         * Ordena los datos de vacaciones filtrados, actualiza las métricas y re-renderiza la tabla.
-         * También actualiza el estado global `currentFilteredData`.
-         * @param {string|null} key - La columna (key) por la cual ordenar. Si es null, aplica el orden por defecto.
-         */
         function sortData(key) {
-            // 1. Filtrar los datos 
-            const filteredData = originalVacacionesData.filter(row => {
-                if (!searchFilter) return true; // Si no hay filtro, devuelve todo
-
-                const searchTerm = searchFilter.toLowerCase();
-                const periodo = String(row['PERIODO'] || '').toLowerCase();
-                
-                // --- Lógica de Filtrado Condicional ---
-                if (filterMode === 'period') {
-                    // MODO 1: Solo filtrar por Periodo
-                    return periodo.includes(searchTerm);
-                } else {
-                    // MODO 2: Filtrar por Periodo O Concepto (default)
-                    const concepto = String(row['DESCRIPCION_CONCEPTO'] || '').toLowerCase();
-                    return periodo.includes(searchTerm) || concepto.includes(searchTerm);
-                }
-            });
-
-            // 2. Clonar el array filtrado para ordenarlo (dataToSort es la versión final de la tabla)
-            const dataToSort = [...filteredData];
-            
-            // 3. Actualiza el estado de ordenamiento
             if (key) {
                 if (currentSortColumn === key) {
                     sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
@@ -904,16 +792,11 @@
                     currentSortColumn = key;
                     sortOrder = 'asc';
                 }
-            } else if (!currentSortColumn) {
-                 currentSortColumn = null;
-                 sortOrder = 'asc';
             }
 
-
-            // 4. Ordenar los datos (Modifica dataToSort in-place)
-            dataToSort.sort((a, b) => {
-                // Ordenamiento por defecto (si no hay una columna activa)
-                if (!currentSortColumn || currentSortColumn === 'CEDULA' || !key) {
+            filteredEmployeeData.sort((a, b) => {
+                if (!key || key === 'CEDULA') {
+                    // Orden de prioridad predeterminado
                     let comparison = compareValues(a.CEDULA, b.CEDULA, 'asc', true);
                     if (comparison !== 0) return comparison;
 
@@ -923,98 +806,31 @@
                     comparison = compareValues(a.DESCRIPCION_CONCEPTO, b.DESCRIPCION_CONCEPTO, 'asc', false);
                     return comparison;
                 } else {
-                    // Ordenamiento por la columna seleccionada
-                    const sortKey = currentSortColumn;
-                    let valA = a[sortKey] !== undefined ? a[sortKey] : '';
-                    let valB = b[sortKey] !== undefined ? b[sortKey] : '';
-                    
-                    // Asume que las columnas de días y bono son numéricas
-                    const isNumeric = ['DIAS_VACACIONES', 'BONO_VACACIONAL'].includes(sortKey); 
+                    let valA = a[key] !== undefined ? a[key] : '';
+                    let valB = b[key] !== undefined ? b[key] : '';
+                    const isNumeric = ['DIAS_VACACIONES', 'BONO_VACACIONAL'].includes(key) && valA !== '' && valB !== '';
                     
                     return compareValues(valA, valB, sortOrder, isNumeric);
                 }
             });
 
-            // 5. *** FIX DEL BUG: ALMACENAR LOS DATOS FILTRADOS Y ORDENADOS EN EL ESTADO GLOBAL ***
-            currentFilteredData = dataToSort; // Ahora currentFilteredData es la fuente exacta de la tabla
-
-            // 6. Actualizar métricas de la tarjeta con los datos filtrados
-            updateCardMetrics(currentFilteredData);
-            
-            // 7. Renderizar la tabla con los datos ordenados y actualizar los iconos
-            renderVacacionesTable(currentFilteredData); 
-            updateSortIcons();
-        }
-
-        /**
-         * Aplica los filtros de búsqueda y luego el ordenamiento actual.
-         */
-        function applyAllFilters() {
-            const input = document.getElementById('search-input');
-            if (input) {
-                // Actualiza el estado del filtro
-                searchFilter = input.value.trim();
-                // Llama a sortData (sin especificar clave) para que filtre, ordene, actualice métricas y renderice
-                sortData(null); 
-            }
+            renderTable(filteredEmployeeData, SECTION_CONFIG['Vacaciones'].columns);
         }
         
-        /**
-         * Limpia el campo de búsqueda y reinicia el filtro.
-         */
-        function clearSearchFilter() {
-            const input = document.getElementById('search-input');
-            const checkbox = document.getElementById('filterByPeriodCheckbox');
-            
-            if (input) {
-                input.value = '';
-            }
-            // Asegura que el checkbox se resetee a su estado inicial
-            checkbox.checked = false; 
-            updateFilterPlaceholder(); // Actualiza el placeholder y el modo de filtro
-            // applyAllFilters se llama dentro de updateFilterPlaceholder si el modo de filtro cambia
-        }
-
-        /**
-         * Actualiza el modo de filtro y el placeholder de la búsqueda, luego llama a applyAllFilters.
-         */
-        function updateFilterPlaceholder() {
-            const input = document.getElementById('search-input');
-            const checkbox = document.getElementById('filterByPeriodCheckbox');
-            
-            if (checkbox.checked) {
-                filterMode = 'period';
-                input.placeholder = "Solo Periodo (YYYY)";
-            } else {
-                filterMode = 'all';
-                input.placeholder = "Periodo o Concepto";
-            }
-            
-            // Aplica el filtro inmediatamente después de cambiar el modo
-            applyAllFilters();
-        }
-
-
-        /**
-         * Actualiza visualmente los iconos de ordenamiento en el encabezado de la tabla.
-         */
         function updateSortIcons() {
-            // 1. Limpia todos los iconos existentes
             document.querySelectorAll('.sort-icon-lucide-container').forEach(container => {
                 container.innerHTML = '';
             });
 
-            // 2. Coloca el icono solo en la columna de ordenamiento actual (si existe)
             if (currentSortColumn) {
                 const iconContainer = document.getElementById(`sort-icon-container-${currentSortColumn}`);
                 
                 if (iconContainer) {
                     const iconName = sortOrder === 'asc' ? 'arrow-up' : 'arrow-down';
                     iconContainer.innerHTML = `
-                        <i data-lucide="${iconName}" class="sort-icon-lucide w-4 h-4 text-white ml-2 opacity-80"></i>
+                        <i data-lucide="${iconName}" class="sort-icon-lucide w-4 h-4 text-white"></i>
                     `;
                     
-                    // Re-renderiza el icono usando Lucide
                     if (typeof lucide !== 'undefined' && lucide.createIcons) {
                         lucide.createIcons();
                     }
@@ -1022,404 +838,724 @@
             }
         }
 
-
-        // --- FUNCIONES DE MODAL DE DETALLE (NUEVAS) ---
-        
         /**
-         * Carga los datos de un registro en el modal y lo muestra.
-         * @param {number} index - El índice (0-based) del registro dentro de `currentFilteredData` (que ahora está ordenado).
+         * Renderiza la tarjeta de información del empleado con el nuevo diseño de 2x3 grids.
          */
-        function openVacationModal(index) {
-            // Asegurarse de que el índice es válido
-            if (index < 0 || index >= currentFilteredData.length) {
-                console.error('Índice de registro no válido:', index);
+        function renderEmployeeInfo() {
+            const infoContainer = document.getElementById('employee-info-card');
+            const data = MOCK_EMPLOYEE_INFO; 
+            
+            if (!infoContainer || !data) return;
+
+            // EL CÁLCULO CLAVE: CALCULAR EL TOTAL DÍAS CON LOS DATOS FILTRADOS
+            const totalDays = filteredEmployeeData.reduce((sum, row) => {
+                const days = getNumericValue(row.DIAS_VACACIONES);
+                return sum + days;
+            }, 0);
+            
+            // CÁLCULOS ADICIONALES PARA LA NUEVA ESTRUCTURA (Días Positivos/Negativos)
+            const diasAsignados = filteredEmployeeData.reduce((sum, row) => {
+                const days = getNumericValue(row.DIAS_VACACIONES);
+                return sum + (days > 0 ? days : 0); // Suma solo los días positivos (Asignaciones)
+            }, 0);
+
+            let diasConsumidos = filteredEmployeeData.reduce((sum, row) => {
+                const days = getNumericValue(row.DIAS_VACACIONES);
+                return sum + (days < 0 ? days : 0); // Suma solo los días negativos (Disfrutes)
+            }, 0);
+            // El campo Disfrutes Efectivos debe ser siempre negativo (ya está implementado aquí)
+            
+            let formattedName = 'Empleado Desconocido';
+            if (data.NOMBRES && data.APELLIDOS) {
+                const names = String(data.NOMBRES).trim().split(/\s+/);
+                const firstName = names[0];
+                const middleInitial = names.length > 1 ? names[1].charAt(0) + '.' : '';
+                const surnames = String(data.APELLIDOS).trim().split(/\s+/);
+                const firstSurname = surnames[0];
+                const lastInitial = surnames.length > 1 ? surnames[1].charAt(0) + '.' : '';
+
+                formattedName = `${firstName} ${middleInitial} ${firstSurname} ${lastInitial}`.replace(/\s{2,}/g, ' ').trim();
+            }
+            
+            const formattedCedula = formatNumberWithDots(data.CEDULA);
+            const formattedIngreso = formatDate(data.INGRESO);
+
+            infoContainer.innerHTML = `
+            <div id="worker-card" class="bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-500 dark:bg-gray-800/90">
+                <!-- 1RA GRID (2 Columnas: Nombre | Cédula y Fecha Ingreso) -->
+                <div class="grid grid-cols-2 gap-4 pb-2 mb-2 border-b border-blue-800 dark:border-gray-700">
+                        
+                    <!-- Columna 1: Nombre del Trabajador (Formato destacado) -->
+                    <div>
+                        <h3 class="text-xl font-extrabold text-white leading-tight">
+                            ${formattedName}
+                        </h3>
+                        <!-- BOTÓN DE AÑADIR NUEVO REGISTRO -->
+                        <button class="p-1" title="Añadir Nuevo Registro" onclick="loadContent('Agregar')"> 
+                            <i data-lucide="calendar-plus" class="w-6 h-6 text-yellow-400"></i>
+                        </button>
+                    </div>
+                        
+                    <!-- Columna 2: Cédula y Fecha Ingreso (Alineado a la derecha) -->
+                    <div class="text-right">
+                        <div class="flex flex-col items-end">
+                            <span class="text-sm text-white font-semibold">Cédula: ${formattedCedula}</span>
+                            <span class="text-sm text-white font-semibold">Ingreso: ${formattedIngreso}</span>
+                        </div>
+                    </div>
+                </div>
+            
+            <div class="grid grid-cols-1 grid-cols-3 gap-2">
+                
+                <!-- Columna 1: Asignación Beneficio (Días > 0) -->
+                <div class="p-1.5 rounded-xl shadow-lg flex items-center space-x-2">
+                    <!-- Columna Interna 1: Ícono -->
+                    <div class="flex-shrink-0">
+                        <i data-lucide="calendar-arrow-up" class="w-6 h-6 text-green-400"></i>
+                    </div>
+                    <!-- Columna Interna 2: Cantidad y Etiqueta -->
+                    <div class="flex flex-col leading-tight">
+                        <span class="text-xl font-extrabold text-green-400 leading-none">${diasAsignados}</span>
+                        <span class="text-xs text-gray-300 whitespace-nowrap">Asignaciones</span>
+                    </div>
+                </div>
+                
+                <!-- Columna 2: Disfrutes Efectivos (Días < 0, valor absoluto) -->
+                <div class="p-1.5 rounded-xl shadow-lg flex items-center space-x-2">
+                    <!-- Columna Interna 1: Ícono -->
+                    <div class="flex-shrink-0">
+                        <i data-lucide="calendar-arrow-down" class="w-6 h-6 text-red-400"></i>
+                    </div>
+                    <!-- Columna Interna 2: Cantidad y Etiqueta -->
+                    <div class="flex flex-col leading-tight">
+                        <span class="text-xl font-extrabold text-red-400 leading-none">${diasConsumidos}</span>
+                        <span class="text-xs text-gray-300 whitespace-nowrap">Disfrutes</span>
+                    </div>
+                </div>
+                
+                <!-- Columna 3: Total Días (Neto) -->
+                <div id="total-card" class="p-1.5 rounded-xl bg-gray-700 shadow-lg flex items-center space-x-2 border-2 border-yellow-400">
+                    <!-- Columna Interna 1: Ícono -->
+                    <div class="flex-shrink-0">
+                        <i data-lucide="calendar-check-2" class="w-6 h-6 text-yellow-400"></i>
+                    </div>
+                    <!-- Columna Interna 2: Cantidad y Etiqueta -->
+                    <div class="flex flex-col leading-tight">
+                        <span class="text-xl font-extrabold text-yellow-400 leading-none" id="total-value">${totalDays}</span>
+                        <span class="text-xs text-gray-300 whitespace-nowrap">Total Días</span>
+                    </div>
+                </div>
+                
+            </div>
+        
+            `;
+            
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                lucide.createIcons();
+            }
+        }
+
+        // --- FUNCIONES PRINCIPALES DE DATOS Y FILTRADO ---
+
+        /**
+         * Carga los datos de la hoja activa desde la URL de Google Apps Script y aplica el filtro por Cédula.
+         * @param {boolean} forceRefresh - Si es true, omite el caché.
+         */
+        async function loadData(forceRefresh = false) {
+            
+            const config = SECTION_CONFIG['Vacaciones'];
+            if (!config) {
+                console.log(`La sección "${currentSheet}" no requiere carga de datos de hoja.`);
                 return;
             }
+            
+            const statusElement = document.getElementById('table-loading-status');
+            const tableScrollWrapper = document.getElementById('table-scroll-wrapper');
+            const tableContainer = document.getElementById(config.tableContainerId);
 
-            // 1. Actualizar el estado global del índice
-            currentRecordIndex = index;
+            if (statusElement) {
+                statusElement.innerHTML = `
+                    <div class="text-center py-10">
+                        <i data-lucide="loader-circle" class="w-8 h-8 mx-auto animate-spin text-blue-400"></i> 
+                        <p class="mt-2 text-sm text-gray-400">Cargando datos de la hoja "${currentSheet}"...</p>
+                    </div>
+                `;
+                statusElement.style.display = 'block';
+            }
             
-            // 2. Obtener los datos del registro (Ahora usa el índice correcto de la lista ORDENADA)
-            const record = currentFilteredData[currentRecordIndex];
+            if (tableScrollWrapper) {
+                if (tableContainer) tableContainer.innerHTML = '';
+                tableScrollWrapper.style.display = 'none';
+            } else if (tableContainer) {
+                tableContainer.innerHTML = '';
+            }
+
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                lucide.createIcons(); 
+            }
+
+            let allEmployeeData = [];
+            let isDataCached = false;
+
+
+            // --- 1. LECTURA Y VALIDACIÓN DEL CACHÉ (Solo para Vacaciones) ---
+            if (currentSheet === 'Vacaciones2' && !forceRefresh) {
+                try {
+                    const cachedData = localStorage.getItem(CACHE_VAC_KEY);
+                    if (cachedData) {
+                        const cache = JSON.parse(cachedData);
+                        const now = new Date().getTime();
+                        
+                        if (now < cache.timestamp + CACHE_EXPIRATION_MS) {
+                            allEmployeeData = cache.data;
+                            isDataCached = true;
+                            console.log("Datos de Vacaciones cargados desde el caché.");
+                        } else {
+                            console.log("Caché de Vacaciones expirado.");
+                            localStorage.removeItem(CACHE_VAC_KEY);
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error al leer o parsear el caché:", e);
+                    localStorage.removeItem(CACHE_VAC_KEY);
+                }
+            }
+
+
+            // --- 2. CARGA DESDE LA API (Si el caché no es válido) ---
+            if (!isDataCached) {
+                try {
+                    const apiUrl = buildGasApiUrl(currentSheet); 
+                    // Se usa fetch simple según solicitud.
+                    const response = await fetch(apiUrl, { method: 'GET' }); 
+
+                    if (!response.ok) {
+                        throw new Error(`Error de red: ${response.status} ${response.statusText || 'Error desconocido'}`);
+                    }
+
+                    const result = await response.json();
+                    let data = result;
+
+                    if (result && result.data && Array.isArray(result.data)) {
+                        data = result.data;
+                    } else if (!Array.isArray(result)) {
+                        throw new Error("Formato de datos no válido.");
+                    }
+                    
+                    allEmployeeData = data;
+
+                    // --- 3. ESCRITURA EN EL CACHÉ (Solo para Vacaciones) ---
+                    if (currentSheet === 'Vacaciones2') {
+                        const cacheEntry = {
+                            data: allEmployeeData,
+                            timestamp: new Date().getTime()
+                        };
+                        localStorage.setItem(CACHE_VAC_KEY, JSON.stringify(cacheEntry));
+                        console.log("Nuevos datos de Vacaciones guardados en caché.");
+                    }
+                    // --- FIN ESCRITURA EN EL CACHÉ ---
+                    
+                } catch (error) {
+                    console.error(`Fallo al obtener los datos de ${currentSheet}:`, error);
+                    if (statusElement) statusElement.style.display = 'none';
+                    if (tableScrollWrapper) tableScrollWrapper.style.display = 'none';
+                    return; // Salir si la API falló y no había datos en caché para usar
+                }
+            }
+
+            // --- 4. PROCESAR Y RENDERIZAR DATOS (Tanto si vienen de caché como de la API) ---
+
+            // **NOTA IMPORTANTE:** Se asume que la API de GAS devuelve los nuevos campos DIA_INI y DIA_FIN.
+            // Para fines de visualización, si el dato está vacío, se mostrará 'N/A'.
             
-            // 3. Rellenar los campos del modal
-            document.getElementById('detail-periodo').textContent = record['PERIODO'] || 'N/A';
-            document.getElementById('detail-concepto').textContent = record['DESCRIPCION_CONCEPTO'] || 'N/A';
-            document.getElementById('detail-dia-ini').textContent = formatDate(record['DIA_INICIO']);
-            document.getElementById('detail-dia-fin').textContent = formatDate(record['DIA_FINAL']);
+            // 5. Aplicar FILTRO por TARGET_CEDULA
+            if (TARGET_CEDULA !== null) {
+                const targetNum = Number(TARGET_CEDULA);
+                userBaseData = allEmployeeData.filter(row => {
+                    const rowCedula = Number(row.CEDULA);
+                    return rowCedula === targetNum;
+                });
+            } else {
+                userBaseData = [...allEmployeeData];
+            }
             
-            const diasVacaciones = formatNumberWithDots(record['DIAS_VACACIONES']);
-            document.getElementById('detail-dias').textContent = diasVacaciones;
+            // 6. Renderizar Info y Tabla
+            renderEmployeeInfo();
             
-            const bonoVacacional = formatNumberWithDots(record['BONO_VACACIONAL']);
-            document.getElementById('detail-bono').textContent = bonoVacacional;
+            if (statusElement) statusElement.style.display = 'none';
+            if (tableScrollWrapper) tableScrollWrapper.style.display = 'block';
+
+            // Inicializar placeholder y aplicar filtros
+            updateFilterPlaceholder();
+            currentSortColumn = 'CEDULA';
+            sortOrder = 'asc';
+            applyAllFilters();
+        }
+        
+        /**
+         * Actualiza el placeholder del input de búsqueda y llama a aplicar filtros.
+         */
+        function updateFilterPlaceholder() {
+            const searchInput = document.getElementById('search-input');
+            const checkbox = document.getElementById('filterByPeriodCheckbox');
             
-            // 4. Actualizar el contador de navegación
-            const totalRecords = currentFilteredData.length;
+            if (!searchInput || !checkbox) return; // Asegurar que los elementos existan
+
+            if (checkbox.checked) {
+                searchInput.placeholder = "Solo Periodo";
+            } else {
+                searchInput.placeholder = "Periodo o Concepto";
+            }
+            // Re-aplicar el filtro inmediatamente después del cambio de modo
+            applyAllFilters(); 
+        }
+
+        /**
+         * Aplica todos los filtros (Búsqueda por Texto) a userBaseData y 
+         * actualiza la interfaz (Total Días y Tabla).
+         */
+        function applyAllFilters() {
+            const searchInput = document.getElementById('search-input');
+            const checkbox = document.getElementById('filterByPeriodCheckbox');
+            
+            if (!searchInput || !checkbox) return; // Asegurar que los elementos existan
+
+            const query = (searchInput.value || '').toLowerCase().trim();
+            const filterByPeriodOnly = checkbox.checked;
+            
+            let tempFilteredData = [...userBaseData];
+            
+            // 1. Filtrar por Búsqueda de Texto
+            if (query.length > 0) {
+                tempFilteredData = tempFilteredData.filter(row => {
+                    const periodo = String(row.PERIODO || '').toLowerCase();
+                    const concepto = String(row.DESCRIPCION_CONCEPTO || '').toLowerCase();
+                    
+                    if (filterByPeriodOnly) {
+                        // Filtrar SOLO por PERIODO
+                        return periodo.includes(query);
+                    } else {
+                        // Filtrar por PERIODO O CONCEPTO
+                        return periodo.includes(query) || concepto.includes(query);
+                    }
+                });
+            }
+
+            filteredEmployeeData = tempFilteredData;
+
+            // 2. Renderizar componentes afectados
+            renderEmployeeInfo(); // Actualiza el total de días (basado en filteredEmployeeData)
+            sortData(currentSortColumn); // Re-ordena y renderiza la tabla
+        }
+
+        /**
+         * Restaura los datos originales del usuario, limpia el campo de búsqueda y 
+         * desactiva el filtro por periodo.
+         */
+        function clearSearchFilter() {
+            const searchInput = document.getElementById('search-input');
+            const checkbox = document.getElementById('filterByPeriodCheckbox');
+            
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            
+            if (checkbox) {
+                checkbox.checked = false; // Desactivar el filtro de periodo
+            }
+
+            updateFilterPlaceholder(); // Esto llama a applyAllFilters
+        }
+
+
+        /**
+         * Renderiza la tabla en el contenedor.
+         */
+        function renderTable(data, columnsConfig) {
+            
+            const config = SECTION_CONFIG['Vacaciones'];
+            const container = document.getElementById(config.tableContainerId);
+            
+            if (!container) return;
+            if (data.length === 0) {
+                container.innerHTML = `<p class="text-center py-4 text-gray-400">No se encontraron registros que coincidan con los filtros aplicados.</p>`;
+                return;
+            }
+            
+            const narrowIdWidth = "30px";
+            let tableHtml = `
+                <table class="border-collapse">
+                    <thead>
+                        <tr>
+                            <th class="sticky-id-cell p-3 text-sm header" style="width: ${narrowIdWidth};">ID</th>
+                            ${columnsConfig.map(col => {
+                                const sortClass = 'sortable-header';
+                                const sortClick = `onclick="sortData('${col.key}')"`;
+                                
+                                return `<th class="text-sm ${sortClass}" ${sortClick}><div class="flex items-center justify-center space-x-1"><span>${col.label}</span><div id="sort-icon-container-${col.key}" class="sort-icon-lucide-container"></div></div></th>`;
+                            }).join('')}
+                        </tr>
+                    </thead>
+                    <tbody id="vacation-table-body">
+            `;
+            
+            // Genera las filas de datos
+            data.forEach((row, index) => {
+                const rowId = index + 1; 
+                const hasWarning = row.CTRL1 && String(row.CTRL1).trim() !== '';
+
+                tableHtml += `
+                    <!-- IMPORTANTE: data-index almacena la posición del registro en filteredEmployeeData -->
+                    <tr class="worker-row ${hasWarning ? 'row-warning-text' : ''}" data-id="${rowId}" data-index="${index}">
+                        <td class="table-data-cell sticky-id-cell px-1 text-xs text-center" style="width: ${narrowIdWidth};">${rowId}</td>
+                        ${columnsConfig.map(col => {
+                            const value = row[col.key] || '';
+                            let formattedValue = String(value);
+                            let alignmentClass = 'text-center'; 
+                            
+                            if (col.key === 'BONO_VACACIONAL') {
+                                alignmentClass = 'text-right'; 
+                            } else if (col.key === 'DIAS_VACACIONES') {
+                                alignmentClass = 'text-right'; 
+                            } else if (col.key === 'DESCRIPCION_CONCEPTO') {
+                                alignmentClass = 'text-left'; 
+                            } else if (col.key === 'PERIODO') {
+                                alignmentClass = 'text-center'; 
+                            }
+                            
+                            const pxClass = 'px-1';
+                            
+                            return `<td class="table-data-cell ${alignmentClass} ${pxClass}">${formattedValue}</td>`;
+                        }).join('')}
+                    </tr>
+                `;
+            });
+            
+            tableHtml += `</tbody></table>`;
+            container.innerHTML = tableHtml;
+            
+            updateSortIcons();
+            
+            // Adjuntar el evento de doble clic DESPUÉS de renderizar las filas
+            attachRowDblClickListeners();
+        }
+        
+        /**
+         * Adjunta el event listener de doble clic a todas las filas de la tabla.
+         */
+        function attachRowDblClickListeners() {
+            document.querySelectorAll('#vacation-table-body .worker-row').forEach(row => {
+                row.addEventListener('dblclick', (e) => {
+                    const targetRow = e.currentTarget; 
+                    const index = parseInt(targetRow.dataset.index, 10);
+                    
+                    // Almacenar el índice actual y mostrar el modal
+                    currentRecordIndex = index;
+                    showVacationDetailModal();
+                });
+            });
+        }
+        
+        // --- LÓGICA DEL MODAL DE DETALLE DE VACACIONES ---
+        
+        /** Cierra el modal de detalle de vacaciones. */
+        function closeVacationModal(event) {
+            // Cierra al hacer clic en el botón 'x', el fondo (overlay), o con la tecla ESC
+            if (!event || event.target.id === 'VacationDetailModal' || event.target.closest('button[data-lucide="x"]')) {
+                document.getElementById('VacationDetailModal').style.display = 'none';
+            }
+        }
+        
+        /**
+         * Muestra el modal de detalle, carga el registro actual y lo posiciona.
+         */
+        function showVacationDetailModal() {
+            const modal = document.getElementById('VacationDetailModal');
+            const modalContentWrapper = document.getElementById('vacation-modal-content-wrapper');
+            const workerCard = document.getElementById('worker-card');
+
+            if (currentRecordIndex < 0 || currentRecordIndex >= filteredEmployeeData.length) {
+                console.error("Índice de registro fuera de rango.");
+                return;
+            }
+            
+            const record = filteredEmployeeData[currentRecordIndex];
+            const totalRecords = filteredEmployeeData.length;
+            
+            // 1. Cargar Datos en el Modal
             document.getElementById('registro-count').textContent = `Registro ${currentRecordIndex + 1} de ${totalRecords}`;
+            document.getElementById('detail-periodo').textContent = record.PERIODO || 'N/A';
+            document.getElementById('detail-concepto').textContent = record.DESCRIPCION_CONCEPTO || 'N/A';
             
-            // 5. Habilitar/Deshabilitar botones de navegación
+            // CAMPOS DE FECHA
+            document.getElementById('detail-dia-ini').textContent = formatDate(record.DIA_INI); 
+            document.getElementById('detail-dia-fin').textContent = formatDate(record.DIA_FIN);
+            
+            document.getElementById('detail-dias').textContent = `${record.DIAS_VACACIONES || 0}`;
+            document.getElementById('detail-bono').textContent = record.BONO_VACACIONAL;
+
+            // 2. Posicionar el Modal (Clave: Debajo de la tarjeta del trabajador)
+            if (workerCard) {
+                const cardRect = workerCard.getBoundingClientRect();
+                const cardBottomPosition = cardRect.bottom + window.scrollY; 
+                
+                modalContentWrapper.style.top = `${cardBottomPosition + 10}px`; 
+                modalContentWrapper.style.position = 'absolute';
+            } else {
+                modalContentWrapper.style.top = '100px'; 
+            }
+            
+            // 3. Actualizar estado de navegación
             updateNavigationButtons();
 
-            // 6. Mostrar el modal
-            const modal = document.getElementById('VacationDetailModal');
-            modal.classList.add('open');
-            // Inicializa los íconos de Lucide dentro del modal por si acaso
-            lucide.createIcons();
-        }
-        
-        /**
-         * Cierra el modal de detalle de vacaciones.
-         * @param {Event} event - El evento (opcional, si se dispara al hacer clic fuera).
-         */
-        function closeVacationModal(event) {
-            // Si el evento existe y el clic no fue directamente en el overlay, ignorar.
-            // Esto evita que el clic en el contenido del modal lo cierre.
-            if (event && event.target.id !== 'VacationDetailModal') {
-                return;
-            }
+            // 4. Mostrar el Modal
+            modal.style.display = 'flex';
             
-            const modal = document.getElementById('VacationDetailModal');
-            modal.classList.remove('open');
-            currentRecordIndex = -1; // Resetear el índice al cerrar
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                lucide.createIcons();
+            }
         }
         
         /**
-         * Navega al registro anterior o siguiente y recarga el modal.
-         * @param {number} direction - -1 para anterior, 1 para siguiente.
+         * Navega al registro anterior o siguiente y actualiza el modal.
+         * @param {number} direction - -1 para Anterior, 1 para Siguiente.
          */
         function navigateRecord(direction) {
             let newIndex = currentRecordIndex + direction;
-            const totalRecords = currentFilteredData.length;
 
-            if (newIndex >= 0 && newIndex < totalRecords) {
-                openVacationModal(newIndex);
+            if (newIndex >= 0 && newIndex < filteredEmployeeData.length) {
+                currentRecordIndex = newIndex;
+                showVacationDetailModal(); 
             }
         }
-        
+
         /**
-         * Habilita o deshabilita los botones de navegación del modal.
+         * Habilita o deshabilita los botones de navegación.
          */
         function updateNavigationButtons() {
-            const total = currentFilteredData.length;
+            const total = filteredEmployeeData.length;
             const prevBtn = document.getElementById('prev-record-btn');
             const nextBtn = document.getElementById('next-record-btn');
 
-            if (!prevBtn || !nextBtn) return;
-
-            // Botón Anterior
-            if (currentRecordIndex > 0) {
-                prevBtn.disabled = false;
-                prevBtn.classList.remove('disabled-nav');
-            } else {
-                prevBtn.disabled = true;
-                prevBtn.classList.add('disabled-nav');
-            }
-
-            // Botón Siguiente
-            if (currentRecordIndex < total - 1) {
-                nextBtn.disabled = false;
-                nextBtn.classList.remove('disabled-nav');
-            } else {
-                nextBtn.disabled = true;
-                nextBtn.classList.add('disabled-nav');
-            }
+            if (prevBtn) prevBtn.classList.toggle('disabled-nav', currentRecordIndex <= 0);
+            if (nextBtn) nextBtn.classList.toggle('disabled-nav', currentRecordIndex >= total - 1);
         }
-
-
-        // --- FUNCIONES DE CARGA Y RENDERIZADO (con modificación) ---
-
-        function displayStatusMessage(message, type = 'info') {
-            const container = document.getElementById('vacaciones-table-view');
-            let iconHtml = '';
-            let color = 'text-gray-400';
-
-            switch (type) {
-                case 'loading':
-                    iconHtml = '<i data-lucide="loader-circle" class="w-6 h-6 mr-2 animate-spin"></i>';
-                    color = 'text-blue-400';
-                    break;
-                case 'error':
-                    iconHtml = '<i data-lucide="x-circle" class="w-6 h-6 mr-2"></i>';
-                    color = 'text-red-400';
-                    break;
-                case 'no-data':
-                    iconHtml = '<i data-lucide="inbox" class="w-6 h-6 mr-2"></i>';
-                    color = 'text-yellow-400';
-                    break;
-            }
-
-            container.innerHTML = `
-                <div class="flex items-center justify-center p-8 bg-gray-700/50 rounded-lg ${color} transition duration-300">
-                    ${iconHtml}
-                    <p class="text-center font-medium">${message}</p>
-                </div>
-            `;
-            lucide.createIcons();
-        }
-
-        /**
-         * Carga los datos de vacaciones, primero intentando usar el caché y, si es necesario, 
-         * consultando la fuente de red.
-         * @param {boolean} skipCache - Si es true, fuerza la recarga de la red.
-         * @returns {Promise<Array>} Los datos de vacaciones.
+        
+        // --- LÓGICA DEL NUEVO MODAL DE AÑADIR/EDITAR VACACIONES ---
+        
+        /** * Cierra el modal de añadir/editar vacaciones. 
          */
-        async function loadVacacionesData(skipCache = false) {
-            displayStatusMessage("Cargando datos de vacaciones...", 'loading');
+        function closeVacationAddEditModal(event) {
+            if (!event || event.target.id === 'VacationAddEditModal' || event.target.closest('button[data-lucide="x"]')) {
+                document.getElementById('VacationAddEditModal').style.display = 'none';
+            }
+        }
+        
+        /** * Abre el formulario para un nuevo registro. 
+         * IMPORTANTE: Aquí inicializamos DIA_INI con la fecha actual.
+         */
+        function openNewVacationForm() {
+            const modal = document.getElementById('VacationAddEditModal');
+            const modalContentWrapper = document.getElementById('vacation-add-edit-content-wrapper');
+            const workerCard = document.getElementById('worker-card');
+
+            // 1. Posicionar el Modal (Clave: Debajo de la tarjeta del trabajador)
+            if (workerCard) {
+                const cardRect = workerCard.getBoundingClientRect();
+                const cardBottomPosition = cardRect.bottom + window.scrollY; 
+                modalContentWrapper.style.top = `${cardBottomPosition + 10}px`; 
+                modalContentWrapper.style.position = 'absolute';
+            } else {
+                modalContentWrapper.style.top = '100px'; 
+            }
             
-            // --- 1. INTENTAR CARGAR DESDE CACHÉ ---
-            try {
-                const cachedData = localStorage.getItem(CACHE_KEY);
-                const currentTime = Date.now();
+            // 2. Limpiar/Inicializar campos 
+            document.getElementById('form-modal-title').textContent = 'Añadir Nuevo Evento';
+            document.getElementById('form-periodo').value = ''; 
+            document.getElementById('form-concepto').value = '';
+            
+            // === LÓGICA PARA ASIGNAR LA FECHA ACTUAL AL DÍA INICIO ===
+            document.getElementById('form-dia-ini').value = obtenerFechaActual(); 
+            
+            document.getElementById('form-dia-fin').value = ''; 
+            document.getElementById('form-dias').value = 0; 
+            document.getElementById('form-bono').value = '';
+            
+            // 3. Mostrar el Modal
+            modal.style.display = 'flex';
+            
+            // 4. Asegurarse de que el cálculo se ejecute (debe dar 0 si DIA_FIN está vacío)
+            updateDaysField(); 
 
-                if (cachedData && !skipCache) {
-                    const cache = JSON.parse(cachedData);
-                    const cacheAge = currentTime - cache.timestamp;
-                    
-                    if (cacheAge < CACHE_DURATION_MS) {
-                        console.log(`Datos cargados desde caché. Expiración en: ${Math.round((CACHE_DURATION_MS - cacheAge) / 1000)}s`);
-                        return cache.data;
-                    } else {
-                        console.log("El caché ha expirado. Recargando datos...");
-                        localStorage.removeItem(CACHE_KEY);
-                    }
-                }
-            } catch (e) {
-                console.error("Error al gestionar el caché local:", e);
-                localStorage.removeItem(CACHE_KEY);
-            }
-
-
-            // --- 2. CARGAR DESDE LA RED (si el caché falló o expiró) ---
-            try {
-                const sheetName = 'Vacaciones2';
-                const urlWithParams = `${GET_URL}?sheet=${sheetName}&cedula=${CEDULA}`;
-
-                const response = await fetch(urlWithParams);
-                
-                if (!response.ok) {
-                    throw new Error(`Error en la red: ${response.status} ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                let fetchedData = [];
-
-                if (data && Array.isArray(data.data)) {
-                    fetchedData = data.data;
-                } else if (Array.isArray(data)) {
-                     fetchedData = data;
-                } else if (data && data.error) {
-                    throw new Error(`Error en el GAS: ${data.error}`);
-                } else {
-                    throw new Error("Formato de datos no válido recibido del servidor.");
-                }
-
-                // --- 3. GUARDAR EN CACHÉ ---
-                const cacheToSave = {
-                    timestamp: Date.now(),
-                    data: fetchedData
-                };
-                localStorage.setItem(CACHE_KEY, JSON.stringify(cacheToSave));
-                console.log("Nuevos datos guardados en caché.");
-                
-                return fetchedData;
-
-            } catch (error) {
-                console.error("Error al obtener los datos de vacaciones:", error);
-                displayStatusMessage(`Error: No se pudieron cargar los datos. (${error.message})`, 'error');
-                return [];
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                lucide.createIcons();
             }
         }
 
-        /**
-         * RENDERIZADO DE LA TABLA: Añadido el evento ondbclick y el data-index a cada fila.
-         */
-        function renderVacacionesTable(data) {
-            const container = document.getElementById('vacaciones-table-view');
 
-            if (!data || data.length === 0) {
-                const message = searchFilter 
-                    ? `No se encontraron resultados para "${searchFilter}".`
-                    : "No se encontraron registros de vacaciones para esta Cédula.";
-                displayStatusMessage(message, searchFilter ? 'no-data' : 'info');
+        // --- FUNCIÓN PRINCIPAL DE NAVEGACIÓN ---
+
+        function loadContent(section) {
+            const mainContent = document.getElementById('main-content');
+            mainContent.innerHTML = ''; 
+            
+            if (section === 'Inicio') {
+                window.location.href = 'Inicio.html';
+                return; 
+            }
+    
+            if (section === 'Editar') {
+                window.location.href = 'EditarDat.html';
                 return;
             }
-            
-            // Columnas de Formato
-            const DATE_COLUMNS = ['INGRESO', 'DIA_INICIO', 'DIA_FINAL'];
-            const DATETIME_COLUMN = 'RegistroDate'; 
-            const NUMBER_DOT_COLUMNS = ['CEDULA', 'BONO_VACACIONAL', 'DIAS_VACACIONES']; // Incluye Bono y Días para formateo
-            
-            // 1. Crear el encabezado de la tabla (TH)
-            const tableHeader = `<th class="fixed-column">ID</th>` + TABLE_COLUMNS.map(col => {
-                // Excluir columnas de la tarjeta que no son útiles en la tabla (ya se ven en la tarjeta)
-                if (['NOMBRES', 'APELLIDOS', 'EMPRESA', 'NOMBRE_EMPLEADO'].includes(col)) return ''; 
 
-                return `
-                    <th onclick="sortData('${col}')">
-                        <div class="header-content">
-                            <span class="header-content-text">${col}</span>
-                            <span id="sort-icon-container-${col}" class="sort-icon-lucide-container">
-                                <!-- El icono se inyecta en updateSortIcons() -->
-                            </span>
-                        </div>
-                    </th>
-                `;
-            }).join('');
-
-            // 2. Crear las filas del cuerpo de la tabla (TR y TD)
-            const tableBody = data.map((row, index) => {
-                // El index aquí corresponde a la posición del registro en el array *filtrado y ordenado*
-                const idCell = `<td class="fixed-column">${index + 1}</td>`;
-                
-                const rowCells = TABLE_COLUMNS.map(col => {
-                    // Excluir columnas de la tarjeta
-                    if (['NOMBRES', 'APELLIDOS', 'EMPRESA', 'NOMBRE_EMPLEADO'].includes(col)) return '';
-                    
-                    let cellValue = row[col] !== undefined && row[col] !== null ? row[col] : '';
-
-                    // Aplica formateo condicional
-                    if (col === DATETIME_COLUMN) {
-                        cellValue = formatDateTime(cellValue);
-                    } else if (DATE_COLUMNS.includes(col)) {
-                        cellValue = formatDate(cellValue);
-                    } else if (NUMBER_DOT_COLUMNS.includes(col)) {
-                        cellValue = formatNumberWithDots(cellValue);
-                    }
-
-                    return `<td>${cellValue}</td>`;
-                }).join('');
-                
-                // *** EVENTO DOBLE CLIC AÑADIDO A LA FILA ***
-                return `<tr ondblclick="openVacationModal(${index})">${idCell}${rowCells}</tr>`; 
-            }).join('');
-
-            // 3. Ensamblar la estructura completa de la tabla
-            container.innerHTML = `
-                <table class="data-table">
-                    <thead>
-                        <tr>${tableHeader}</tr>
-                    </thead>
-                    <tbody>
-                        ${tableBody}
-                    </tbody>
-                </table>
-            `;
-            
-            // Re-renderiza los íconos de Lucide
-            lucide.createIcons();
-            // Llama a updateSortIcons para mostrar el indicador de la columna de ordenamiento activa
-            updateSortIcons();
-        }
-
-        function initVacacionesView(forceReload = false) {
-            // Limpia el contenido de la tarjeta antes de la carga
-            const cardContainer = document.getElementById('employee-card-container');
-            if (cardContainer) {
-                 cardContainer.innerHTML = `
-                    <div class="employee-card p-4 rounded-xl shadow-lg border border-gray-700">
-                        <p class="text-center text-gray-400">Cargando información del trabajador...</p>
-                    </div>
-                 `;
+            if (section === 'Agregar') {
+                window.location.href = 'Agregar.html';
+                return;
             }
+    
+            if (section === 'Perfil') {
+                window.location.href = 'PerfilUser.html';
+                return;
+            }
+    
+            if (section === 'Configuración') {
+                window.location.href = 'ConfigApp.html';
+                return;
+            }
+            else if (section === 'Vacaciones') {
+                
+                mainContent.innerHTML = `
+                    <div id="data-view-container" class="w-full pb-2">
+                        <div id="employee-info-card" class="mb-4"></div>
+                        
+                        <!-- FILA 1: Checkbox de Filtrado por Periodo (Mantenido separado) -->
+                        <div class="flex items-center space-x-2 mb-1"> 
+                            
+                            <!-- Contenedor del Checkbox -->
+                            <div class="flex items-center space-x-2 p-0">
+                                <!-- APLICACIÓN DEL CAMBIO 1: Tamaño del checkbox a w-3 h-3 -->
+                                <input type="checkbox" id="filterByPeriodCheckbox" onchange="updateFilterPlaceholder()" class="w-4 h-4 rounded text-blue-500 light:bg-gray-200 dark:bg-gray-600 border-gray-400 focus:ring-blue-500">
+                                <label for="filterByPeriodCheckbox" class="text-2x1 text-white select-none">Filtrar por Periodo</label>
+                            </div>
+                        </div>      
 
-            // Reiniciar el estado de ordenamiento
-            currentSortColumn = null;
-            sortOrder = 'asc';
+                        <!-- FILA 2: Input de Búsqueda y Botones -->
+                        <div class="flex items-center space-x-2 mb-2"> 
+                            
+                            <!-- Input de Búsqueda -->
+                            <div class="relative flex-grow rounded-xl"> 
+                                <input type="text" id="search-input" 
+                                    placeholder="Periodo o Concepto" 
+                                    class="w-full pl-10 pr-4 py-2 rounded-xl shadow-inner 
+                                           light:bg-white dark:bg-gray-700 
+                                           text-gray-900 dark:text-gray-100 
+                                           placeholder-gray-400 border light:border-gray-300 dark:border-gray-600 
+                                           focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    onkeyup="applyAllFilters()"> 
+                                <!-- Icono de búsqueda con buen contraste -->
+                                <i data-lucide="search" class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 light:text-gray-500 dark:text-gray-300"></i> 
+                            </div> 
+                            
+                            <!-- Botones de Limpiar y Recargar -->
+                            <button id="clear-search-btn" 
+                                    class="p-2.5 rounded-full light:bg-white hover:bg-gray-700 shadow-md transition-colors duration-150 text-red-500 dark:text-red-400 font-bold" 
+                                    title="Reiniciar Filtros"
+                                    onclick="clearSearchFilter()"> 
+                                <i data-lucide="x-circle" class="w-7 h-7"></i> 
+                            </button>
+                            <button id="reload-icon" class="p-2 rounded-full text-blue-400 hover:bg-gray-700 transition duration-150" title="Recargar Datos (Omitir Caché)">
+                                    <i data-lucide="refresh-cw" class="w-6 h-6"></i>
+                            </button> 
+                        </div>      
+                        
+                        <div class="flex justify-between items-start mt-1 mb-1"> 
+                            <div><h2 class="text-2xl font-bold text-blue-400">Registros de Vacaciones</h2></div>                        
+                        </div>
+                        <div id="table-loading-status" class="text-center py-10" style="display: none;"></div>
+                        <div id="table-scroll-wrapper" class="table-scroll-container">
+                            <div id="employee-table-container"></div>
+                        </div>
+                    </div>
+                `;
+                
+                currentSheet = 'Vacaciones2';
+                loadData();
+
+                document.getElementById('reload-icon').addEventListener('click', () => {
+                    currentSortColumn = 'CEDULA';
+                    sortOrder = 'asc';
+                    loadData(true); 
+                });
+                
+            } 
+            else {
+                mainContent.innerHTML = `<div class="flex-grow flex items-center justify-center p-8 text-center w-full min-h-[300px]"><div class="bg-gray-700 p-6 rounded-xl shadow-lg w-full max-w-sm text-gray-200"><i data-lucide="alert-triangle" class="w-10 h-10 mx-auto text-yellow-400 mb-3"></i><h3 class="text-xl font-bold mb-2">Sección "${section}"</h3><p class="text-sm">Esta funcionalidad aún está en desarrollo.</p></div></div>`;
+                currentSheet = 'Vacaciones2';
+            }
             
-            // Resetear el filtro de búsqueda y el modo de filtro
-            const searchInput = document.getElementById('search-input');
-            const checkbox = document.getElementById('filterByPeriodCheckbox');
-            if (searchInput) searchInput.value = '';
-            if (checkbox) checkbox.checked = false;
-             
-            // Se llama a updateFilterPlaceholder para establecer el modo 'all' y el placeholder inicial,
-            // y luego se llama a applyAllFilters (esto se hace internamente en updateFilterPlaceholder).
-            // NOTA: updateFilterPlaceholder llamará a applyAllFilters -> sortData
-            // sortData(null) es lo que finalmente desencadena la actualización de la tarjeta y la tabla.
-            
-            loadVacacionesData(forceReload).then(fetchedData => {
-                 if (fetchedData.length > 0) {
-                    originalVacacionesData = fetchedData;
-                    
-                    // PASO CLAVE 1: Inicializar los detalles fijos del empleado
-                    const rowData = fetchedData[0];
-                    const formattedName = formatEmployeeName(rowData['NOMBRES'], rowData['APELLIDOS']);
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                lucide.createIcons();
+            }
+        }
+        
+        // --- INICIALIZACIÓN ---
 
-                    employeeFixedDetails = {
-                        nombreFormateado: formattedName,
-                        empresa: rowData['EMPRESA'],
-                        cedula: rowData['CEDULA'],
-                        fechaIngreso: rowData['INGRESO'] 
-                    };
-
-                    // PASO CLAVE 2: Renderizar la ESTRUCTURA de la tarjeta con los detalles y los totales COMPLETOS
-                    const initialTotals = calculateVacationTotals(fetchedData);
-                    renderEmployeeCard(employeeFixedDetails, initialTotals);
-
-                    // PASO CLAVE 3: Aplicar filtros/ordenamiento inicial (que recalcula las métricas)
-                    updateFilterPlaceholder(); // Esto llama a applyAllFilters -> sortData
-                } else {
-                    originalVacacionesData = [];
-                    employeeFixedDetails = null;
-                    // Si no hay datos, renderizar la tarjeta vacía también
-                    renderEmployeeCard(null, {});
+        function setActiveFooterButton(section) {
+            const footerButtons = document.querySelectorAll('.footer-btn');
+            footerButtons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-section') === section) {
+                    btn.classList.add('active');
                 }
             });
         }
 
-
-        // Función principal para cargar el contenido de la sección y manejar la navegación MPA
-        function loadContent(section) {
-            console.log("Navegando a la sección:", section);
-
-            // Redirección a archivos HTML individuales
-            const navigationMap = {
-                'Inicio': 'Inicio.html',
-                'Vacaciones': 'Vacaciones.html',
-                'Agregar': 'AgregarDat.html',
-                'Editar': 'EditarDat.html',
-                'Perfil': 'PerfilUser.html',
-                'Configuración': 'ConfigApp.html'
-            };
-
-            const targetFile = navigationMap[section];
-
-            if (targetFile) {
-                window.location.href = targetFile;
-                return; 
-            }
-            
-            console.error(`ERROR: Sección no mapeada para navegación: ${section}`);
-        }
-        
-        // --- INICIALIZACIÓN DE LA APLICACIÓN ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Lógica para mostrar solo el primer nombre del usuario si existe en localStorage
-            const usuarioNombreCompleto = localStorage.getItem('Usuario_Nombre');
-            const headerTitle = document.querySelector('#app-header h1');
             
-            if (usuarioNombreCompleto && headerTitle) {
-                const primerNombre = usuarioNombreCompleto.trim().split(' ')[0];
-                headerTitle.textContent = `¡Hola, ${primerNombre}!`;
-            }
+            const initialSection = 'Vacaciones';
+            loadContent(initialSection); 
+            setActiveFooterButton(initialSection); 
 
-            // Agrega event listeners para la navegación MPA, llamando a loadContent
             const footerButtons = document.querySelectorAll('.footer-btn');
+            // CORRECCIÓN DEL ERROR DE REFERENCIA: Uso correcto de forEach
             footerButtons.forEach(button => {
                 button.addEventListener('click', () => {
                     const section = button.getAttribute('data-section');
-                    loadContent(section);
+                    setActiveFooterButton(section);
+                    loadContent(section); 
                 });
             });
             
-            // 4. Llama a la función de inicialización para cargar los datos al iniciar (no forzado)
-            initVacacionesView(false);
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    // Cerrar ambos modales
+                    if (document.getElementById('VacationDetailModal').style.display === 'flex') {
+                        closeVacationModal();
+                    }
+                    if (document.getElementById('VacationAddEditModal').style.display === 'flex') {
+                        closeVacationAddEditModal();
+                    }
+                }
+            });
+            
+            // --- Lógica de CÁLCULO DE DÍAS HÁBILES: Listeners en inputs del modal ---
+            const iniInput = document.getElementById('form-dia-ini');
+            const finInput = document.getElementById('form-dia-fin');
+            const formDias = document.getElementById('form-dias');
 
-            // Inicializa los íconos de Lucide nuevamente.
-            lucide.createIcons();
+            if (iniInput && finInput && formDias) {
+                // Hacemos que el campo 'form-dias' sea de solo lectura
+                formDias.readOnly = true; 
+                
+                // Adjuntamos la función de cálculo al cambiar cualquiera de las fechas
+                iniInput.addEventListener('change', updateDaysField);
+                finInput.addEventListener('change', updateDaysField);
+            } else {
+                console.warn("No se encontraron todos los campos de fecha ('form-dia-ini', 'form-dia-fin') o el campo de días ('form-dias').");
+            }
         });
-        
+
     </script>
 </body>
 </html>
