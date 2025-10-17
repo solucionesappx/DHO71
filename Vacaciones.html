@@ -460,11 +460,59 @@
 
         // 1. Constantes de configuración
         const GET_URL = 'https://script.google.com/macros/s/AKfycbx87WvxA9ca1KyGMA1wsw1npZw5vPtjoItomhF823BICXScNrWGFh5m0Dj6Veb24CtHXQ/exec'; 
-        const CEDULA = '13105322'; // Cédula para filtrar los datos en el GAS
-        const CACHE_KEY = `vacaciones_data_${CEDULA}`; // Clave única para el caché
-        const CACHE_DURATION_MS = 15 * 6_0 * 1000; // 15 minutos en milisegundos
+        // const CEDULA = '13105322'; // Cédula para filtrar los datos en el GAS
+
+
+                // --- LÓGICA DE CARGA DE DATOS DEL EMPLEADO (LOCALSTORAGE/MOCK) ---
+        const EMPLOYEE_TRANSFER_KEY = 'userInfoToEdit';
+
+        /**
+         * Carga la información del empleado desde localStorage (si existe y es válida) 
+         * o usa la información mock por defecto.
+         */
+        function getEmployeeInfo() {
+            const defaultInfo = {
+                CEDULA: 13105322, 
+                INGRESO: '13/10/2015',
+                NOMBRES: 'YSABEL XUISANA',
+                APELLIDOS: 'HOJEDA CASTILLO',
+            };
+            
+            try {
+                const cachedData = localStorage.getItem(EMPLOYEE_TRANSFER_KEY);
+                if (cachedData) {
+                    const employeeInfo = JSON.parse(cachedData);
+                    console.log("✅ Datos del empleado cargados desde localStorage:", employeeInfo);
+                    // Asegurar que usamos al menos la cédula, y combinar con el mock en caso de faltar datos
+                    if (employeeInfo && employeeInfo.CEDULA) {
+                        return { ...defaultInfo, ...employeeInfo }; 
+                    }
+                }
+            } catch (error) {
+                // Si hay un error de parseo o lectura, caemos al valor por defecto
+                console.error("Error al parsear los datos del empleado desde localStorage, usando mock:", error);
+            }
+            
+            console.log("❌ Usando datos mock por defecto.");
+            return defaultInfo;
+        }
+
+        const MOCK_EMPLOYEE_INFO = getEmployeeInfo();
+        let CEDULA = MOCK_EMPLOYEE_INFO.CEDULA; // Cédula del trabajador actual
+
+        const CACHE_KEY = `vacaciones_data_${MOCK_EMPLOYEE_INFO.CEDULA}`; // Clave única para el caché
+        const CACHE_DURATION_MS = 900000; // 15 minutos en milisegundos
+
 
         
+        let filteredEmployeeData = []; // Datos que se muestran en la tabla (filtrados por cédula y búsqueda)
+        let userBaseData = []; // Base de datos del usuario filtrada por Cédula (para aplicar filtros).
+        let currentSheet = 'Vacaciones2'; 
+       
+        // Variables de estado para el modal de detalle
+        let currentRecordIndex = -1; // Índice del registro actual en filteredEmployeeData
+
+
         // 2. Definición de las columnas de la tabla 'Vacaciones2'
         const TABLE_COLUMNS = [
             'NOMBRE_EMPLEADO', 'INGRESO', 'PERIODO', 'DESCRIPCION_CONCEPTO', 
@@ -483,9 +531,7 @@
         let filterMode = 'all'; // 'all' (Periodo o Concepto) o 'period' (Solo Periodo)
         
         // ESTADO GLOBAL DEL MODAL: Almacena los datos actualmente filtrados y *ordenados*
-        let currentFilteredData = []; 
-        let currentRecordIndex = -1;
-        
+        let currentFilteredData = [];       
 
         // --- FUNCIONES DE FORMATEO (sin cambios) ---
         
@@ -557,6 +603,7 @@
                 return String(value);
             }
         }
+
 
 
         // --- FUNCIONES DE LÓGICA DE NEGOCIO (TARJETA Y TOTALES) ---
@@ -649,13 +696,11 @@
             const { totalDays } = totals; // Se usa para la clase inicial, luego se actualiza
             
             // Define las clases dinámicas para la tarjeta Total (Gris si >= 0, Rojo si < 0)
-            // Para el estado inicial (>= 0) usamos el gris.
             const totalCardClasses = totalDays >= 0 
                 ? 'bg-gray-600/80 border-gray-500 hover:bg-gray-500' // Gris para >= 0
                 : 'bg-red-700/80 border-red-500 hover:bg-red-600';
 
-            // ATENCIÓN: Se modificó la estructura de la tarjeta de totales para usar un grid de 4 columnas iguales (gap-3)
-            // y se integró el botón de acción en una columna separada para mejor responsividad.
+            // *** ESTRUCTURA DE LA TARJETA (MODIFICADA SEGÚN SOLICITUD) ***
             const cardHTML = `
                 <div class="employee-card p-4 rounded-xl shadow-xl transition duration-300">
                     
