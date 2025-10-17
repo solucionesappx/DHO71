@@ -334,23 +334,22 @@
             <form id="vacation-form" class="space-y-4">
                 
                 <!-- SECCIÓN 1: DATOS DEL TRABAJADOR (DISPLAY READ-ONLY) -->
-                <div class="p-5 bg-gray-800 rounded-xl shadow-lg border border-gray-700 mt-4">
+                <div class="p-5 bg-gray-800 rounded-xl shadow-lg border border-gray-700 mt-2">
                     
                     <!-- ENCABEZADO CON TÍTULO Y BOTÓN DE CIERRE -->
-                    <div class="flex justify-between items-start mb-3 pb-2 border-b border-gray-700">
+                    <div class="flex justify-between items-start mb-1 pb-0 border-b border-gray-700">
                         <h3 class="text-lg font-bold text-blue-300 flex items-center">
                             <i data-lucide="user-check" class="w-5 h-5 mr-2"></i>
                             Datos del Trabajador
                         </h3>
-                        <!-- Botón de Cierre de Modal (Implementado según la solicitud) -->
-                        <!-- Aquí cerramos el formulario y volvemos a la vista de inicio. -->
+                        <!-- Botón de Cierre de Modal -->
                         <button type="button" onclick="loadContent('Vacaciones')" class="p-1 rounded-full text-red-400 hover:text-red-600 transition duration-150">
-                            <!-- CLASES AJUSTADAS: -mt-4 -mr-4 -->
+
                             <i data-lucide="x" class="w-6 h-6 icon-x relative -mt-4 -mr-4"></i> 		
                         </button>
                     </div>
                     
-                    <!-- INICIO DEL NUEVO DISEÑO DE DATOS DEL TRABAJADOR -->
+                    <!-- INICIO DISEÑO DE DATOS DEL TRABAJADOR -->
                     <div class="grid grid-cols-2 gap-4">
                         
                         <!-- Columna 1: Nombre del Trabajador (Formato destacado) -->
@@ -363,8 +362,6 @@
                         <!-- Columna 2: Cédula y Fecha Ingreso (Alineado a la derecha) -->
                         <div class="text-right">
                             <div class="flex flex-col items-end">
-                                <!-- Texto en gris más sutil para Cédula y Fecha -->
-                                <!-- CAMBIO APLICADO: Cédula ahora usa el placeholder del valor formateado -->
                                 <span class="text-sm text-gray-400 font-semibold">Cédula: <span class="text-gray-300" id="display-cedula">{{CEDULA_FORMATTED}}</span></span>
                                 <span class="text-sm text-gray-400 font-semibold">Ingreso: <span class="text-gray-300" id="display-ingreso">{{INGRESO}}</span></span>
                             </div>
@@ -373,7 +370,6 @@
                     <!-- FIN DEL NUEVO DISEÑO -->
 
                     <!-- CAMPOS OCULTOS para el formulario de envío (se llenan en loadContent) -->
-                    <!-- *** autocomplete="off" agregado a campos hidden *** -->
                     <input type="hidden" id="form-nombres-apellidos" name="NOMBRE_EMPLEADO_COMPLETO" autocomplete="off">
                     <input type="hidden" id="form-cedula" name="CEDULA" autocomplete="off">
                     <input type="hidden" id="form-ingreso" name="INGRESO" autocomplete="off">
@@ -438,7 +434,7 @@
                             </p>
                         </div>
 
-                        <!-- Monto del Bono -->
+                        <!-- Cantidad del Bono -->
                         <div>
                             <label for="form-bono" class="form-label">BONO VACACIONAL</label>
                             <!-- *** autocomplete="off" agregado *** -->
@@ -448,7 +444,7 @@
                         </div>
                     </div>
                     
-                    <!-- Botón de Envío: RESTAURADO A w-full -->
+                    <!-- Botón de Envío -->
                     <button type="button" onclick="sendDataToGas();" 
                             id="submit-btn"
                             class="w-full px-6 py-3 bg-blue-600 text-white font-bold rounded-lg shadow-xl hover:bg-blue-700 transition duration-150 transform hover:scale-[1.01] mt-6 disabled:opacity-50 disabled:cursor-not-allowed">
