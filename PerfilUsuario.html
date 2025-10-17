@@ -204,8 +204,9 @@
         const NAV_MAP = {
             'Inicio': 'Inicio.html',
             'Vacaciones': 'Vacaciones.html',
-            'Editar': 'EditarDat.html', // Actualizado a 'EditarDat.html'
+            'Editar': 'Inicio.html', // Actualizado a 'EditarDat.html'
             'Perfil': 'PerfilUsuario.html',
+            'Agregar': 'AgregarDat.html',
             'Configuración': 'ConfigApp.html'
         };
         
@@ -342,7 +343,7 @@
             if (section === 'Editar') {
                 closeModalOnly(); 
                 setActiveFooterButton(section);
-                window.location.href = 'EditarDat.html';
+                window.location.href = 'Inicio.html';
                 return;
             }
         
