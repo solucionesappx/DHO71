@@ -230,7 +230,7 @@
         // ====================================================================================
         // *** 1. CONFIGURACIÓN CRÍTICA: URL DE DESPLIEGUE DE GAS (ACTUALIZADA) ***
         // ====================================================================================
-        const POST_URL = "https://script.google.com/macros/s/AKfycbxjneZ_WpBjmIEAqtutJgk0m3oqsa0-OsmHjfPxBqZNfDb9gYzWV4kQ8hoXXIK5EAVSANA/exec"; 
+        const POST_URL = "https://script.google.com/macros/s/AKfycbxjneZ_WpBjmIEAqtutJgk0m3oqsa0-OsmHjfPxBqZNfDb9gYzWV4kQ8hoXXIK5EAVnSA/exec"; 
 
         // ====================================================================================
         // *** 2. CONSTANTES DE CLAVE DE USUARIO EN LOCAL STORAGE ***
@@ -376,8 +376,7 @@
                     <!-- *** autocomplete="off" agregado a campos hidden *** -->
                     <input type="hidden" id="form-nombres-apellidos" name="NOMBRE_EMPLEADO_COMPLETO" autocomplete="off">
                     <input type="hidden" id="form-cedula" name="CEDULA" autocomplete="off">
-                    <!-- CRÍTICO: El campo INGRESO debe tener name="INGRESO" para ser incluido en FormData -->
-                    <input type="hidden" id="form-ingreso" name="INGRESO" autocomplete="off"> 
+                    <input type="hidden" id="form-ingreso" name="INGRESO" autocomplete="off">
 
                 </div>
 
@@ -806,7 +805,7 @@
         }
 
 
-        // --- 8. FUNCIÓN PRINCIPAL DE ENVÍO A GAS (ACTUALIZADA con la inclusión de INGRESO) ---
+        // --- 8. FUNCIÓN PRINCIPAL DE ENVÍO A GAS (ACTUALIZADA con limpieza de Bono/Período) ---
 
         async function sendDataToGas() {
             const form = document.getElementById('vacation-form');
@@ -828,15 +827,6 @@
             const formData = new FormData(form);
             const dataToSend = {};
             
-            // *** CORRECCIÓN CRÍTICA: Asegurar que el campo INGRESO se incluya en dataToSend ***
-            // Aunque es un campo hidden con name="INGRESO", a veces FormData falla con campos no visibles. 
-            // Lo extraemos directamente para asegurar.
-            const ingresoEl = document.getElementById('form-ingreso');
-            if(ingresoEl) {
-                dataToSend['INGRESO'] = ingresoEl.value;
-            }
-            // ******************************************************************************
-
             for (const [key, value] of formData.entries()) {
                 const trimmedValue = (typeof value === 'string') ? value.trim() : value;
                 
@@ -848,11 +838,9 @@
                     processedValue = String(trimmedValue).replace(/\./g, '');
                 }
 
+
                 // Los campos numéricos se convierten a número, el resto se añade como string.
-                // CRÍTICO: INGRESO ya fue añadido, pero si FormData lo vuelve a dar (como string), 
-                // lo respetamos como string aquí, ya que es una fecha.
                 if (['CEDULA', 'DIAS_VACACIONES', 'BONO_VACACIONAL', 'PERIODO'].includes(key)) {
-                    // Solo convertir a número si no es INGRESO y es una de estas claves
                     dataToSend[key] = Number(processedValue) || 0;
                 } else {
                     dataToSend[key] = processedValue;
@@ -881,7 +869,7 @@
             dataToSend['IDX'] = USER_INFO.usuarioIdx || '0';
             dataToSend['RegistroUser'] = USER_INFO.usuarioNombre || 'Usuario Desconocido'; 
 
-            console.log('Datos finales a enviar (Verifique INGRESO aquí):', dataToSend);
+            console.log('Datos finales a enviar:', dataToSend);
 
             // 3. Convertir el objeto a cuerpo URL-encoded
             const urlEncodedBody = objectToUrlEncoded(dataToSend);
