@@ -141,6 +141,7 @@
             z-index: 10;
             /* El padding se mueve a .header-content para permitir el diseño flex */
             padding: 0; 
+            max-height: 450px; 
         }
 
         /* Estilos para el contenido del encabezado (texto + icono) */
@@ -279,7 +280,7 @@
             <div id="scroll-container">
                 
                 <!-- 1. TARJETA DE INFORMACIÓN DEL TRABAJADOR -->
-                <div id="employee-card-container" class="pt-2 mb-6">
+                <div id="employee-card-container" class="pt-1 mb-4">
                     <!-- El contenido de la tarjeta se inyectará aquí -->
                     <div class="employee-card p-4 rounded-xl shadow-lg border border-gray-700">
                         <p class="text-center text-gray-400">Cargando información del trabajador...</p>
@@ -705,7 +706,7 @@
                 <div class="employee-card p-4 rounded-xl shadow-xl transition duration-300">
                     
                     <!-- 1RA FILA: NOMBRE Y EMPRESA (Ambos justificados a la IZQUIERDA) -->
-                    <div class="pb-3">
+                    <div class="flex flex-col space-y-1">
                         
                         <!-- Nombre del Empleado -->
                         <div class="flex items-center space-x-2 flex-grow min-w-0 pr-4">
