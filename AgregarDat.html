@@ -137,13 +137,12 @@
            <h1 class="text-xl font-bold cursor-pointer hover:opacity-80 transition-opacity" onclick="loadContent('Inicio');">
                 Mi Aplicación Móvil DHO <!-- Título de fallback -->
             </h1>
-            <div class="flex space-x-3">
-                
-                <!-- Botón de Cerrar Sesión con redirección a index.html (Simulado) -->
-                <button class="p-2 rounded-full hover:opacity-80 transition-opacity" onclick="alert('Cerrando Sesión...');">
+             <div class="flex space-x-3">
+                  <!-- Botón de Cerrar Sesión con redirección a index.html -->
+                <button class="p-2 rounded-full hover:opacity-80 transition-opacity" onclick="window.location.href = 'index.html'">
                     <i data-lucide="log-out" class="w-6 h-6 text-red-400 dark:text-red-300"></i>
                 </button>
-            </div>
+             </div>
         </header>
 
         <!-- El contenido principal se carga aquí mediante JavaScript -->
