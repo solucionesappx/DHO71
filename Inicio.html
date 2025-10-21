@@ -436,15 +436,11 @@
         let sortOrder = 'asc'; // 'asc' (ascendente), 'desc' (descendente)
         
         // --- CONSTANTES ---
-        // URL de implementación de Google Apps Script proporcionada por el usuario (OBLIGATORIA)
-        const BASE_GAS_API_URL = 'https://script.google.com/macros/s/AKfycbx87WvxA9ca1KyGMA1wsw1npZw5vPtjoItomhF823BICXScNrWGFh5m0Dj6Veb24CtHXQ/exec';
-        const TARGET_SHEET_NAME = 'BD_Personal2'; // Nombre de la hoja de datos
-        const USUARIO_NOMBRE_KEY = 'Usuario_Nombre';
-        
-        // URL de implementación de Google Apps Script para el MÉTODO POST (Actualización)
-        // ⚠️ DEBES REEMPLAZAR ESTA URL CON LA DE TU IMPLEMENTACIÓN DE GAS.
+        const GET_URL = 'https://script.google.com/macros/s/AKfycbx87WvxA9ca1KyGMA1wsw1npZw5vPtjoItomhF823BICXScNrWGFh5m0Dj6Veb24CtHXQ/exec';
         const POST_URL = 'https://script.google.com/macros/s/AKfycbxjneZ_WpBjmIEAqtutJgk0m3oqsa0-OsmHjfPxBqZNfDb9gYzWV4kQ8hoXXIK5EAVnSA/exec'; 
-
+        const TARGET_SHEET_NAME = 'BD_Personal2'; // Nombre de la hoja de datos
+        
+        const USUARIO_NOMBRE_KEY = 'Usuario_Nombre';
         const usuarioTienda = localStorage.getItem('Usuario_Tienda');
         const usuarioNombre = localStorage.getItem('Usuario_Nombre');
         const usuarioPerfil = localStorage.getItem('Usuario_Perfil');
@@ -516,7 +512,7 @@
 
         // --- FUNCIONES DE MANEJO DE DATOS GAS ---
         function buildGasApiUrl(sheetName) {
-            return `${BASE_GAS_API_URL}?sheet=${sheetName}`;
+            return `${GET_URL}?sheet=${sheetName}`;
         }
         
         /**
