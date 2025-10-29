@@ -373,7 +373,7 @@
 
                     <!-- CAMPOS OCULTOS para el formulario de envío (se llenan en loadContent) -->
                     <!-- *** autocomplete="off" agregado a campos hidden *** -->
-                    <input type="hidden" id="form-nombres-apellidos" name="NOMBRE_EMPLEADO_COMPLETO" autocomplete="off">
+                    <input type="hidden" id="form-nombres-apellidos" name="NOMBRE_EMPLEADO" autocomplete="off">
                     <input type="hidden" id="form-cedula" name="CEDULA" autocomplete="off">
                     <input type="hidden" id="form-ingreso" name="INGRESO" autocomplete="off">
 
@@ -403,16 +403,16 @@
                                     autocomplete="off" class="form-input"></textarea>
                     </div>
 
-                    <!-- DÍA DE INICIO / DÍA DE FIN -->
+                    <!-- DÍA INICIO / DÍA FIN -->
                     <div class="grid grid-cols-2 gap-4 pt-2">
                         <div>
-                            <label for="form-dia-ini" class="form-label">DÍA DE INICIO *</label>
+                            <label for="form-dia-ini" class="form-label">DÍA INICIO *</label>
                             <!-- autocomplete="off" no es estrictamente necesario para type="date" pero se añade por consistencia -->
                             <input type="date" id="form-dia-ini" name="DIA_INICIO" required
                                 autocomplete="off" class="form-input">
                         </div>
                         <div>
-                            <label for="form-dia-fin" class="form-label">DÍA DE FIN *</label>
+                            <label for="form-dia-fin" class="form-label">DÍA FINAL *</label>
                             <!-- autocomplete="off" no es estrictamente necesario para type="date" pero se añade por consistencia -->
                             <input type="date" id="form-dia-fin" name="DIA_FINAL" required
                                 autocomplete="off" class="form-input">
@@ -433,7 +433,7 @@
                             <!-- *** autocomplete="off" agregado a campo hidden *** -->
                             <input type="hidden" id="form-dias" name="DIAS_VACACIONES" value="0" autocomplete="off">
                             <p id="dias-habiles-info" class="text-xs text-gray-400 mt-1">
-                                Calculado automáticamente (días hábiles).
+                                Calculado automáticamente <br> (días hábiles).
                             </p>
                         </div>
 
@@ -459,25 +459,6 @@
                 </div>
             </form>
         `;
-
-        // Contenido de ejemplo para otras secciones
-        const INICIO_CONTENT = `
-            <div class="p-6 bg-gray-800 rounded-xl shadow-lg border border-gray-700 mt-4 space-y-4">
-                <h2 class="text-3xl font-bold text-white mb-2">👋 Bienvenido</h2>
-                <p class="text-gray-400">Esta es la página de <span class="font-bold text-blue-400">Inicio</span> de tu aplicación de gestión de DHO.</p>
-                <div class="p-4 bg-gray-700 rounded-lg">
-                    <p class="text-sm font-semibold text-gray-300">Usuario Logueado (Simulación):</p>
-                    <p class="text-xs text-gray-400">Cédula: ${formatNumberWithDots(MOCK_EMPLOYEE_INFO.CEDULA)}</p>
-                    <p class="text-xs text-gray-400">Nombre: ${formatEmployeeName(MOCK_EMPLOYEE_INFO)}</p>
-                </div>
-                <p class="text-sm text-gray-400">Utiliza los botones inferiores para navegar entre secciones. El botón <span class="font-bold text-green-400">Agregar</span> te permite registrar una nueva solicitud.</p>
-            </div>
-        `;
-        // Los contenidos de Perfil, Configuración, Editar y Vacaciones ahora están obsoletos porque se usa window.location.href.
-        const PERFIL_CONTENT = `<div class="p-6 bg-gray-800 rounded-xl shadow-lg border border-gray-700 mt-4"><h2 class="text-xl font-bold text-white mb-2">👤 Perfil</h2><p class="text-gray-400">Información detallada del usuario y estadísticas personales.</p></div>`;
-        const CONFIGURACION_CONTENT = `<div class="p-6 bg-gray-800 rounded-xl shadow-lg border border-gray-700 mt-4"><h2 class="text-xl font-bold text-white mb-2">⚙️ Configuración</h2><p class="text-gray-400">Opciones para cambiar la apariencia, notificaciones y preferencias.</p></div>`;
-        const EDITAR_CONTENT = `<div class="p-6 bg-gray-800 rounded-xl shadow-lg border border-gray-700 mt-4"><h2 class="text-xl font-bold text-white mb-2">✏️ Editar Registros</h2><p class="text-gray-400">Aquí se mostrará la lista de registros existentes para su edición.</p></div>`;
-
 
         // --- 5. FUNCIONES DE UTILIDAD Y ALERTA (ACTUALIZADA con formatNumberWithDots) ---
 
@@ -509,7 +490,7 @@
          * @param {boolean} isError - Si es un mensaje de error.
          * @param {boolean} isDismissible - Si el modal puede cerrarse manualmente (default: true).
          */
-        function showCustomAlert(title, message, isError = false, isDismissible = true) {
+        function showCustomAlert(title, message, isError = false, isDismissible = true, callback = null) {
             const modal = document.getElementById('custom-alert-modal');
             const titleEl = document.getElementById('alert-title');
             const messageEl = document.getElementById('alert-message');
@@ -596,6 +577,53 @@
         }
 
         // --- 6. FUNCIONES AUXILIARES DE GESTIÓN DEL FORMULARIO (MANTENIDA) ---
+   
+        /**
+         * Lee la información del trabajador de localStorage y actualiza el encabezado del formulario,
+         * y establece el valor predeterminado para el campo PERIODO.
+         */
+        function renderEmployeeDetails() {
+            const EMPLOYEE_TRANSFER_KEY = 'userInfoToEdit';
+            const workerInfoJSON = localStorage.getItem(EMPLOYEE_TRANSFER_KEY);
+            const workerInfo = workerInfoJSON ? JSON.parse(workerInfoJSON) : {};
+
+            const nameDisplay = document.getElementById('display-employee-name');
+            const cedulaDisplay = document.getElementById('display-cedula');
+            const ingresoDisplay = document.getElementById('display-ingreso');
+            const cedulaInput = document.getElementById('form-cedula'); // Campo oculto
+            const periodoInput = document.getElementById('form-periodo'); // Campo PERIODO
+
+            if (!workerInfo.CEDULA) {
+                if (nameDisplay) nameDisplay.textContent = 'Error: Empleado no cargado';
+                return;
+            }
+
+            const nombres = workerInfo.NOMBRES || '';
+            const apellidos = workerInfo.APELLIDOS || '';
+            const cedula = workerInfo.CEDULA || '';
+            const ingreso = workerInfo.INGRESO || 'N/A';
+            
+            // 1. Formatear el nombre
+            const formattedName = formatEmployeeName(nombres, apellidos);
+            
+            // 2. Formatear la Cédula con puntos
+            const formattedCedula = formatNumberWithDots(cedula);
+
+            // Actualización de los elementos HTML visuales del encabezado
+            if (nameDisplay) nameDisplay.textContent = formattedName;
+            if (cedulaDisplay) cedulaDisplay.textContent = formattedCedula; 
+            if (ingresoDisplay) ingresoDisplay.textContent = ingreso;
+            
+            // 3. Establecer el valor de la cédula en el campo oculto
+            if (cedulaInput) cedulaInput.value = cedula;
+
+            // 🛑 4. ESTABLECER PERIODO POR DEFECTO: Año actual del sistema
+            if (periodoInput) {
+                const currentYear = new Date().getFullYear();
+                periodoInput.value = currentYear.toString();
+            }
+        }
+
 
         /**
          * Limpia los campos de entrada del formulario de solicitud (no los ocultos).
@@ -708,17 +736,20 @@
          * @param {object} data - Objeto de empleado con NOMBRES y APELLIDOS.
          * @returns {string} El nombre formateado.
          */
-        function formatEmployeeName(data) {
+        // Nueva versión: Espera dos argumentos (nombres y apellidos)
+        function formatEmployeeName(nombres, apellidos) {
             let formattedName = 'Empleado Desconocido';
             
-            if (data && data.NOMBRES && data.APELLIDOS) {
+            // 🛑 La lógica ahora comprueba los argumentos individuales
+            if (nombres && apellidos) {
                 // Normalización y split de nombres
-                const names = String(data.NOMBRES).trim().split(/\s+/).filter(p => p.length > 0);
+                // Usamos los argumentos directos 'nombres' y 'apellidos'
+                const names = String(nombres).trim().split(/\s+/).filter(p => p.length > 0);
                 const firstName = names[0] || '';
                 const middleInitial = names.length > 1 ? names[1].charAt(0) + '.' : '';
                 
                 // Normalización y split de apellidos
-                const surnames = String(data.APELLIDOS).trim().split(/\s+/).filter(p => p.length > 0);
+                const surnames = String(apellidos).trim().split(/\s+/).filter(p => p.length > 0);
                 const firstSurname = surnames[0] || '';
                 const lastInitial = surnames.length > 1 ? surnames[1].charAt(0) + '.' : '';
 
@@ -773,7 +804,7 @@
                 if (businessDays > 0) {
                     diasInputDisplay.value = businessDays;
                     diasInputHidden.value = businessDays;
-                    infoText.textContent = 'Calculado automáticamente (días hábiles).';
+                    infoText.textContent = 'Calculado automáticamente' <br> '(días hábiles).';
                 } else if (businessDays === 0) {
                     diasInputDisplay.value = 0;
                     diasInputHidden.value = 0;
@@ -790,7 +821,7 @@
             } else {
                 diasInputDisplay.value = 0;
                 diasInputHidden.value = 0;
-                infoText.textContent = 'Calculado automáticamente (días hábiles).';
+                infoText.textContent = 'Calculado automáticamente' <br> '(días hábiles).';
             }
         }
 
@@ -807,38 +838,66 @@
         // --- 8. FUNCIÓN PRINCIPAL DE ENVÍO A GAS (ACTUALIZADA con limpieza de Bono/Período) ---
 
         async function sendDataToGas() {
+            // 0. AISLAR LÓGICA DE DATOS DEL EMPLEADO
+            const EMPLOYEE_TRANSFER_KEY = 'userInfoToEdit';
+            const workerInfoJSON = localStorage.getItem(EMPLOYEE_TRANSFER_KEY);
+            const workerInfo = workerInfoJSON ? JSON.parse(workerInfoJSON) : {};
+
+            if (!workerInfo.CEDULA) {
+                setLoadingState(false);
+                showCustomAlert("Error de Datos", "No se encontró la información del empleado seleccionado. Vuelve a la vista de Vacaciones.", true);
+                return;
+            }
+            
+            const nombres = workerInfo.NOMBRES || '';
+            const apellidos = workerInfo.APELLIDOS || '';
+            const formattedEmployeeName = formatEmployeeName(nombres, apellidos); 
+            // -----------------------------------------------------------------------------------
+
             const form = document.getElementById('vacation-form');
             
+            // 1. VALIDACIÓN BÁSICA DEL FORMULARIO
             if (!form.checkValidity()) {
                 form.reportValidity(); 
                 return;
             }
 
+            // 2. VALIDACIONES DE REGLAS DE NEGOCIO EN JS
+            const periodoInput = document.getElementById('form-periodo');
             const diasInput = document.getElementById('form-dias');
-            if (Number(diasInput.value) <= 0) {
-                 showCustomAlert("Error de Fechas", "El número de días hábiles calculados debe ser mayor a cero. Por favor, verifica las fechas de inicio y finalización.", true);
-                 return;
+            
+            const periodo = Number(periodoInput.value);
+            const diasVacaciones = Number(diasInput.value);
+
+            // REGLA 1: PERIODO (2020 <= PERIODO < 2040)
+            if (periodo < 2020 || periodo >= 2040) {
+                showCustomAlert("Error de Período", "El campo PERIODO debe ser un año entre 2020 y 2039.", true);
+                periodoInput.focus();
+                return;
+            }
+
+            // REGLA 3: DIAS_VACACIONES (DIAS_VACACIONES >= 1)
+            // 🛑 MENSAJE DE ERROR MEJORADO: Unifica la validación de días y la indicación de fechas.
+            if (diasVacaciones < 1) {
+                showCustomAlert("Error de Días", "El número de Días de Vacaciones calculados debe ser igual o mayor a 1. Por favor, verifica que la fecha fin sea siempre mayor a la fecha inicio.", true);
+                document.getElementById('form-dia-inicio').focus();
+                return;
             }
 
             setLoadingState(true);
 
-            // 1. Recopilar datos del formulario
+            // 3. RECOPILAR DATOS Y PREPARAR ENVÍO
             const formData = new FormData(form);
             const dataToSend = {};
             
             for (const [key, value] of formData.entries()) {
                 const trimmedValue = (typeof value === 'string') ? value.trim() : value;
-                
                 let processedValue = trimmedValue;
 
-                // Si son campos numéricos que ahora son TEXT, limpiamos el formato (puntos/comas) antes de convertir a número
                 if (key === 'BONO_VACACIONAL' || key === 'PERIODO') {
-                    // Eliminar separadores de miles (puntos)
                     processedValue = String(trimmedValue).replace(/\./g, '');
                 }
 
-
-                // Los campos numéricos se convierten a número, el resto se añade como string.
                 if (['CEDULA', 'DIAS_VACACIONES', 'BONO_VACACIONAL', 'PERIODO'].includes(key)) {
                     dataToSend[key] = Number(processedValue) || 0;
                 } else {
@@ -846,24 +905,17 @@
                 }
             }
 
-            // 2. AÑADIR/RENOMBRAR PARÁMETROS FIJOS Y AUTO-GENERADOS
-
-            // Desglose del nombre completo (se usa el campo oculto NOMBRE_EMPLEADO_COMPLETO)
-            const fullName = dataToSend['NOMBRE_EMPLEADO_COMPLETO'] || '';
-            const parts = fullName.split(/\s+/).filter(p => p.length > 0);
+            // 4. INYECTAR DATOS DEL EMPLEADO Y DE TRAZABILIDAD
+            dataToSend['NOMBRES'] = nombres;
+            dataToSend['APELLIDOS'] = apellidos;
+            dataToSend['NOMBRE_EMPLEADO'] = formattedEmployeeName;
+            dataToSend['INGRESO'] = workerInfo.INGRESO || 'N/A';
+            dataToSend['EMPRESA'] = workerInfo.EMPRESA || ''; 
             
-            dataToSend['NOMBRES'] = MOCK_EMPLOYEE_INFO.NOMBRES;
-            dataToSend['APELLIDOS'] = MOCK_EMPLOYEE_INFO.APELLIDOS;
-            dataToSend['NOMBRE_EMPLEADO'] = formatEmployeeName(MOCK_EMPLOYEE_INFO); // Nombre formateado para el registro
-            dataToSend['INGRESO'] = MOCK_EMPLOYEE_INFO.INGRESO;
-
-            // CAMPOS FIJOS Y DE TRAZABILIDAD
             dataToSend['VACACION_CONDICION'] = 'Registrada'; 
             dataToSend['RegistroDate'] = new Date().toISOString().split('T')[0]; 
-            dataToSend['EMPRESA'] = 'ACME CORP S.A.'; 
             dataToSend['action'] = 'register_vacation';
             
-            // CAMPOS DEL USUARIO LOGUEADO (Ahora poblados en initializeUserInfo)
             dataToSend['TIENDA'] = USER_INFO.usuarioTienda || 'N/A';
             dataToSend['PERFIL'] = USER_INFO.usuarioPerfil || 'N/A';
             dataToSend['IDX'] = USER_INFO.usuarioIdx || '0';
@@ -871,12 +923,10 @@
 
             console.log('Datos finales a enviar:', dataToSend);
 
-            // 3. Convertir el objeto a cuerpo URL-encoded
+            // 5. ENVÍO REAL A GAS
             const urlEncodedBody = objectToUrlEncoded(dataToSend);
 
-            // 4. INICIO DEL BLOQUE DE ENVÍO REAL A GAS
             try {
-                // Mensaje de carga simple (isDismissible = false para ocultar el botón Aceptar)
                 showCustomAlert("Enviando Datos...", "Intentando conectar con Google Apps Script. Por favor, espere.", false, false);
 
                 const response = await fetch(POST_URL, {
@@ -887,8 +937,6 @@
                 });
                 
                 const gasResponseText = await response.text(); 
-                
-                // Ocultamos la alerta de "Enviando Datos..." inmediatamente después de recibir la respuesta
                 hideCustomAlert();
                 
                 if (!response.ok) {
@@ -898,11 +946,16 @@
                 try {
                     const result = JSON.parse(gasResponseText);
                     if (result.success) {
-                        // Éxito
+                        // Éxito: Muestra alerta y espera la aceptación para redirigir
                         showCustomAlert("¡Éxito en el Registro!", 
-                                        result.message || 'Los datos se han registrado correctamente en la hoja de cálculo.');
-                        loadData();
-                        clearFormFields(); 
+                            result.message || 'Los datos se han registrado correctamente en la hoja de cálculo.',
+                            false, // isError
+                            true,  // isDismissible (Fuerza la aceptación)
+                            () => {
+                                // Callback: Redirige con forceReload al aceptar la alerta
+                                window.location.href = 'Vacaciones.html?reload=true';
+                            }
+                        ); 
                     } else {
                         // Error de lógica en GAS
                         showCustomAlert("Error de Lógica en GAS", {
@@ -1019,7 +1072,7 @@
                 
                 // *** LÓGICA DE REINICIO DE CAMPOS AL CARGAR LA PÁGINA ***
                 const todayDate = getTodayDateString();
-
+                
                 // 1. DÍA DE INICIO: Se mantiene con la fecha de hoy
                 document.getElementById('form-dia-ini').value = todayDate;
                 
@@ -1035,7 +1088,8 @@
                 if (typeof lucide !== 'undefined') {
                     lucide.createIcons();
                 }
-                
+                renderEmployeeDetails();
+
                 // 4. Adjuntar listeners de eventos para el cálculo de días
                 document.getElementById('form-dia-ini').addEventListener('change', updateDaysField);
                 document.getElementById('form-dia-fin').addEventListener('change', updateDaysField);
